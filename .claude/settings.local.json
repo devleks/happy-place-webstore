@@ -15,7 +15,8 @@
       "Bash(gh repo create:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:www.asos.com)"
     ],
     "deny": [],
     "ask": []
