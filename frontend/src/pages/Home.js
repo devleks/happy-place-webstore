@@ -25,12 +25,12 @@ const Home = () => {
       <section className="featured-categories">
         <div className="categories-grid">
           <Link to="/products?category=womens" className="category-card">
-            <div className="category-image" style={{ background: 'linear-gradient(135deg, #e8d5f2 0%, #d4b5e8 100%)' }}>
+            <div className="category-image" style={{ background: 'linear-gradient(135deg, #F5E6E8 0%, #F4D3D7 100%)' }}>
               <h3>Women's Clothing</h3>
             </div>
           </Link>
           <Link to="/products?category=maternity" className="category-card">
-            <div className="category-image" style={{ background: 'linear-gradient(135deg, #f5ebfa 0%, #e8d5f2 100%)' }}>
+            <div className="category-image" style={{ background: 'linear-gradient(135deg, #FFF9F5 0%, #F5E6E8 100%)' }}>
               <h3>Maternity Clothing</h3>
             </div>
           </Link>

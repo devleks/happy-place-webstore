@@ -9,7 +9,7 @@
 
 .products-header h1 {
   font-size: 1.8rem;
-  color: #8a6aa7;
+  color: #722F37;
   margin-bottom: 15px;
   text-transform: uppercase;
   font-weight: 300;
@@ -66,9 +66,9 @@
 }
 
 .page-link.active {
-  background-color: #9b7ab8;
+  background-color: #C9A961;
   color: white;
-  border-color: #9b7ab8;
+  border-color: #C9A961;
 }
 
 @media (max-width: 768px) {

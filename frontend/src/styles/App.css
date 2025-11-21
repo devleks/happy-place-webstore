@@ -70,7 +70,7 @@
 /* Button Styles */
 .btn-primary,
 .btn-primary-large {
-  background-color: #9b7ab8;
+  background-color: #C9A961;
   color: white;
   padding: 14px 36px;
   border-radius: 0;
@@ -90,16 +90,16 @@
 
 .btn-primary:hover,
 .btn-primary-large:hover {
-  background-color: #8a6aa7;
+  background-color: #B8956A;
   opacity: 1;
 }
 
 .btn-secondary,
 .btn-secondary-large {
   background-color: #fff;
-  color: #9b7ab8;
+  color: #722F37;
   padding: 14px 36px;
-  border: 1px solid #9b7ab8;
+  border: 1px solid #C9A961;
   border-radius: 0;
   font-weight: 400;
   transition: all 0.3s;
@@ -117,7 +117,7 @@
 
 .btn-secondary:hover,
 .btn-secondary-large:hover {
-  background-color: #9b7ab8;
+  background-color: #C9A961;
   color: #fff;
   opacity: 1;
 }

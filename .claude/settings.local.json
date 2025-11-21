@@ -6,7 +6,13 @@
       "Bash(npm start)",
       "WebFetch(domain:www.purplessmaternity.com)",
       "Bash(git init:*)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Happy Place webstore\n\nFull-stack e-commerce application for women''s and maternity clothing with physical store location support.\n\nFeatures:\n- React frontend with responsive design\n- Flask backend with RESTful API\n- User authentication with JWT\n- Product catalog with category filtering\n- Unified inventory management (online + store)\n- Store location with map integration\n- Minimalist purple/lilac design theme\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh auth:*)",
+      "Bash(sudo mkdir:*)",
+      "Bash(sudo chown:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh repo create:*)"
     ],
     "deny": [],
     "ask": []

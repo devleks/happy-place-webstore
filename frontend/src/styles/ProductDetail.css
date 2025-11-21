@@ -51,7 +51,7 @@
 .product-price {
   font-size: 1.4rem;
   font-weight: 400;
-  color: #8a6aa7;
+  color: #C9A961;
   margin-bottom: 30px;
 }
 
@@ -107,9 +107,9 @@
 
 .size-button.active,
 .color-button.active {
-  background-color: #9b7ab8;
+  background-color: #C9A961;
   color: white;
-  border-color: #9b7ab8;
+  border-color: #C9A961;
 }
 
 .availability-section {
@@ -147,7 +147,7 @@
 .availability-item.in-stock {
   background-color: transparent;
   color: #777;
-  border-left: 2px solid #9b7ab8;
+  border-left: 2px solid #C9A961;
 }
 
 .availability-item.out-of-stock {

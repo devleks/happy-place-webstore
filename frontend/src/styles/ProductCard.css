@@ -11,7 +11,7 @@
   opacity: 1;
   transform: none;
   box-shadow: none;
-  border-color: #d4b5e8;
+  border-color: #F4D3D7;
 }
 
 .product-link {
@@ -62,5 +62,5 @@
 .product-price {
   font-size: 1.1rem;
   font-weight: 400;
-  color: #8a6aa7;
+  color: #C9A961;
 }
