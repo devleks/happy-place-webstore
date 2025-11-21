@@ -110,23 +110,17 @@ const StoreLocation = () => {
         </div>
 
         <div className="map-section">
-          <div className="map-placeholder">
-            <div className="map-link-container">
-              <svg className="map-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-              <h3>Visit Us at Our Store</h3>
-              <p>Click below to view our location and get directions</p>
-              <a
-                href="https://maps.app.goo.gl/bxYZSxqY3RiBhE6a8"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary-large"
-              >
-                View on Google Maps
-              </a>
-            </div>
+          <div className="map-container">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.7549935192574!2d36.79894054026614!3d-1.322830198670181!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f106a25f9e90b%3A0x1b9de7f24625c365!2sBethel%20Business%20Centre!5e0!3m2!1sen!2sus!4v1763751744617!5m2!1sen!2sus"
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Happy Place Boutique Location Map"
+            ></iframe>
           </div>
         </div>
       </div>
