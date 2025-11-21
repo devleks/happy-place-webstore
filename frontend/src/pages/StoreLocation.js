@@ -82,7 +82,7 @@ const StoreLocation = () => {
 
             <div className="info-group">
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`}
+                href="https://maps.app.goo.gl/bxYZSxqY3RiBhE6a8"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary"
@@ -95,21 +95,22 @@ const StoreLocation = () => {
 
         <div className="map-section">
           <div className="map-placeholder">
-            <p>Map View</p>
-            <p className="map-coordinates">
-              Lat: {location.latitude}, Long: {location.longitude}
-            </p>
-            <p className="map-note">
-              To display an actual map, integrate with Google Maps API or similar service
-            </p>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-            >
-              View on Google Maps
-            </a>
+            <div className="map-link-container">
+              <svg className="map-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <h3>Visit Us at Our Store</h3>
+              <p>Click below to view our location and get directions</p>
+              <a
+                href="https://maps.app.goo.gl/bxYZSxqY3RiBhE6a8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary-large"
+              >
+                View on Google Maps
+              </a>
+            </div>
           </div>
         </div>
       </div>
