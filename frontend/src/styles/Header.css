@@ -84,6 +84,42 @@
   gap: 20px;
 }
 
+.icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.icon-link:hover {
+  color: #722F37;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+}
+
+.cart-link {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #722F37;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
 .welcome-text {
   color: #777;
   font-size: 0.85rem;
