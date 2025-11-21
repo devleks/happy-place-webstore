@@ -317,11 +317,12 @@
   }
 
   .search-button {
-    display: none;
+    padding: 4px;
   }
 
   .search-icon {
-    display: none;
+    width: 15px;
+    height: 15px;
   }
 
   .icon {
@@ -364,6 +365,15 @@
   .search-input {
     font-size: 0.65rem;
     padding: 3px 4px;
+  }
+
+  .search-button {
+    padding: 3px;
+  }
+
+  .search-icon {
+    width: 14px;
+    height: 14px;
   }
 
   .icon {
