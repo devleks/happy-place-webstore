@@ -48,13 +48,85 @@
 .section-title {
   font-size: 1.8rem;
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 80px;
   color: #722F37;
   font-weight: 300;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
 
+.category-section {
+  margin-bottom: 80px;
+}
+
+.category-section-title {
+  font-size: 1.4rem;
+  color: #722F37;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.category-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+
+.featured-product-card {
+  display: block;
+  background: white;
+  border: 1px solid #e5e5e5;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.featured-product-card:hover {
+  border-color: #B76E79;
+  transform: translateY(-5px);
+}
+
+.featured-product-image {
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.featured-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-product-info {
+  padding: 20px;
+  text-align: center;
+}
+
+.featured-product-name {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #333;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.featured-product-price {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #D4AF37;
+}
+
+.category-link-wrapper {
+  text-align: center;
+}
+
+/* Legacy styles - keeping for backwards compatibility */
 .categories-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -127,6 +199,15 @@
     letter-spacing: 2px;
   }
 
+  .category-products-grid {
+    gap: 30px;
+    max-width: 700px;
+  }
+
+  .category-section {
+    margin-bottom: 60px;
+  }
+
   .categories-grid {
     max-width: 700px;
     gap: 25px;
@@ -171,6 +252,28 @@
 
   .featured-categories {
     margin-bottom: 60px;
+  }
+
+  .category-section {
+    margin-bottom: 50px;
+  }
+
+  .category-section-title {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+
+  .category-products-grid {
+    gap: 25px;
+    max-width: 100%;
+  }
+
+  .featured-product-name {
+    font-size: 0.95rem;
+  }
+
+  .featured-product-price {
+    font-size: 1.1rem;
   }
 
   .categories-grid {
@@ -225,10 +328,38 @@
   .section-title {
     font-size: 1.2rem;
     letter-spacing: 1.5px;
+    margin-bottom: 50px;
   }
 
   .featured-categories {
     margin-bottom: 40px;
+  }
+
+  .category-section {
+    margin-bottom: 40px;
+  }
+
+  .category-section-title {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+  }
+
+  .category-products-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .featured-product-info {
+    padding: 15px;
+  }
+
+  .featured-product-name {
+    font-size: 0.9rem;
+  }
+
+  .featured-product-price {
+    font-size: 1rem;
   }
 
   .categories-grid {

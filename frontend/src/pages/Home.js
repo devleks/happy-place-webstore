@@ -23,17 +23,62 @@ const Home = () => {
       </section>
 
       <section className="featured-categories">
-        <div className="categories-grid">
-          <Link to="/products?category=womens" className="category-card">
-            <div className="category-image" style={{ background: 'linear-gradient(135deg, #F7DFD4 0%, #F4E4E6 100%)' }}>
-              <h3>Women's Clothing</h3>
-            </div>
-          </Link>
-          <Link to="/products?category=maternity" className="category-card">
-            <div className="category-image" style={{ background: 'linear-gradient(135deg, #FFF5F0 0%, #F7DFD4 100%)' }}>
-              <h3>Maternity Clothing</h3>
-            </div>
-          </Link>
+        <h2 className="section-title">Shop by Category</h2>
+
+        {/* Women's Clothing Section */}
+        <div className="category-section">
+          <h3 className="category-section-title">Women's Clothing</h3>
+          <div className="category-products-grid">
+            <Link to="/products/classic-cotton-tshirt" className="featured-product-card">
+              <div className="featured-product-image">
+                <img src="https://via.placeholder.com/400x600/F7DFD4/722F37?text=Cotton+T-Shirt" alt="Classic Cotton T-Shirt" />
+              </div>
+              <div className="featured-product-info">
+                <h4 className="featured-product-name">Classic Cotton T-Shirt</h4>
+                <p className="featured-product-price">$29.99</p>
+              </div>
+            </Link>
+            <Link to="/products/elegant-blouse" className="featured-product-card">
+              <div className="featured-product-image">
+                <img src="https://via.placeholder.com/400x600/F4E4E6/722F37?text=Elegant+Blouse" alt="Elegant Blouse" />
+              </div>
+              <div className="featured-product-info">
+                <h4 className="featured-product-name">Elegant Blouse</h4>
+                <p className="featured-product-price">$49.99</p>
+              </div>
+            </Link>
+          </div>
+          <div className="category-link-wrapper">
+            <Link to="/products?category=womens" className="btn-secondary-large">View All Women's</Link>
+          </div>
+        </div>
+
+        {/* Maternity Clothing Section */}
+        <div className="category-section">
+          <h3 className="category-section-title">Maternity Clothing</h3>
+          <div className="category-products-grid">
+            <Link to="/products/maternity-basic-tee" className="featured-product-card">
+              <div className="featured-product-image">
+                <img src="https://via.placeholder.com/400x600/FFF5F0/722F37?text=Maternity+Tee" alt="Maternity Basic Tee" />
+              </div>
+              <div className="featured-product-info">
+                <h4 className="featured-product-name">Maternity Basic Tee</h4>
+                <p className="featured-product-price">$34.99</p>
+              </div>
+            </Link>
+            <Link to="/products/maternity-wrap-top" className="featured-product-card">
+              <div className="featured-product-image">
+                <img src="https://via.placeholder.com/400x600/F7DFD4/722F37?text=Wrap+Top" alt="Maternity Wrap Top" />
+              </div>
+              <div className="featured-product-info">
+                <h4 className="featured-product-name">Maternity Wrap Top</h4>
+                <p className="featured-product-price">$54.99</p>
+              </div>
+            </Link>
+          </div>
+          <div className="category-link-wrapper">
+            <Link to="/products?category=maternity" className="btn-secondary-large">View All Maternity</Link>
+          </div>
         </div>
       </section>
 
