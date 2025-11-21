@@ -26,19 +26,8 @@ const Header = () => {
       <div className="header-container">
         <div className="header-top">
           <Link to="/" className="logo">
-            <h1>Happy Place Boutique</h1>
+            <h1>Happy Place</h1>
           </Link>
-
-          <form className="search-form" onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-            />
-            <button type="submit" className="search-button">Search</button>
-          </form>
 
           <div className="user-actions">
             <Link to="/wishlist" className="icon-link" title="Wishlist">
@@ -66,6 +55,17 @@ const Header = () => {
               </>
             )}
           </div>
+
+          <form className="search-form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            <button type="submit" className="search-button">Search</button>
+          </form>
         </div>
 
         <nav className="nav">
