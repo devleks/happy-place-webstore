@@ -1,0 +1,141 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 60px 40px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 30px 15px;
+  }
+}
+
+.footer {
+  background-color: #ffffff;
+  color: #777;
+  padding: 40px 20px;
+  text-align: center;
+  margin-top: 80px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-weight: 300;
+  font-size: 0.9rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.1rem;
+  color: #999;
+  font-weight: 300;
+}
+
+.error {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.1rem;
+  color: #777;
+  font-weight: 300;
+}
+
+.error-message {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #777;
+  padding: 16px;
+  border-radius: 0;
+  margin-bottom: 20px;
+  font-weight: 300;
+}
+
+/* Button Styles */
+.btn-primary,
+.btn-primary-large {
+  background-color: #9b7ab8;
+  color: white;
+  padding: 14px 36px;
+  border-radius: 0;
+  font-weight: 400;
+  transition: all 0.3s;
+  display: inline-block;
+  text-align: center;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.btn-primary-large {
+  padding: 18px 48px;
+  font-size: 0.9rem;
+}
+
+.btn-primary:hover,
+.btn-primary-large:hover {
+  background-color: #8a6aa7;
+  opacity: 1;
+}
+
+.btn-secondary,
+.btn-secondary-large {
+  background-color: #fff;
+  color: #9b7ab8;
+  padding: 14px 36px;
+  border: 1px solid #9b7ab8;
+  border-radius: 0;
+  font-weight: 400;
+  transition: all 0.3s;
+  display: inline-block;
+  text-align: center;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.btn-secondary-large {
+  padding: 18px 48px;
+  font-size: 0.9rem;
+}
+
+.btn-secondary:hover,
+.btn-secondary-large:hover {
+  background-color: #9b7ab8;
+  color: #fff;
+  opacity: 1;
+}
+
+.btn-link {
+  background: none;
+  color: #777;
+  padding: 8px 16px;
+  font-weight: 300;
+  transition: opacity 0.3s;
+}
+
+.btn-link:hover {
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

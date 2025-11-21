@@ -1,0 +1,332 @@
+.store-location-page {
+  padding: 60px 0;
+}
+
+.store-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.store-header h1 {
+  font-size: 1.8rem;
+  color: #8a6aa7;
+  margin-bottom: 20px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.store-subtitle {
+  font-size: 1rem;
+  color: #777;
+  font-weight: 300;
+}
+
+.store-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin-bottom: 80px;
+}
+
+.store-info-section {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.info-card h2 {
+  font-size: 1.4rem;
+  color: #333;
+  margin-bottom: 40px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.info-group {
+  margin-bottom: 40px;
+}
+
+.info-group h3 {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-group p {
+  color: #777;
+  line-height: 2;
+  margin-bottom: 8px;
+  font-weight: 300;
+}
+
+.info-group a {
+  color: #333;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.info-group a:hover {
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hours-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.day {
+  font-weight: 600;
+  color: #333;
+}
+
+.time {
+  color: #666;
+}
+
+.map-section {
+  background-color: #fafafa;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+}
+
+.map-placeholder {
+  height: 100%;
+  min-height: 500px;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.map-placeholder p {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  font-weight: 300;
+}
+
+.map-coordinates {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 25px;
+  font-weight: 300;
+}
+
+.map-note {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 30px;
+  font-weight: 300;
+}
+
+.visit-info {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.visit-info h2 {
+  font-size: 1.6rem;
+  color: #8a6aa7;
+  margin-bottom: 60px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.visit-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 50px;
+}
+
+.feature {
+  padding: 0;
+}
+
+.feature h3 {
+  font-size: 1.1rem;
+  color: #9b7ab8;
+  margin-bottom: 15px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.feature p {
+  color: #777;
+  line-height: 2;
+  font-weight: 300;
+}
+
+@media (max-width: 1024px) {
+  .store-location-page {
+    padding: 40px 0;
+  }
+
+  .store-header {
+    margin-bottom: 60px;
+  }
+
+  .store-content {
+    gap: 40px;
+    margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .store-location-page {
+    padding: 30px 0;
+  }
+
+  .store-header {
+    margin-bottom: 40px;
+  }
+
+  .store-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .store-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .store-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+
+  .info-card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+
+  .info-group h3 {
+    font-size: 0.8rem;
+  }
+
+  .info-group p {
+    font-size: 0.9rem;
+  }
+
+  .hours-item {
+    font-size: 0.9rem;
+  }
+
+  .map-placeholder {
+    min-height: 300px;
+    padding: 40px 20px;
+  }
+
+  .visit-info {
+    padding: 40px 0;
+  }
+
+  .visit-info h2 {
+    font-size: 1.3rem;
+    margin-bottom: 40px;
+  }
+
+  .visit-features {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .feature h3 {
+    font-size: 1rem;
+  }
+
+  .feature p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .store-location-page {
+    padding: 20px 0;
+  }
+
+  .store-header h1 {
+    font-size: 1.2rem;
+    letter-spacing: 1.5px;
+  }
+
+  .store-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .store-content {
+    gap: 25px;
+    margin-bottom: 40px;
+  }
+
+  .info-card h2 {
+    font-size: 1.1rem;
+  }
+
+  .info-group {
+    margin-bottom: 30px;
+  }
+
+  .info-group h3 {
+    font-size: 0.75rem;
+  }
+
+  .info-group p {
+    font-size: 0.85rem;
+  }
+
+  .hours-item {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 0.85rem;
+  }
+
+  .map-placeholder {
+    min-height: 250px;
+    padding: 30px 15px;
+  }
+
+  .map-placeholder p {
+    font-size: 0.85rem;
+  }
+
+  .visit-info {
+    padding: 30px 0;
+  }
+
+  .visit-info h2 {
+    font-size: 1.1rem;
+    margin-bottom: 35px;
+  }
+
+  .feature h3 {
+    font-size: 0.95rem;
+  }
+
+  .feature p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+}

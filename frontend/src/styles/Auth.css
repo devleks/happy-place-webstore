@@ -1,0 +1,153 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 400px);
+  padding: 80px 20px;
+}
+
+.auth-container {
+  background-color: white;
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid #e5e5e5;
+  padding: 60px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.auth-title {
+  font-size: 1.6rem;
+  color: #333;
+  margin-bottom: 40px;
+  text-align: center;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 400;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-input {
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  background: transparent;
+  font-size: 0.95rem;
+  transition: border-color 0.3s;
+  font-weight: 300;
+  color: #777;
+}
+
+.form-input:focus {
+  outline: none;
+  border-bottom-color: #777;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 30px;
+  color: #777;
+  font-weight: 300;
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: #9b7ab8;
+  font-weight: 400;
+  transition: opacity 0.3s;
+}
+
+.auth-footer a:hover {
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 60px 20px;
+    min-height: calc(100vh - 350px);
+  }
+
+  .auth-container {
+    padding: 40px;
+    max-width: 450px;
+  }
+
+  .auth-title {
+    font-size: 1.4rem;
+    margin-bottom: 30px;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .form-input {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 40px 15px;
+  }
+
+  .auth-container {
+    padding: 30px 20px;
+    max-width: 100%;
+  }
+
+  .auth-title {
+    font-size: 1.2rem;
+    letter-spacing: 1.5px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .form-group label {
+    font-size: 0.75rem;
+  }
+
+  .form-input {
+    padding: 11px 12px;
+    font-size: 0.85rem;
+  }
+
+  .btn-primary-large {
+    padding: 14px 32px;
+    font-size: 0.8rem;
+  }
+
+  .auth-footer {
+    font-size: 0.85rem;
+  }
+}
