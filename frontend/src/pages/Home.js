@@ -31,7 +31,7 @@ const Home = () => {
           <div className="category-products-grid">
             <Link to="/products/classic-cotton-tshirt" className="featured-product-card">
               <div className="featured-product-image">
-                <img src="https://via.placeholder.com/400x600/F7DFD4/722F37?text=Cotton+T-Shirt" alt="Classic Cotton T-Shirt" />
+                <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80" alt="Classic Cotton T-Shirt" />
               </div>
               <div className="featured-product-info">
                 <h4 className="featured-product-name">Classic Cotton T-Shirt</h4>
@@ -40,7 +40,7 @@ const Home = () => {
             </Link>
             <Link to="/products/elegant-blouse" className="featured-product-card">
               <div className="featured-product-image">
-                <img src="https://via.placeholder.com/400x600/F4E4E6/722F37?text=Elegant+Blouse" alt="Elegant Blouse" />
+                <img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=400&h=600&fit=crop&q=80" alt="Elegant Blouse" />
               </div>
               <div className="featured-product-info">
                 <h4 className="featured-product-name">Elegant Blouse</h4>
@@ -59,7 +59,7 @@ const Home = () => {
           <div className="category-products-grid">
             <Link to="/products/maternity-basic-tee" className="featured-product-card">
               <div className="featured-product-image">
-                <img src="https://via.placeholder.com/400x600/FFF5F0/722F37?text=Maternity+Tee" alt="Maternity Basic Tee" />
+                <img src="https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=400&h=600&fit=crop&q=80" alt="Maternity Basic Tee" />
               </div>
               <div className="featured-product-info">
                 <h4 className="featured-product-name">Maternity Basic Tee</h4>
@@ -68,7 +68,7 @@ const Home = () => {
             </Link>
             <Link to="/products/maternity-wrap-top" className="featured-product-card">
               <div className="featured-product-image">
-                <img src="https://via.placeholder.com/400x600/F7DFD4/722F37?text=Wrap+Top" alt="Maternity Wrap Top" />
+                <img src="https://images.unsplash.com/photo-1584363091550-0317fa71d41d?w=400&h=600&fit=crop&q=80" alt="Maternity Wrap Top" />
               </div>
               <div className="featured-product-info">
                 <h4 className="featured-product-name">Maternity Wrap Top</h4>
