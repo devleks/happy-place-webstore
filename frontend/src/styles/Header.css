@@ -76,19 +76,24 @@
 .search-button {
   background-color: transparent;
   color: #777;
-  padding: 8px 12px;
+  padding: 8px;
   border: none;
   border-bottom: 1px solid #ddd;
-  font-weight: 300;
-  transition: opacity 0.3s;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  transition: color 0.3s, opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .search-button:hover {
-  opacity: 0.6;
+  color: #722F37;
   background-color: transparent;
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
 }
 
 
@@ -254,8 +259,12 @@
   }
 
   .search-button {
-    font-size: 0.7rem;
-    padding: 5px 6px;
+    padding: 5px;
+  }
+
+  .search-icon {
+    width: 16px;
+    height: 16px;
   }
 
   .user-actions {
@@ -308,6 +317,10 @@
   }
 
   .search-button {
+    display: none;
+  }
+
+  .search-icon {
     display: none;
   }
 
