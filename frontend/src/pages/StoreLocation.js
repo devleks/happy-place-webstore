@@ -9,10 +9,10 @@ const StoreLocation = () => {
   // Fallback store data if backend doesn't have it yet
   const fallbackLocation = {
     name: 'Happy Place Boutique',
-    address: '123 Main Street',
-    city: 'Your City',
-    state: 'ST',
-    zip_code: '12345',
+    address: 'Store No. 22, 1st Floor, Bethel Business Centre, Opp. Uhuru Gardens, Langata Rd.',
+    city: 'Nairobi',
+    state: 'Kenya',
+    zip_code: '',
     phone: '(555) 123-4567',
     email: 'info@happyplaceboutique.com',
     hours_of_operation: JSON.stringify({
