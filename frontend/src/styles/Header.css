@@ -48,18 +48,18 @@
 
 .search-form {
   flex: 0 0 auto;
-  width: 200px;
+  width: 180px;
   display: flex;
   gap: 0;
 }
 
 .search-input {
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border: none;
   border-bottom: 1px solid #ddd;
   background: transparent;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #777;
   font-weight: 300;
 }
@@ -186,7 +186,7 @@
   }
 
   .search-form {
-    width: 220px;
+    width: 200px;
   }
 }
 
@@ -201,7 +201,7 @@
   }
 
   .search-form {
-    width: 160px;
+    width: 140px;
   }
 
   .user-actions {
@@ -250,7 +250,7 @@
   }
 
   .search-form {
-    width: 120px;
+    width: 105px;
   }
 
   .search-input {
@@ -308,7 +308,7 @@
   }
 
   .search-form {
-    width: 100px;
+    width: 90px;
   }
 
   .search-input {
@@ -359,7 +359,7 @@
   }
 
   .search-form {
-    width: 75px;
+    width: 70px;
   }
 
   .search-input {
