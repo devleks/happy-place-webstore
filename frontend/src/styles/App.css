@@ -70,7 +70,7 @@
 /* Button Styles */
 .btn-primary,
 .btn-primary-large {
-  background-color: #C9A961;
+  background-color: #B76E79;
   color: white;
   padding: 14px 36px;
   border-radius: 0;
@@ -90,7 +90,7 @@
 
 .btn-primary:hover,
 .btn-primary-large:hover {
-  background-color: #B8956A;
+  background-color: #A35D68;
   opacity: 1;
 }
 
@@ -99,7 +99,7 @@
   background-color: #fff;
   color: #722F37;
   padding: 14px 36px;
-  border: 1px solid #C9A961;
+  border: 1px solid #B76E79;
   border-radius: 0;
   font-weight: 400;
   transition: all 0.3s;
@@ -117,7 +117,7 @@
 
 .btn-secondary:hover,
 .btn-secondary-large:hover {
-  background-color: #C9A961;
+  background-color: #B76E79;
   color: #fff;
   opacity: 1;
 }

@@ -66,9 +66,9 @@
 }
 
 .page-link.active {
-  background-color: #C9A961;
+  background-color: #D4AF37;
   color: white;
-  border-color: #C9A961;
+  border-color: #D4AF37;
 }
 
 @media (max-width: 768px) {

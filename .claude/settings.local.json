@@ -12,7 +12,8 @@
       "Bash(sudo mkdir:*)",
       "Bash(sudo chown:*)",
       "Bash(gh repo view:*)",
-      "Bash(gh repo create:*)"
+      "Bash(gh repo create:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
