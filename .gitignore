@@ -18,6 +18,9 @@ build/
 # Environment
 .env
 .env.local
+.env.mcp
+.env.*
+!.env.mcp.template
 
 # IDE
 .vscode/
