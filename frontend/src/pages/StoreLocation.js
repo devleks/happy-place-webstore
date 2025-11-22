@@ -9,7 +9,8 @@ const StoreLocation = () => {
   // Fallback store data if backend doesn't have it yet
   const fallbackLocation = {
     name: 'Happy Place Boutique',
-    address: 'Store No. 22, 1st Floor, Bethel Business Centre, Opp. Uhuru Gardens, Langata Rd.',
+    address: 
+	"Store No. 22, 1st Floor, Bethel Business Centre, Opposite Uhuru Gardens, Langata Rd.",
     city: 'Nairobi',
     state: 'Kenya',
     zip_code: '',
@@ -18,7 +19,7 @@ const StoreLocation = () => {
     hours_of_operation: JSON.stringify({
       'Monday - Friday': '10:00 AM - 7:00 PM',
       'Saturday': '10:00 AM - 6:00 PM',
-      'Sunday': '12:00 PM - 5:00 PM'
+      'Sunday': 'Closed'
     })
   };
 
@@ -49,8 +50,9 @@ const StoreLocation = () => {
   if (loading) return <div className="loading">Loading store location...</div>;
 
   const hours = location.hours_of_operation ? JSON.parse(location.hours_of_operation) : {};
-
-  return (
+  //const address = location.address ? JSON.parse(location.address) : {};
+  
+return (
     <div className="store-location-page">
       <div className="store-header">
         <h1>Visit Our Store</h1>
