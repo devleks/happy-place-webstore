@@ -59,7 +59,64 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 2: Shopping Cart & Wishlist
+## Phase 2: Backend API - Inventory & Image Management
+
+**Goal:** Build essential backend APIs for product management, inventory control, and image uploads
+
+### Inventory Management API
+- [ ] Create admin authentication/authorization middleware
+- [ ] Build inventory CRUD endpoints:
+  - `POST /api/admin/inventory` - Add inventory for product variant
+  - `PUT /api/admin/inventory/:id` - Update inventory quantities
+  - `DELETE /api/admin/inventory/:id` - Remove inventory variant
+  - `GET /api/admin/inventory` - List all inventory with filters
+- [ ] Add bulk inventory update endpoint
+- [ ] Implement inventory adjustment logging (track changes)
+- [ ] Add low-stock alert thresholds
+- [ ] Create inventory sync endpoint (online ↔ store transfer)
+
+### Image Upload & Management
+- [ ] Set up image storage strategy:
+  - Local filesystem storage (development)
+  - Cloud storage integration (AWS S3, Cloudinary, or DigitalOcean Spaces)
+- [ ] Implement image upload endpoint:
+  - `POST /api/admin/products/:id/images` - Upload product images
+  - Support multiple images per product
+  - Image validation (file type, size limits)
+- [ ] Add image processing:
+  - Resize/optimize images for web
+  - Generate thumbnails
+  - WebP conversion for performance
+- [ ] Create image management endpoints:
+  - `GET /api/products/:id/images` - List product images
+  - `DELETE /api/admin/images/:id` - Delete image
+  - `PUT /api/admin/images/:id/primary` - Set primary image
+- [ ] Update Product model to support multiple images:
+  - Create ProductImage model/table
+  - Relationship: Product → ProductImages (one-to-many)
+  - Track image order, alt text, primary flag
+
+### Product Management API Enhancement
+- [ ] Admin product CRUD endpoints:
+  - `POST /api/admin/products` - Create product
+  - `PUT /api/admin/products/:id` - Update product
+  - `DELETE /api/admin/products/:id` - Soft delete (set is_active=False)
+- [ ] Add product validation and business rules
+- [ ] Implement product search/filtering for admin
+
+### Backend Requirements
+- [ ] Install Flask-Uploads or similar for file handling
+- [ ] Add PIL/Pillow for image processing
+- [ ] Configure file upload size limits
+- [ ] Set up CORS for file uploads
+- [ ] Add admin role to User model
+- [ ] Create admin authorization decorators
+
+**Estimated Duration:** 2-3 weeks
+
+---
+
+## Phase 3: Shopping Cart & Wishlist
 
 **Goal:** Enable customers to add items to cart and save favorites
 
@@ -91,7 +148,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 3: Checkout & Payment Integration
+## Phase 4: Checkout & Payment Integration
 
 **Goal:** Complete the purchase flow with M-Pesa payment integration for Kenya
 
@@ -133,7 +190,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 4: Order Management & Customer Account
+## Phase 5: Order Management & Customer Account
 
 **Goal:** Allow customers to track orders and manage their account
 
@@ -161,22 +218,24 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 5: Admin Dashboard
+## Phase 6: Admin Dashboard Frontend
 
-**Goal:** Provide store management capabilities
+**Goal:** Build admin interface for store management (backend APIs built in Phase 2)
 
-### Product Management
-- [ ] Admin login and authentication
-- [ ] Product CRUD operations (Create, Read, Update, Delete)
-- [ ] Image upload for products
-- [ ] Category management
-- [ ] Bulk product import/export
+### Product Management UI
+- [ ] Admin login page and protected routes
+- [ ] Product list page with search/filter
+- [ ] Product create/edit forms
+- [ ] Image upload interface (drag & drop)
+- [ ] Category management interface
+- [ ] Bulk product import/export tools
 
-### Inventory Management
-- [ ] View current stock levels (online + store)
-- [ ] Update inventory quantities
-- [ ] Set low-stock alerts
-- [ ] Track inventory movements
+### Inventory Management UI
+- [ ] Inventory dashboard showing stock levels (online + store)
+- [ ] Quick inventory update interface
+- [ ] Low-stock alerts display
+- [ ] Inventory adjustment history
+- [ ] Stock transfer interface (online ↔ store)
 
 ### Order Management
 - [ ] View all orders
@@ -185,22 +244,24 @@ See [README.md](README.md) for detailed setup instructions.
 - [ ] Manage returns/refunds
 
 ### Analytics Dashboard
-- [ ] Sales statistics
-- [ ] Popular products
-- [ ] Revenue reports
-- [ ] Customer insights
+- [ ] Sales statistics and charts
+- [ ] Popular products tracking
+- [ ] Revenue reports (daily, weekly, monthly)
+- [ ] Customer insights and metrics
+- [ ] Export reports to CSV/PDF
 
-### Backend Requirements
-- [ ] Create Admin role and permissions
-- [ ] Build admin API endpoints with authorization
-- [ ] Implement file upload for images
-- [ ] Create analytics queries
+### Frontend Requirements
+- [ ] Build admin layout/navigation
+- [ ] Create reusable admin components (tables, forms, charts)
+- [ ] Implement admin routing and guards
+- [ ] Add data visualization library (Chart.js or Recharts)
+- [ ] File upload UI components
 
 **Estimated Duration:** 3-4 weeks
 
 ---
 
-## Phase 6: Advanced Features & Optimization
+## Phase 7: Advanced Features & Optimization
 
 **Goal:** Enhance functionality and performance
 
@@ -234,7 +295,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 7: Deployment & Production
+## Phase 8: Deployment & Production
 
 **Goal:** Launch the application to production
 
@@ -263,12 +324,27 @@ See [README.md](README.md) for detailed setup instructions.
 ## Priority Notes
 
 ### Immediate Next Steps (After Phase 1)
-1. Implement shopping cart functionality (Phase 2)
-2. Build wishlist feature (Phase 2)
-3. Begin M-Pesa integration research (Phase 3)
+1. **Phase 2: Backend API Development**
+   - Build inventory management API endpoints
+   - Implement image upload and storage
+   - Add admin authentication and product management APIs
+2. **Phase 3: Shopping Cart & Wishlist**
+   - Implement cart functionality with localStorage
+   - Build wishlist feature
+3. **Phase 4: M-Pesa Payment Integration**
+   - Begin M-Pesa Daraja API research and setup
+   - Implement checkout flow with M-Pesa STK Push
 
 ### Critical Dependencies
-- **M-Pesa Integration** requires:
+- **Image Upload & Storage** (Phase 2) requires:
+  - Choice of storage solution:
+    - **Development:** Local filesystem
+    - **Production:** Cloud storage (AWS S3, Cloudinary, or DigitalOcean Spaces)
+  - Image processing library (Pillow)
+  - File upload size limits configuration
+  - CORS configuration for file uploads
+
+- **M-Pesa Integration** (Phase 4) requires:
   - M-Pesa developer account with Safaricom
   - Testing phone numbers for sandbox environment
   - Production credentials for live deployment
