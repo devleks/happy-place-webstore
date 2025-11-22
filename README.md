@@ -18,7 +18,7 @@ A full-stack e-commerce web application for women's and maternity clothing with 
 - Flask (Web framework)
 - SQLAlchemy (ORM)
 - Flask-JWT-Extended (Authentication)
-- PostgreSQL/SQLite (Database)
+- PostgreSQL (Database)
 
 ### Frontend
 - React 18
@@ -54,37 +54,62 @@ happy_place_webstore/
 
 ### Backend Setup
 
-1. **Navigate to backend directory:**
+1. **Install and set up PostgreSQL:**
+
+   - **macOS:**
+     ```bash
+     brew install postgresql@14
+     brew services start postgresql@14
+     createdb happy_place_db
+     ```
+
+   - **Ubuntu/Debian:**
+     ```bash
+     sudo apt-get update
+     sudo apt-get install postgresql postgresql-contrib
+     sudo systemctl start postgresql
+     sudo -u postgres createdb happy_place_db
+     ```
+
+   - **Windows:**
+     - Download and install PostgreSQL from [postgresql.org](https://www.postgresql.org/download/windows/)
+     - Use pgAdmin or command line to create database `happy_place_db`
+
+2. **Navigate to backend directory:**
    ```bash
    cd backend
    ```
 
-2. **Create a virtual environment:**
+3. **Create a virtual environment:**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install dependencies:**
+4. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables:**
+5. **Set up environment variables:**
    ```bash
    cp .env.example .env
    ```
 
    Edit `.env` and update the following:
    - `JWT_SECRET_KEY`: Your secret key for JWT tokens
-   - `DATABASE_URL`: Your database connection string (optional, defaults to SQLite)
+   - `DATABASE_URL`: PostgreSQL connection string
+     ```
+     DATABASE_URL=postgresql://username:password@localhost:5432/happy_place_db
+     ```
+     Replace `username` and `password` with your PostgreSQL credentials
 
-5. **Initialize the database with sample data:**
+6. **Initialize the database with sample data:**
    ```bash
    python seed.py
    ```
 
-6. **Run the Flask server:**
+7. **Run the Flask server:**
    ```bash
    python app.py
    ```
@@ -146,7 +171,7 @@ The seed script creates:
 - 7 categories (Women's Tops, Bottoms, Dresses, Maternity Tops, Bottoms, Dresses, Nursing Wear)
 - 11 sample products with multiple sizes and colors
 - Inventory for all product variants
-- 1 physical store location in San Francisco
+- 1 physical store location (Happy Place Boutique in Nairobi, Kenya)
 
 ## Development
 

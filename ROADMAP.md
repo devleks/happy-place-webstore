@@ -1,5 +1,44 @@
 # Happy Place Boutique - Development Roadmap
 
+## Tech Stack
+
+**Frontend:**
+- React 18 (UI framework)
+- React Router v6 (Client-side routing)
+- Axios (HTTP client)
+- CSS3 (Styling with responsive design)
+
+**Backend:**
+- Python 3.x with Flask (Web framework)
+- SQLAlchemy (ORM)
+- Flask-JWT-Extended (Authentication)
+- PostgreSQL (Database - used throughout all phases)
+
+**Payment:**
+- M-Pesa Daraja API (Primary payment method for Kenya)
+
+---
+
+## Prerequisites
+
+Before starting development phases, ensure the following are set up:
+
+**Database Setup:**
+- [ ] PostgreSQL installed locally (macOS: Homebrew, Linux: apt/yum, Windows: PostgreSQL installer)
+- [ ] Database `happy_place_db` created
+- [ ] Database connection string configured in `.env` file
+- [ ] Initial database schema created (run `python seed.py`)
+
+**Development Environment:**
+- [ ] Python 3.x installed
+- [ ] Node.js and npm installed
+- [ ] Backend virtual environment created
+- [ ] Frontend dependencies installed
+
+See [README.md](README.md) for detailed setup instructions.
+
+---
+
 ## Phase 1: UI/UX Quick Wins ✅ COMPLETED
 
 **Goal:** Improve user experience with immediate visual and functional enhancements
@@ -200,15 +239,16 @@
 **Goal:** Launch the application to production
 
 ### Deployment Tasks
-- [ ] Set up production database (PostgreSQL)
+- [ ] Set up production PostgreSQL database (managed service)
 - [ ] Configure production environment variables
 - [ ] Deploy backend to cloud service (Heroku, AWS, DigitalOcean)
 - [ ] Deploy frontend to hosting service (Netlify, Vercel)
 - [ ] Set up domain name and SSL certificate
-- [ ] Configure M-Pesa production credentials
-- [ ] Set up automated backups
-- [ ] Implement monitoring and logging
+- [ ] Configure M-Pesa production credentials (live Daraja API)
+- [ ] Set up automated database backups
+- [ ] Implement monitoring and logging (error tracking, performance)
 - [ ] Load testing and performance optimization
+- [ ] Database migration from development to production
 
 ### Documentation
 - [ ] User guide for customers
@@ -251,9 +291,11 @@
 - **Alternative:** Cash on Delivery for backup option
 
 ### Deployment
-- **Backend:** Heroku or DigitalOcean (Flask app)
+- **Backend:** Heroku, AWS, or DigitalOcean (Flask app)
 - **Frontend:** Vercel or Netlify (React app)
-- **Database:** PostgreSQL (production)
+- **Database:** PostgreSQL (development and production)
+  - Development: Local PostgreSQL instance
+  - Production: Managed PostgreSQL service (AWS RDS, Heroku Postgres, DigitalOcean Managed Database)
 
 ### Future Considerations
 - Integration with other payment methods (Airtel Money, PayPal)
