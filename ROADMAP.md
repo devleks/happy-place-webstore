@@ -116,9 +116,122 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 3: Shopping Cart & Wishlist
+## Phase 3: Point of Sale (POS) System for Physical Store
 
-**Goal:** Enable customers to add items to cart and save favorites
+**Goal:** Build a complete POS system for in-store transactions using shared PostgreSQL database
+
+### POS Terminal Interface
+- [ ] Create POS desktop/tablet application or web interface
+- [ ] Build cashier login/logout system
+- [ ] Design POS-specific UI (large buttons, touch-friendly)
+- [ ] Product search and barcode scanning interface
+- [ ] Shopping cart for current transaction
+- [ ] Quick access to frequently purchased items
+- [ ] Customer display (optional second screen)
+
+### Product & Inventory Management
+- [ ] Barcode scanner integration
+- [ ] Product lookup by SKU, barcode, or name
+- [ ] Real-time inventory checking (store_quantity)
+- [ ] Automatic inventory deduction on sale
+- [ ] Size and color selection for variants
+- [ ] Product image display for verification
+
+### Payment Processing
+- [ ] M-Pesa integration for in-store payments (STK Push)
+- [ ] Cash payment handling
+  - Cash tendered and change calculation
+  - Cash drawer integration (optional)
+- [ ] Card payment integration (if applicable)
+- [ ] Multiple payment methods per transaction (split payment)
+- [ ] Payment verification and confirmation
+
+### Receipt & Printing
+- [ ] Receipt template design
+  - Store details (name, address, phone)
+  - Transaction ID and date/time
+  - Itemized list (product, quantity, price)
+  - Subtotal, tax, total
+  - Payment method
+  - Cashier name
+  - Thank you message
+- [ ] Thermal printer integration (USB/Network)
+- [ ] Receipt printing on transaction completion
+- [ ] Reprint functionality for previous receipts
+- [ ] Email receipt option (optional)
+
+### Transaction Management
+- [ ] Create Sale/Transaction model and API:
+  - Transaction ID, timestamp
+  - Cashier/staff ID
+  - Items sold (product, quantity, price)
+  - Payment method and amount
+  - Customer info (optional - for returns)
+- [ ] Transaction logging to PostgreSQL
+- [ ] Transaction history view
+- [ ] Return/refund processing
+- [ ] Exchange handling
+- [ ] Void/cancel transaction (with authorization)
+
+### Staff Management
+- [ ] Staff/Cashier model and authentication
+- [ ] Role-based permissions (cashier, supervisor, manager)
+- [ ] Shift tracking (clock in/out)
+- [ ] Sales attribution to staff members
+
+### Reporting & End-of-Day
+- [ ] Daily sales summary
+- [ ] Payment method breakdown (M-Pesa, cash, card)
+- [ ] Cashier performance reports
+- [ ] Inventory sold report
+- [ ] End-of-day closing procedures
+- [ ] Cash counting and reconciliation
+- [ ] Export reports (CSV, PDF)
+
+### Offline Mode (Optional but Recommended)
+- [ ] Local transaction queue when internet is down
+- [ ] Sync transactions when connection restored
+- [ ] Local product/inventory cache
+- [ ] Offline mode indicator
+
+### Hardware Integration
+- [ ] Barcode scanner (USB/Bluetooth)
+- [ ] Receipt printer (thermal, USB/Network)
+- [ ] Cash drawer (optional, connected to printer)
+- [ ] Customer display (optional secondary screen)
+- [ ] Card reader (if supporting card payments)
+
+### Backend Requirements
+- [ ] Create Sale/Transaction model
+- [ ] Create Staff/Cashier model
+- [ ] Build POS-specific API endpoints:
+  - `POST /api/pos/sales` - Create sale transaction
+  - `GET /api/pos/sales/:id` - Get sale details
+  - `POST /api/pos/sales/:id/void` - Void transaction
+  - `POST /api/pos/sales/:id/return` - Process return
+  - `GET /api/pos/inventory` - Check store inventory
+  - `POST /api/pos/staff/login` - Staff authentication
+  - `GET /api/pos/reports/daily` - Daily reports
+- [ ] Inventory sync logic (deduct from store_quantity)
+- [ ] Transaction locking to prevent overselling
+- [ ] Receipt data generation API
+
+### Technology Stack Options
+- **Desktop POS App:** Electron (React + Node.js)
+- **Web POS:** React web app (accessible on tablets/computers)
+- **Mobile POS:** React Native (for tablet-based POS)
+- **Printer:** ESC/POS protocol for thermal printers
+- **Database:** PostgreSQL (shared with online store)
+
+**Estimated Duration:** 4-5 weeks
+
+**Note:** This phase can be developed in parallel with Phase 4 (Shopping Cart) after Phase 2 (Backend API) is complete.
+
+---
+
+## Phase 4: Shopping Cart & Wishlist (Online Store)
+
+**Goal:** Enable online customers to add items to cart and save favorites
 
 ### Shopping Cart Features
 - [ ] Create Cart context for state management
@@ -148,9 +261,9 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 4: Checkout & Payment Integration
+## Phase 5: Checkout & Payment Integration (Online Store)
 
-**Goal:** Complete the purchase flow with M-Pesa payment integration for Kenya
+**Goal:** Complete the online purchase flow with M-Pesa payment integration for Kenya
 
 ### Checkout Flow
 - [ ] Create multi-step checkout page
@@ -190,7 +303,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 5: Order Management & Customer Account
+## Phase 6: Order Management & Customer Account
 
 **Goal:** Allow customers to track orders and manage their account
 
@@ -218,7 +331,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 6: Admin Dashboard Frontend
+## Phase 7: Admin Dashboard Frontend
 
 **Goal:** Build admin interface for store management (backend APIs built in Phase 2)
 
@@ -261,7 +374,7 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 7: Advanced Features & Optimization
+## Phase 8: Advanced Features & Optimization
 
 **Goal:** Enhance functionality and performance
 
@@ -295,27 +408,37 @@ See [README.md](README.md) for detailed setup instructions.
 
 ---
 
-## Phase 8: Deployment & Production
+## Phase 9: Deployment & Production
 
-**Goal:** Launch the application to production
+**Goal:** Launch the application to production (Online Store & POS System)
 
 ### Deployment Tasks
 - [ ] Set up production PostgreSQL database (managed service)
 - [ ] Configure production environment variables
-- [ ] Deploy backend to cloud service (Heroku, AWS, DigitalOcean)
-- [ ] Deploy frontend to hosting service (Netlify, Vercel)
+- [ ] Deploy backend API to cloud service (Heroku, AWS, DigitalOcean)
+- [ ] Deploy online store frontend to hosting service (Netlify, Vercel)
+- [ ] Deploy POS application:
+  - Desktop/tablet installation at physical store
+  - Configure POS to connect to production API
+  - Set up receipt printer and barcode scanner
+  - Test payment processing (M-Pesa, cash)
 - [ ] Set up domain name and SSL certificate
 - [ ] Configure M-Pesa production credentials (live Daraja API)
 - [ ] Set up automated database backups
 - [ ] Implement monitoring and logging (error tracking, performance)
 - [ ] Load testing and performance optimization
 - [ ] Database migration from development to production
+- [ ] Staff training for POS system
+- [ ] Create backup/disaster recovery plan
 
 ### Documentation
-- [ ] User guide for customers
-- [ ] Admin user manual
+- [ ] User guide for online customers
+- [ ] Admin user manual (inventory, products, orders)
+- [ ] POS system manual for cashiers
+- [ ] POS troubleshooting guide (printer, scanner, payments)
 - [ ] API documentation
 - [ ] Deployment documentation
+- [ ] Staff training materials
 
 **Estimated Duration:** 1-2 weeks
 
@@ -324,15 +447,25 @@ See [README.md](README.md) for detailed setup instructions.
 ## Priority Notes
 
 ### Immediate Next Steps (After Phase 1)
-1. **Phase 2: Backend API Development**
+1. **Phase 2: Backend API Development** (PRIORITY)
    - Build inventory management API endpoints
    - Implement image upload and storage
    - Add admin authentication and product management APIs
-2. **Phase 3: Shopping Cart & Wishlist**
+   - Create shared database models for both online and POS
+
+2. **Phase 3: POS System** (Can develop in parallel with Phase 4 after Phase 2)
+   - Build POS terminal interface
+   - Integrate barcode scanner and receipt printer
+   - Implement M-Pesa and cash payment processing
+   - Transaction logging and staff management
+   - End-of-day reporting
+
+3. **Phase 4: Shopping Cart & Wishlist** (Online Store)
    - Implement cart functionality with localStorage
    - Build wishlist feature
-3. **Phase 4: M-Pesa Payment Integration**
-   - Begin M-Pesa Daraja API research and setup
+
+4. **Phase 5: M-Pesa Payment Integration** (Online Store)
+   - M-Pesa Daraja API integration for online checkout
    - Implement checkout flow with M-Pesa STK Push
 
 ### Critical Dependencies
@@ -344,34 +477,86 @@ See [README.md](README.md) for detailed setup instructions.
   - File upload size limits configuration
   - CORS configuration for file uploads
 
-- **M-Pesa Integration** (Phase 4) requires:
+- **POS System** (Phase 3) requires:
+  - Hardware procurement:
+    - Barcode scanner (USB/Bluetooth)
+    - Thermal receipt printer (ESC/POS compatible)
+    - Cash drawer (optional, connects to printer)
+    - Tablet or computer for POS terminal
+    - Customer display (optional)
+  - POS software choice:
+    - Web-based (React app in browser)
+    - Desktop app (Electron)
+    - Mobile app (React Native for tablets)
+  - Network connectivity at physical store
+  - Shared PostgreSQL database access
+
+- **M-Pesa Integration** (Phases 3 & 5) requires:
   - M-Pesa developer account with Safaricom
   - Testing phone numbers for sandbox environment
   - Production credentials for live deployment
   - SSL certificate for webhook callbacks
+  - Integration for both online checkout and in-store POS payments
 
 ### Success Metrics
+
+**Online Store:**
 - Page load time < 3 seconds
 - Mobile responsive design (100% compatibility)
 - Cart abandonment rate < 30%
-- Payment success rate > 95%
+- Online payment success rate > 95%
 - User satisfaction > 4.5/5 stars
+
+**POS System:**
+- Transaction completion time < 2 minutes
+- Receipt print time < 5 seconds
+- POS uptime > 99%
+- Inventory sync accuracy 100%
+- Payment success rate > 98%
+- Staff onboarding time < 1 hour
+
+**Overall:**
+- Real-time inventory accuracy between online and store
+- Zero overselling incidents
+- Customer satisfaction > 4.5/5 stars
 
 ---
 
 ## Technology Decisions
 
+### Database Architecture
+- **Unified Database:** Single PostgreSQL database for both online store and POS system
+- **Rationale:**
+  - Ensures real-time inventory synchronization
+  - Prevents overselling across channels
+  - Simplifies reporting and analytics
+  - Single source of truth for products, inventory, and transactions
+- **Key Tables:**
+  - `products` - Shared product catalog
+  - `inventory` - Unified stock with `online_quantity` and `store_quantity` fields
+  - `transactions/sales` - All sales (online and in-store)
+  - `users` - Customer accounts (online)
+  - `staff` - Store employees (POS)
+
 ### Payment Processing
 - **Primary:** M-Pesa (Lipa Na M-Pesa Online / STK Push)
+  - Used for both online checkout and in-store payments
 - **Rationale:** Most popular mobile payment method in Kenya, trusted by customers
-- **Alternative:** Cash on Delivery for backup option
+- **Additional:** Cash payments (in-store only)
+- **Alternative:** Cash on Delivery for online orders (backup option)
 
 ### Deployment
-- **Backend:** Heroku, AWS, or DigitalOcean (Flask app)
-- **Frontend:** Vercel or Netlify (React app)
+- **Backend API:** Heroku, AWS, or DigitalOcean (Flask app)
+  - Serves both online store and POS system
+- **Online Store Frontend:** Vercel or Netlify (React app)
+- **POS System:**
+  - Web-based: Access via browser on store computer/tablet
+  - Desktop: Electron app installed on store computer
+  - Mobile: React Native app on tablet
 - **Database:** PostgreSQL (development and production)
   - Development: Local PostgreSQL instance
   - Production: Managed PostgreSQL service (AWS RDS, Heroku Postgres, DigitalOcean Managed Database)
+  - Accessed by both online store backend and POS system
 
 ### Future Considerations
 - Integration with other payment methods (Airtel Money, PayPal)
