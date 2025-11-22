@@ -1,0 +1,261 @@
+# Happy Place Boutique - Development Roadmap
+
+## Phase 1: UI/UX Quick Wins ✅ COMPLETED
+
+**Goal:** Improve user experience with immediate visual and functional enhancements
+
+**Completed Tasks:**
+- ✅ Enhance logo prominence and header layout
+- ✅ Replace search button text with search icon
+- ✅ Ensure responsive search functionality across all screen sizes
+- ✅ Optimize header spacing to prevent element overlapping
+- ✅ Remove redundant "Shop by Category" section
+- ✅ Fix store location page with fallback data
+- ✅ Integrate interactive Google Maps for store location
+- ✅ Update store address to actual Bethel Business Centre location
+- ✅ Update store hours (Sunday: Closed)
+- ✅ Convert currency from USD to Kenya Shillings (KSh)
+
+**Status:** ✅ Complete (12 commits)
+
+---
+
+## Phase 2: Shopping Cart & Wishlist
+
+**Goal:** Enable customers to add items to cart and save favorites
+
+### Shopping Cart Features
+- [ ] Create Cart context for state management
+- [ ] Add "Add to Cart" functionality on product detail page
+- [ ] Display cart count badge in header (already has placeholder)
+- [ ] Build cart page with item list
+- [ ] Implement quantity adjustment (increase/decrease)
+- [ ] Calculate subtotal, tax, and total
+- [ ] Add "Remove from Cart" functionality
+- [ ] Persist cart data in localStorage
+- [ ] Handle size and color selection before adding to cart
+
+### Wishlist Features
+- [ ] Create Wishlist context for state management
+- [ ] Implement wishlist toggle on product cards (heart icon already exists)
+- [ ] Build wishlist page showing saved items
+- [ ] Add "Move to Cart" functionality from wishlist
+- [ ] Persist wishlist data in localStorage
+- [ ] Display wishlist count in header
+
+### Backend Requirements
+- [ ] Create cart API endpoints (if server-side cart needed)
+- [ ] Create wishlist API endpoints
+- [ ] Handle cart/wishlist for authenticated users
+
+**Estimated Duration:** 1-2 weeks
+
+---
+
+## Phase 3: Checkout & Payment Integration
+
+**Goal:** Complete the purchase flow with M-Pesa payment integration for Kenya
+
+### Checkout Flow
+- [ ] Create multi-step checkout page
+  - Step 1: Review cart items
+  - Step 2: Shipping/delivery information
+  - Step 3: Payment method selection
+  - Step 4: Order confirmation
+- [ ] Implement form validation for customer details
+- [ ] Add delivery address collection
+- [ ] Display order summary with totals in KSh
+
+### M-Pesa Payment Integration
+- [ ] Research M-Pesa Daraja API documentation
+- [ ] Set up M-Pesa developer account and credentials
+- [ ] Implement M-Pesa STK Push (Lipa Na M-Pesa Online)
+  - Trigger payment prompt on customer phone
+  - Handle payment callback/webhook
+  - Verify payment status
+- [ ] Create payment confirmation page
+- [ ] Handle payment success/failure scenarios
+- [ ] Send SMS/email confirmation (optional)
+- [ ] Store transaction records in database
+
+### Additional Payment Options (Future)
+- [ ] Cash on Delivery (for local deliveries)
+- [ ] In-Store Payment option
+
+### Backend Requirements
+- [ ] Create Order model and API endpoints
+- [ ] Create Payment model for transaction tracking
+- [ ] Integrate M-Pesa Daraja API SDK
+- [ ] Set up webhook endpoint for M-Pesa callbacks
+- [ ] Implement payment verification logic
+- [ ] Update inventory after successful payment
+
+**Estimated Duration:** 2-3 weeks
+
+---
+
+## Phase 4: Order Management & Customer Account
+
+**Goal:** Allow customers to track orders and manage their account
+
+### Order History
+- [ ] Create order history page
+- [ ] Display past orders with status (Pending, Processing, Shipped, Delivered)
+- [ ] Show order details (items, payment, delivery info)
+- [ ] Add order tracking capability
+- [ ] Enable order cancellation (if not shipped)
+
+### Customer Profile
+- [ ] Build user profile page
+- [ ] Allow editing of personal information
+- [ ] Save multiple delivery addresses
+- [ ] Display payment history
+- [ ] Email/SMS preferences
+
+### Backend Requirements
+- [ ] Extend User model for profile data
+- [ ] Create order status workflow
+- [ ] Build order tracking API endpoints
+- [ ] Implement email/SMS notifications for order updates
+
+**Estimated Duration:** 1-2 weeks
+
+---
+
+## Phase 5: Admin Dashboard
+
+**Goal:** Provide store management capabilities
+
+### Product Management
+- [ ] Admin login and authentication
+- [ ] Product CRUD operations (Create, Read, Update, Delete)
+- [ ] Image upload for products
+- [ ] Category management
+- [ ] Bulk product import/export
+
+### Inventory Management
+- [ ] View current stock levels (online + store)
+- [ ] Update inventory quantities
+- [ ] Set low-stock alerts
+- [ ] Track inventory movements
+
+### Order Management
+- [ ] View all orders
+- [ ] Update order status
+- [ ] Generate invoices
+- [ ] Manage returns/refunds
+
+### Analytics Dashboard
+- [ ] Sales statistics
+- [ ] Popular products
+- [ ] Revenue reports
+- [ ] Customer insights
+
+### Backend Requirements
+- [ ] Create Admin role and permissions
+- [ ] Build admin API endpoints with authorization
+- [ ] Implement file upload for images
+- [ ] Create analytics queries
+
+**Estimated Duration:** 3-4 weeks
+
+---
+
+## Phase 6: Advanced Features & Optimization
+
+**Goal:** Enhance functionality and performance
+
+### Customer Features
+- [ ] Product reviews and ratings
+- [ ] Size guide and fit recommendations
+- [ ] Product recommendations ("You may also like")
+- [ ] Filter products by size, color, price range
+- [ ] Advanced search with autocomplete
+- [ ] Newsletter subscription
+- [ ] Referral program
+
+### Technical Improvements
+- [ ] Implement caching (Redis)
+- [ ] Optimize images (lazy loading, compression)
+- [ ] Add Progressive Web App (PWA) features
+- [ ] Implement error tracking (Sentry)
+- [ ] Add Google Analytics
+- [ ] SEO optimization
+- [ ] Performance monitoring
+- [ ] Automated testing (unit, integration, e2e)
+
+### Store Operations
+- [ ] Inventory sync between online and physical store
+- [ ] Real-time stock updates
+- [ ] Barcode scanning for in-store sales
+- [ ] Customer loyalty program
+- [ ] Gift cards/vouchers
+
+**Estimated Duration:** 4-6 weeks (ongoing)
+
+---
+
+## Phase 7: Deployment & Production
+
+**Goal:** Launch the application to production
+
+### Deployment Tasks
+- [ ] Set up production database (PostgreSQL)
+- [ ] Configure production environment variables
+- [ ] Deploy backend to cloud service (Heroku, AWS, DigitalOcean)
+- [ ] Deploy frontend to hosting service (Netlify, Vercel)
+- [ ] Set up domain name and SSL certificate
+- [ ] Configure M-Pesa production credentials
+- [ ] Set up automated backups
+- [ ] Implement monitoring and logging
+- [ ] Load testing and performance optimization
+
+### Documentation
+- [ ] User guide for customers
+- [ ] Admin user manual
+- [ ] API documentation
+- [ ] Deployment documentation
+
+**Estimated Duration:** 1-2 weeks
+
+---
+
+## Priority Notes
+
+### Immediate Next Steps (After Phase 1)
+1. Implement shopping cart functionality (Phase 2)
+2. Build wishlist feature (Phase 2)
+3. Begin M-Pesa integration research (Phase 3)
+
+### Critical Dependencies
+- **M-Pesa Integration** requires:
+  - M-Pesa developer account with Safaricom
+  - Testing phone numbers for sandbox environment
+  - Production credentials for live deployment
+  - SSL certificate for webhook callbacks
+
+### Success Metrics
+- Page load time < 3 seconds
+- Mobile responsive design (100% compatibility)
+- Cart abandonment rate < 30%
+- Payment success rate > 95%
+- User satisfaction > 4.5/5 stars
+
+---
+
+## Technology Decisions
+
+### Payment Processing
+- **Primary:** M-Pesa (Lipa Na M-Pesa Online / STK Push)
+- **Rationale:** Most popular mobile payment method in Kenya, trusted by customers
+- **Alternative:** Cash on Delivery for backup option
+
+### Deployment
+- **Backend:** Heroku or DigitalOcean (Flask app)
+- **Frontend:** Vercel or Netlify (React app)
+- **Database:** PostgreSQL (production)
+
+### Future Considerations
+- Integration with other payment methods (Airtel Money, PayPal)
+- Multi-currency support for international customers
+- Multi-store support for business expansion

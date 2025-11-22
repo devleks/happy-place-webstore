@@ -181,14 +181,17 @@ npm start
 
 ## Future Enhancements
 
-- Shopping cart functionality
-- Checkout and payment processing
-- Order history
-- Product reviews
+For a detailed development plan, see [ROADMAP.md](ROADMAP.md)
+
+**Upcoming Features:**
+- Shopping cart and wishlist functionality
+- M-Pesa payment integration (Lipa Na M-Pesa Online)
+- Checkout and order management
+- Customer order history and tracking
+- Product reviews and ratings
 - Admin dashboard for inventory management
 - Real-time inventory updates
-- Email notifications
-- Google Maps integration
+- Email/SMS notifications
 - Image upload for products
 
 ## License
