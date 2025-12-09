@@ -162,6 +162,8 @@ def get_packing_queue(current_employee):
     try:
         # Get all orders with status 'processing', 'packing', or recently 'packed'
         # Include packed orders so completed tab shows recent completions
+        # NOTE: 'pending' orders are excluded - they appear only after payment is completed
+        # and status changes to 'processing' via sp_process_payment_secure
         orders = Order.query.filter(
             Order.status.in_(['processing', 'packing', 'packed'])
         ).order_by(Order.created_at.asc()).all()
