@@ -19,7 +19,7 @@ const AdminLogin = () => {
   useEffect(() => {
     // If already authenticated as admin/manager, redirect to dashboard
     if (isAuthenticated && userType === 'employee') {
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, userType, navigate]);
 
