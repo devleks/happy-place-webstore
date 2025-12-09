@@ -151,7 +151,8 @@ def assign_order(current_employee):
 @packer_required
 def get_packing_queue(current_employee):
     """
-    Get orders assigned to current packer or all pending packing orders.
+    Get all orders that need packing (status: processing or packing).
+    All paid orders automatically appear here - no manual assignment needed.
     
     GET /api/fulfillment/packing/queue?status=pending
     
@@ -159,37 +160,46 @@ def get_packing_queue(current_employee):
         200: List of orders to pack
     """
     try:
-        employee_id = int(get_jwt_identity())
-        status = request.args.get('status', 'pending')
+        # Get all orders with status 'processing' or 'packing'
+        # These are orders that have been paid and need to be packed
+        orders = Order.query.filter(
+            Order.status.in_(['processing', 'packing'])
+        ).order_by(Order.created_at.asc()).all()
         
-        # Get assignments for this packer
-        query = OrderAssignment.query.filter_by(role='packer')
-        
-        # Filter by status if provided
-        if status != 'all':
-            query = query.filter_by(status=status)
-        
-        # If not admin/manager, only show assigned to this employee
-        if current_employee.role not in ['admin', 'manager']:
-            query = query.filter_by(assigned_to=employee_id)
-        
-        assignments = query.order_by(OrderAssignment.assigned_at.desc()).all()
-        
-        # Get order details
         result = []
-        for assignment in assignments:
-            order = Order.query.get(assignment.order_id)
-            if order:
-                result.append({
-                    'assignment_id': assignment.id,
-                    'order_id': order.id,
-                    'order_number': order.order_number,
-                    'customer_name': order.customer_name,
-                    'items_count': len(order.items) if order.items else 0,
-                    'status': assignment.status,
-                    'assigned_at': assignment.assigned_at.isoformat() if assignment.assigned_at else None,
-                    'started_at': assignment.started_at.isoformat() if assignment.started_at else None
-                })
+        for order in orders:
+            # Check if there's an assignment for tracking status
+            assignment = OrderAssignment.query.filter_by(
+                order_id=order.id,
+                role='packer'
+            ).first()
+            
+            # Determine the packing status
+            if assignment:
+                packing_status = assignment.status
+                started_at = assignment.started_at.isoformat() if assignment.started_at else None
+                assignment_id = assignment.id
+            else:
+                packing_status = 'pending'
+                started_at = None
+                assignment_id = None
+            
+            # Get customer name
+            customer_name = "Unknown Customer"
+            if order.customer:
+                customer_name = f"{order.customer.first_name} {order.customer.last_name}"
+            
+            result.append({
+                'assignment_id': assignment_id,
+                'order_id': order.id,
+                'order_number': order.order_number,
+                'customer_name': customer_name,
+                'items_count': len(order.items) if order.items else 0,
+                'total': float(order.total),
+                'status': packing_status,
+                'assigned_at': order.created_at.isoformat(),
+                'started_at': started_at
+            })
         
         return jsonify({'orders': result}), 200
         
@@ -207,39 +217,76 @@ def get_packing_queue(current_employee):
         return jsonify({'error': str(e)}), 400
 
 
-@fulfillment_bp.route('/packing/<int:assignment_id>/start', methods=['POST'])
+@fulfillment_bp.route('/packing/<int:order_id>/start', methods=['POST'])
 @jwt_required()
 @packer_required
-def start_packing(current_employee, assignment_id):
+def start_packing(current_employee, order_id):
     """
-    Mark packing assignment as started.
+    Start packing an order. Creates assignment if it doesn't exist.
     
-    POST /api/fulfillment/packing/:assignment_id/start
+    POST /api/fulfillment/packing/:order_id/start
     
     Returns:
-        200: Assignment started
-        404: Assignment not found
+        200: Packing started
+        404: Order not found
     """
     try:
-        assignment = OrderAssignment.query.get(assignment_id)
+        employee_id = int(get_jwt_identity())
+        
+        # Get the order
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'error': 'Order not found'}), 404
+        
+        # Check or create assignment
+        assignment = OrderAssignment.query.filter_by(
+            order_id=order_id,
+            role='packer'
+        ).first()
+        
         if not assignment:
-            return jsonify({'error': 'Assignment not found'}), 404
+            # Create new assignment
+            assignment = OrderAssignment(
+                order_id=order_id,
+                assigned_to=employee_id,
+                assigned_by=employee_id,
+                role='packer',
+                status='in_progress',
+                assigned_at=datetime.utcnow(),
+                started_at=datetime.utcnow()
+            )
+            db.session.add(assignment)
+        else:
+            # Update existing assignment
+            assignment.assigned_to = employee_id
+            assignment.status = 'in_progress'
+            assignment.started_at = datetime.utcnow()
         
-        if assignment.role != 'packer':
-            return jsonify({'error': 'Not a packing assignment'}), 400
+        # Update order status
+        order.status = 'packing'
         
-        assignment.status = 'in_progress'
-        assignment.started_at = datetime.utcnow()
         db.session.commit()
+        
+        logger.info(
+            f"Packing started for order {order.order_number}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": employee_id, "order_id": order_id}
+            )}
+        )
         
         return jsonify({
             'message': 'Packing started',
             'assignment_id': assignment.id,
+            'order_id': order_id,
             'status': assignment.status
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Failed to start packing: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 400
 
 
@@ -249,6 +296,7 @@ def start_packing(current_employee, assignment_id):
 def complete_packing(current_employee, assignment_id):
     """
     Mark packing assignment as completed.
+    Order automatically moves to shipping queue.
     
     POST /api/fulfillment/packing/:assignment_id/complete
     Body: {
@@ -273,21 +321,33 @@ def complete_packing(current_employee, assignment_id):
         assignment.completed_at = datetime.utcnow()
         assignment.notes = data.get('notes', assignment.notes)
         
-        # Update order status to ready for shipping
+        # Update order status to 'packed' - will automatically appear in shipping queue
         order = Order.query.get(assignment.order_id)
-        if order and order.status == 'processing':
-            order.status = 'ready_to_ship'
+        if order:
+            order.status = 'packed'
         
         db.session.commit()
         
+        logger.info(
+            f"Packing completed for order {order.order_number}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()), "order_id": order.id}
+            )}
+        )
+        
         return jsonify({
-            'message': 'Packing completed',
+            'message': 'Packing completed - order moved to shipping queue',
             'assignment_id': assignment.id,
+            'order_id': order.id,
             'status': assignment.status
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Failed to complete packing: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 400
 
 
@@ -300,7 +360,8 @@ def complete_packing(current_employee, assignment_id):
 @shipper_required
 def get_shipping_queue(current_employee):
     """
-    Get orders assigned to current shipper or all pending shipping orders.
+    Get all packed orders ready for shipping.
+    Only orders with status 'packed' or 'shipping' appear here.
     
     GET /api/fulfillment/shipping/queue?status=pending
     
@@ -308,39 +369,64 @@ def get_shipping_queue(current_employee):
         200: List of orders to ship
     """
     try:
-        employee_id = int(get_jwt_identity())
-        status = request.args.get('status', 'pending')
+        # Get all orders with status 'packed' or 'shipping'
+        # These are orders that have been packed and need to be shipped
+        orders = Order.query.filter(
+            Order.status.in_(['packed', 'shipping'])
+        ).order_by(Order.created_at.asc()).all()
         
-        # Get assignments for shippers
-        query = OrderAssignment.query.filter_by(role='shipper')
-        
-        # Filter by status if provided
-        if status != 'all':
-            query = query.filter_by(status=status)
-        
-        # If not admin/manager, only show assigned to this employee
-        if current_employee.role not in ['admin', 'manager']:
-            query = query.filter_by(assigned_to=employee_id)
-        
-        assignments = query.order_by(OrderAssignment.assigned_at.desc()).all()
-        
-        # Get order details
         result = []
-        for assignment in assignments:
-            order = Order.query.get(assignment.order_id)
-            if order:
-                result.append({
-                    'assignment_id': assignment.id,
-                    'order_id': order.id,
-                    'order_number': order.order_number,
-                    'customer_name': order.customer_name,
-                    'shipping_address': order.shipping_address,
-                    'tracking_number': order.tracking_number,
-                    'carrier': order.carrier,
-                    'status': assignment.status,
-                    'assigned_at': assignment.assigned_at.isoformat() if assignment.assigned_at else None,
-                    'started_at': assignment.started_at.isoformat() if assignment.started_at else None
-                })
+        for order in orders:
+            # Check if there's a shipping assignment for tracking status
+            assignment = OrderAssignment.query.filter_by(
+                order_id=order.id,
+                role='shipper'
+            ).first()
+            
+            # Determine the shipping status
+            if assignment:
+                shipping_status = assignment.status
+                started_at = assignment.started_at.isoformat() if assignment.started_at else None
+                assignment_id = assignment.id
+            else:
+                shipping_status = 'pending'
+                started_at = None
+                assignment_id = None
+            
+            # Get packer info
+            packer_assignment = OrderAssignment.query.filter_by(
+                order_id=order.id,
+                role='packer'
+            ).first()
+            
+            packer_name = None
+            packed_at = None
+            if packer_assignment:
+                packer = Employee.query.get(packer_assignment.assigned_to)
+                packer_name = packer.full_name if packer else None
+                packed_at = packer_assignment.completed_at.isoformat() if packer_assignment.completed_at else None
+            
+            # Get customer name
+            customer_name = "Unknown Customer"
+            if order.customer:
+                customer_name = f"{order.customer.first_name} {order.customer.last_name}"
+            
+            result.append({
+                'assignment_id': assignment_id,
+                'order_id': order.id,
+                'order_number': order.order_number,
+                'customer_name': customer_name,
+                'shipping_address': order.shipping_address,
+                'items_count': len(order.items) if order.items else 0,
+                'total': float(order.total),
+                'tracking_number': order.tracking_number,
+                'carrier': order.carrier,
+                'status': shipping_status,
+                'packed_by': packer_name,
+                'packed_at': packed_at,
+                'assigned_at': packed_at or order.created_at.isoformat(),
+                'started_at': started_at
+            })
         
         return jsonify({'orders': result}), 200
         
@@ -358,39 +444,76 @@ def get_shipping_queue(current_employee):
         return jsonify({'error': str(e)}), 400
 
 
-@fulfillment_bp.route('/shipping/<int:assignment_id>/start', methods=['POST'])
+@fulfillment_bp.route('/shipping/<int:order_id>/start', methods=['POST'])
 @jwt_required()
 @shipper_required
-def start_shipping(current_employee, assignment_id):
+def start_shipping(current_employee, order_id):
     """
-    Mark shipping assignment as started.
+    Start shipping an order. Creates assignment if it doesn't exist.
     
-    POST /api/fulfillment/shipping/:assignment_id/start
+    POST /api/fulfillment/shipping/:order_id/start
     
     Returns:
         200: Shipping started
-        404: Assignment not found
+        404: Order not found
     """
     try:
-        assignment = OrderAssignment.query.get(assignment_id)
+        employee_id = int(get_jwt_identity())
+        
+        # Get the order
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'error': 'Order not found'}), 404
+        
+        # Check or create assignment
+        assignment = OrderAssignment.query.filter_by(
+            order_id=order_id,
+            role='shipper'
+        ).first()
+        
         if not assignment:
-            return jsonify({'error': 'Assignment not found'}), 404
+            # Create new assignment
+            assignment = OrderAssignment(
+                order_id=order_id,
+                assigned_to=employee_id,
+                assigned_by=employee_id,
+                role='shipper',
+                status='in_progress',
+                assigned_at=datetime.utcnow(),
+                started_at=datetime.utcnow()
+            )
+            db.session.add(assignment)
+        else:
+            # Update existing assignment
+            assignment.assigned_to = employee_id
+            assignment.status = 'in_progress'
+            assignment.started_at = datetime.utcnow()
         
-        if assignment.role != 'shipper':
-            return jsonify({'error': 'Not a shipping assignment'}), 400
+        # Update order status
+        order.status = 'shipping'
         
-        assignment.status = 'in_progress'
-        assignment.started_at = datetime.utcnow()
         db.session.commit()
+        
+        logger.info(
+            f"Shipping started for order {order.order_number}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": employee_id, "order_id": order_id}
+            )}
+        )
         
         return jsonify({
             'message': 'Shipping started',
             'assignment_id': assignment.id,
+            'order_id': order_id,
             'status': assignment.status
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Failed to start shipping: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 400
 
 
@@ -400,9 +523,12 @@ def start_shipping(current_employee, assignment_id):
 def complete_shipping(current_employee, assignment_id):
     """
     Mark shipping assignment as completed.
+    Order status changes to 'shipped'.
     
     POST /api/fulfillment/shipping/:assignment_id/complete
     Body: {
+        "tracking_number": "TRACK123456",
+        "carrier": "DHL",
         "notes": "Handed to DHL courier"
     }
     
@@ -424,16 +550,37 @@ def complete_shipping(current_employee, assignment_id):
         assignment.completed_at = datetime.utcnow()
         assignment.notes = data.get('notes', assignment.notes)
         
+        # Update order with tracking info and mark as shipped
+        order = Order.query.get(assignment.order_id)
+        if order:
+            order.status = 'shipped'
+            order.tracking_number = data.get('tracking_number')
+            order.carrier = data.get('carrier')
+            order.shipped_at = datetime.utcnow()
+        
         db.session.commit()
         
+        logger.info(
+            f"Shipping completed for order {order.order_number}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()), "order_id": order.id}
+            )}
+        )
+        
         return jsonify({
-            'message': 'Shipping completed',
+            'message': 'Shipping completed - order marked as shipped',
             'assignment_id': assignment.id,
+            'order_id': order.id,
+            'tracking_number': order.tracking_number,
             'status': assignment.status
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Failed to complete shipping: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 400
 
 
