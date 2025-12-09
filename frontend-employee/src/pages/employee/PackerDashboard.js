@@ -34,9 +34,9 @@ const PackerDashboard = () => {
     }
   };
 
-  const handleStartPacking = async (assignmentId) => {
+  const handleStartPacking = async (orderId) => {
     try {
-      await api.post(`/fulfillment/packing/${assignmentId}/start`);
+      await api.post(`/fulfillment/packing/${orderId}/start`);
       fetchPackingQueue();
       alert('Packing started!');
     } catch (err) {
@@ -150,7 +150,7 @@ const PackerDashboard = () => {
                 <div className="order-actions">
                   {order.status === 'pending' && (
                     <button
-                      onClick={() => handleStartPacking(order.assignment_id)}
+                      onClick={() => handleStartPacking(order.order_id)}
                       className="btn-primary"
                     >
                       Start Packing

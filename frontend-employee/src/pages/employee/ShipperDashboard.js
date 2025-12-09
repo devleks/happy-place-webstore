@@ -34,9 +34,9 @@ const ShipperDashboard = () => {
     }
   };
 
-  const handleStartShipping = async (assignmentId) => {
+  const handleStartShipping = async (orderId) => {
     try {
-      await api.post(`/fulfillment/shipping/${assignmentId}/start`);
+      await api.post(`/fulfillment/shipping/${orderId}/start`);
       fetchShippingQueue();
       alert('Shipping started!');
     } catch (err) {
@@ -156,7 +156,7 @@ const ShipperDashboard = () => {
                 <div className="order-actions">
                   {order.status === 'pending' && (
                     <button
-                      onClick={() => handleStartShipping(order.assignment_id)}
+                      onClick={() => handleStartShipping(order.order_id)}
                       className="btn-primary"
                     >
                       Start Shipping
