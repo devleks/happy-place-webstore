@@ -19,6 +19,17 @@ const AdminOrders = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
   const [newStatus, setNewStatus] = useState('');
+  
+  // Phase 1: Tracking modal state
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingData, setTrackingData] = useState({
+    tracking_number: '',
+    carrier: '',
+    estimated_delivery: '',
+    notes: ''
+  });
+  const [carriers, setCarriers] = useState([]);
+  const [loadingCarriers, setLoadingCarriers] = useState(false);
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
@@ -119,6 +130,55 @@ const AdminOrders = () => {
     }
   };
 
+  // Phase 1: Tracking functions
+  const openTrackingModal = async (order) => {
+    setCurrentOrder(order);
+    setShowTrackingModal(true);
+    
+    // Reset form
+    setTrackingData({
+      tracking_number: order.tracking_number || '',
+      carrier: order.carrier || '',
+      estimated_delivery: order.estimated_delivery_date || '',
+      notes: order.shipping_notes || ''
+    });
+    
+    // Fetch carriers
+    try {
+      setLoadingCarriers(true);
+      const data = await adminAPI.getShippingCarriers();
+      setCarriers(data.carriers || []);
+    } catch (err) {
+      console.error('Failed to load carriers:', err);
+      alert('Failed to load shipping carriers');
+    } finally {
+      setLoadingCarriers(false);
+    }
+  };
+
+  const handleAddTracking = async () => {
+    if (!currentOrder) return;
+    
+    // Validation
+    if (!trackingData.tracking_number.trim()) {
+      alert('Please enter a tracking number');
+      return;
+    }
+    if (!trackingData.carrier) {
+      alert('Please select a carrier');
+      return;
+    }
+
+    try {
+      await adminAPI.addOrderTracking(currentOrder.id, trackingData);
+      setShowTrackingModal(false);
+      fetchOrders();
+      alert('Tracking information added successfully');
+    } catch (err) {
+      alert(err.message || 'Failed to add tracking information');
+    }
+  };
+
   const columns = [
     { key: 'order_number', label: 'Order #' },
     {
@@ -158,6 +218,15 @@ const AdminOrders = () => {
           >
             👁️
           </button>
+          {(order.status === 'processing' || order.status === 'shipped') && (
+            <button
+              className="btn-icon"
+              onClick={() => openTrackingModal(order)}
+              title={order.tracking_number ? "Update Tracking" : "Add Tracking"}
+            >
+              📦
+            </button>
+          )}
           {order.status !== 'cancelled' && (
             <button
               className="btn-icon"
@@ -331,6 +400,97 @@ const AdminOrders = () => {
               )}
               <button onClick={handleUpdateStatus} className="btn-primary">
                 Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking Modal (Phase 1) */}
+      {showTrackingModal && currentOrder && (
+        <div className="modal-overlay" onClick={() => setShowTrackingModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {currentOrder.tracking_number ? 'Update' : 'Add'} Tracking - Order #{currentOrder.order_number}
+              </h2>
+              <button onClick={() => setShowTrackingModal(false)} className="close-btn">
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="tracking_number">Tracking Number *</label>
+                <input
+                  type="text"
+                  id="tracking_number"
+                  className="form-input"
+                  value={trackingData.tracking_number}
+                  onChange={(e) => setTrackingData({...trackingData, tracking_number: e.target.value})}
+                  placeholder="e.g., DHL123456789KE"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="carrier">Shipping Carrier *</label>
+                {loadingCarriers ? (
+                  <p>Loading carriers...</p>
+                ) : (
+                  <select
+                    id="carrier"
+                    className="form-input"
+                    value={trackingData.carrier}
+                    onChange={(e) => setTrackingData({...trackingData, carrier: e.target.value})}
+                    required
+                  >
+                    <option value="">Select a carrier</option>
+                    {carriers.map((carrier) => (
+                      <option key={carrier.id} value={carrier.name}>
+                        {carrier.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="estimated_delivery">Estimated Delivery Date</label>
+                <input
+                  type="date"
+                  id="estimated_delivery"
+                  className="form-input"
+                  value={trackingData.estimated_delivery}
+                  onChange={(e) => setTrackingData({...trackingData, estimated_delivery: e.target.value})}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="notes">Shipping Notes</label>
+                <textarea
+                  id="notes"
+                  className="form-input"
+                  value={trackingData.notes}
+                  onChange={(e) => setTrackingData({...trackingData, notes: e.target.value})}
+                  placeholder="e.g., Package dispatched from Nairobi warehouse"
+                  rows="3"
+                />
+              </div>
+
+              {currentOrder.tracking_number && (
+                <div className="info-box">
+                  <p><strong>Current Tracking:</strong> {currentOrder.tracking_number}</p>
+                  <p><strong>Carrier:</strong> {currentOrder.carrier}</p>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowTrackingModal(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleAddTracking} className="btn-primary">
+                {currentOrder.tracking_number ? 'Update' : 'Add'} Tracking
               </button>
             </div>
           </div>

@@ -185,6 +185,39 @@ export const adminAPI = {
     }
   },
 
+  // Phase 1: Order Tracking Methods
+  addOrderTracking: async (orderId, trackingData) => {
+    try {
+      const response = await api.post(`/admin/orders/${orderId}/tracking`, {
+        tracking_number: trackingData.tracking_number,
+        carrier: trackingData.carrier,
+        estimated_delivery: trackingData.estimated_delivery,
+        notes: trackingData.notes
+      });
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getOrderTracking: async (orderId) => {
+    try {
+      const response = await api.get(`/admin/orders/${orderId}/tracking`);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getShippingCarriers: async () => {
+    try {
+      const response = await api.get('/admin/shipping/carriers');
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
   // ========== Customer Methods ==========
   getCustomers: async () => {
     try {
