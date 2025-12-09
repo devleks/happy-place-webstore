@@ -1,0 +1,62 @@
+# Happy Place Webstore - Automated Backup Schedule
+# 
+# Installation:
+# 1. Edit this file with your actual paths
+# 2. Install: crontab backup_crontab.txt
+# 3. Verify: crontab -l
+#
+# Format: minute hour day month dayofweek command
+
+# Set environment
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=admin@happyplace.co.ke
+
+# Project directory (CHANGE THIS TO YOUR ACTUAL PATH)
+PROJECT_DIR=/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore
+
+# Backup directory
+BACKUP_DIR=/var/backups/happy_place
+
+# ==========================================
+# HOURLY BACKUPS (During business hours)
+# ==========================================
+# Every hour from 8 AM to 8 PM on weekdays
+0 8-20 * * 1-5 cd $PROJECT_DIR/backend && bash scripts/automated_backup.sh >> /var/log/happy_place/backup.log 2>&1
+
+# ==========================================
+# DAILY BACKUPS (End of day)
+# ==========================================
+# Every day at 11:30 PM (after business hours)
+30 23 * * * cd $PROJECT_DIR/backend && RETENTION_DAYS=30 bash scripts/automated_backup.sh >> /var/log/happy_place/backup_daily.log 2>&1
+
+# ==========================================
+# WEEKLY BACKUPS (Long-term retention)
+# ==========================================
+# Every Sunday at 2:00 AM
+0 2 * * 0 cd $PROJECT_DIR/backend && RETENTION_DAYS=90 bash scripts/automated_backup.sh >> /var/log/happy_place/backup_weekly.log 2>&1
+
+# ==========================================
+# MONTHLY BACKUPS (Archive)
+# ==========================================
+# First day of each month at 3:00 AM
+0 3 1 * * cd $PROJECT_DIR/backend && RETENTION_DAYS=365 bash scripts/automated_backup.sh >> /var/log/happy_place/backup_monthly.log 2>&1
+
+# ==========================================
+# BACKUP VERIFICATION
+# ==========================================
+# Verify backups exist and are not corrupted
+# Every day at midnight
+0 0 * * * bash $PROJECT_DIR/monitoring/scripts/verify_backups.sh >> /var/log/happy_place/backup_verify.log 2>&1
+
+# ==========================================
+# CLEANUP OLD LOGS
+# ==========================================
+# Clean logs older than 30 days, every Sunday at 4:00 AM
+0 4 * * 0 find /var/log/happy_place -name "*.log" -type f -mtime +30 -delete
+
+# ==========================================
+# MONITORING HEALTH CHECK
+# ==========================================
+# Check if backup system is working, every 6 hours
+0 */6 * * * bash $PROJECT_DIR/monitoring/scripts/check_backup_health.sh >> /var/log/happy_place/health.log 2>&1

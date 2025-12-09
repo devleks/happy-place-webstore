@@ -1,0 +1,15 @@
+{
+  "agent": "ShieldProbe",
+  "generated_at": "2025-11-26T07:09:23Z",
+  "artifacts": {
+    "pip_audit": "reports/shieldprobe_backend.json",
+    "npm_audit": "reports/shieldprobe_frontend.json",
+    "encryption": "reports/shieldprobe_encryption.log",
+    "shipping_smoke": "reports/shieldprobe_shipping.log"
+  },
+  "next_steps": [
+    "Patch vulnerable packages listed in pip/npm audits",
+    "Review encryption logs for assertion failures",
+    "Verify shipping/auth endpoints reject unauthorized requests"
+  ]
+}

@@ -115,10 +115,12 @@
   height: 22px;
 }
 
+.wishlist-link,
 .cart-link {
   position: relative;
 }
 
+.wishlist-badge,
 .cart-badge {
   position: absolute;
   top: -8px;
@@ -231,6 +233,68 @@
 .nav-link:hover {
   color: #D4AF37;
   opacity: 1;
+}
+
+/* Dropdown Navigation */
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  min-width: 220px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  z-index: 1000;
+  padding: 10px 0;
+  margin-top: 10px;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 20px;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 300;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.dropdown-item:hover {
+  background-color: #f9f9f9;
+  color: #D4AF37;
+  padding-left: 25px;
+}
+
+/* Category-specific colors */
+.womens-link {
+  color: #B76E79 !important;
+}
+
+.womens-link:hover {
+  color: #722F37 !important;
+}
+
+.womens-menu {
+  border-top: 3px solid #B76E79;
+}
+
+.maternity-link {
+  color: #7c3aed !important;
+}
+
+.maternity-link:hover {
+  color: #6d28d9 !important;
+}
+
+.maternity-menu {
+  border-top: 3px solid #7c3aed;
 }
 
 
@@ -381,6 +445,7 @@
     height: 16px;
   }
 
+  .wishlist-badge,
   .cart-badge {
     font-size: 0.55rem;
     padding: 1px 3px;

@@ -1,0 +1,1 @@
+Schema snapshot unavailable: unable to connect to database at postgresql://localhost:5432/happy_place_db (psql reported "Operation not permitted").

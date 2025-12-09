@@ -1,0 +1,369 @@
+name: Happy Place Webstore CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: happy_place_test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-flask
+
+      - name: Set up database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/happy_place_test_db
+          FLASK_ENV: testing
+          JWT_SECRET_KEY: test-secret-key-for-ci
+        run: |
+          # Install pgcrypto extension
+          PGPASSWORD=test_password psql -h localhost -U postgres -d happy_place_test_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          
+          # Run migrations if they exist
+          if [ -d "migrations" ]; then
+            python scripts/migrate_database.py || echo "No migration script found"
+          fi
+          
+          # Seed test data
+          python seed.py || echo "Seed script not found or failed"
+
+      - name: Run backend unit tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/happy_place_test_db
+          FLASK_ENV: testing
+          JWT_SECRET_KEY: test-secret-key-for-ci
+        run: |
+          # Run pytest if test files exist
+          if [ -d "tests" ]; then
+            pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+          else
+            echo "No test directory found, skipping unit tests"
+          fi
+
+      - name: Upload coverage reports
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          # Run tests if they exist
+          if [ -d "src/__tests__" ] || grep -q "test" package.json; then
+            npm test -- --watchAll=false --coverage
+          else
+            echo "No frontend tests found"
+          fi
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/build
+          retention-days: 7
+
+  uat-tests:
+    name: User Acceptance Tests
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: happy_place_uat_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: uat_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install jq for JSON parsing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up UAT database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:uat_password@localhost:5432/happy_place_uat_db
+          FLASK_ENV: testing
+          JWT_SECRET_KEY: uat-test-secret-key
+          CUSTOMER_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+          ADDRESS_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+          PAYMENT_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+        run: |
+          PGPASSWORD=uat_password psql -h localhost -U postgres -d happy_place_uat_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          python seed.py
+
+      - name: Start backend server in background
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:uat_password@localhost:5432/happy_place_uat_db
+          FLASK_ENV: testing
+          JWT_SECRET_KEY: uat-test-secret-key
+          CUSTOMER_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+          ADDRESS_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+          PAYMENT_ENCRYPTION_KEYS: test-encryption-key-for-uat-testing==
+        run: |
+          python app.py > server.log 2>&1 &
+          echo $! > server.pid
+          
+          # Wait for server to be ready (max 30 seconds)
+          for i in {1..30}; do
+            if curl -s http://localhost:5001/api/products > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting for server to start... ($i/30)"
+            sleep 1
+          done
+
+      - name: Run UAT test suite
+        run: |
+          chmod +x tests/uat_comprehensive_tests.sh
+          bash tests/uat_comprehensive_tests.sh
+        env:
+          BASE_URL: http://127.0.0.1:5001/api
+
+      - name: Stop backend server
+        if: always()
+        run: |
+          if [ -f backend/server.pid ]; then
+            kill $(cat backend/server.pid) || true
+            rm backend/server.pid
+          fi
+
+      - name: Upload UAT test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-test-results
+          path: |
+            tests/uat_comprehensive_tests.sh
+            backend/server.log
+          retention-days: 30
+
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs-failed
+          path: backend/server.log
+          retention-days: 30
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Python security scan
+        uses: pypa/gh-action-pip-audit@v1.0.8
+        with:
+          inputs: backend/requirements.txt
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linting tools
+        run: |
+          pip install ruff black isort flake8
+
+      - name: Run Ruff
+        working-directory: ./backend
+        run: ruff check . || true
+
+      - name: Check code formatting with Black
+        working-directory: ./backend
+        run: black --check . || true
+
+      - name: Check import sorting
+        working-directory: ./backend
+        run: isort --check-only . || true
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, uat-tests, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          
+      # Add your actual deployment steps here
+      # Examples:
+      # - Deploy to Heroku
+      # - Deploy to AWS
+      # - Deploy to DigitalOcean
+      # - Deploy to custom server via SSH
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, uat-tests, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://happyplace.example.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/build
+
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying to production environment..."
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          
+      # Add your actual production deployment steps here
+      # Include:
+      # - Database migration
+      # - Backend deployment
+      # - Frontend deployment
+      # - Health checks
+      # - Rollback capability
+
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, uat-tests]
+    if: always()
+
+    steps:
+      - name: Send Slack notification
+        if: ${{ needs.uat-tests.result == 'failure' }}
+        run: |
+          echo "❌ UAT tests failed - would send Slack notification here"
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"UAT Tests Failed on ${{ github.repository }}"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send success notification
+        if: ${{ needs.uat-tests.result == 'success' }}
+        run: |
+          echo "✅ All tests passed - would send Slack notification here"

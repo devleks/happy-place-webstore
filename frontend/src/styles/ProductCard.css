@@ -40,7 +40,38 @@
 }
 
 .badge-sale {
-  background-color: #DC143C;
+  background-color: #7c3aed;
+}
+
+.badge-final-sale {
+  background-color: #dc2626;
+}
+
+/* Category Badge */
+.category-badge-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+.category-badge {
+  padding: 4px 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.badge-womens {
+  background-color: #B76E79;
+}
+
+.badge-maternity {
+  background-color: #7c3aed;
 }
 
 /* Wishlist Button */
@@ -203,6 +234,12 @@
   color: #D4AF37;
 }
 
+.product-price-sale {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
 .product-price-original {
   font-size: 0.9rem;
   color: #999;
@@ -210,30 +247,47 @@
   font-weight: 300;
 }
 
-/* Color Swatches */
-.color-swatches {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.color-swatch {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid #e5e5e5;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.color-swatch:hover {
-  transform: scale(1.2);
-  border-color: #722F37;
-}
-
-.color-more {
-  font-size: 0.7rem;
-  color: #999;
+/* Color Options Text */
+.color-options-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
   font-weight: 300;
+}
+
+.color-label {
+  font-weight: 400;
+  color: #333;
+}
+
+.color-list {
+  color: #777;
+}
+
+/* Size Options Text */
+.size-options-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 300;
+  margin-top: 6px;
+}
+
+.size-label {
+  font-weight: 400;
+  color: #333;
+}
+
+.size-list {
+  color: #777;
+}
+
+.size-item {
+  cursor: help;
+  border-bottom: 1px dotted #9b59b6;
+  transition: color 0.2s;
+}
+
+.size-item:hover {
+  color: #9b59b6;
 }

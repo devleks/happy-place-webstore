@@ -7,3 +7,14 @@ python-dotenv==1.0.0
 SQLAlchemy==2.0.23
 psycopg2-binary==2.9.9
 Werkzeug==3.0.1
+cryptography==46.0.3
+gunicorn==23.0.0
+pymysql==1.1.0
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+google-auth==2.35.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+requests==2.32.3
+Flask-Limiter==3.5.0
+newrelic==11.1.0

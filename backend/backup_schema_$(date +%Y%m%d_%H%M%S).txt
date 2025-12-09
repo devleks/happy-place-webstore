@@ -1,0 +1,10 @@
+              List of relations
+ Schema |      Name       | Type  |  Owner   
+--------+-----------------+-------+----------
+ public | categories      | table | postgres
+ public | inventory       | table | postgres
+ public | products        | table | postgres
+ public | store_locations | table | postgres
+ public | users           | table | postgres
+(5 rows)
+

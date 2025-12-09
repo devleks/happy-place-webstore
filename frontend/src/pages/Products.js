@@ -12,12 +12,14 @@ const Products = () => {
   const [pagination, setPagination] = useState({});
 
   const category = searchParams.get('category');
+  const parentCategory = searchParams.get('parent_category');
   const search = searchParams.get('search');
   const page = searchParams.get('page') || 1;
 
   useEffect(() => {
     fetchProducts();
-  }, [category, search, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, parentCategory, search, page]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -30,6 +32,7 @@ const Products = () => {
       };
 
       if (category) params.category = category;
+      if (parentCategory) params.parent_category = parentCategory;
       if (search) params.search = search;
 
       const response = await productsAPI.getAll(params);
@@ -47,16 +50,36 @@ const Products = () => {
     }
   };
 
+  const getPageTitle = () => {
+    if (search) {
+      return `Search Results for "${search}"`;
+    }
+    if (parentCategory === 'women-clothing') {
+      return "Women's Clothing";
+    }
+    if (parentCategory === 'maternity-clothing') {
+      return "Maternity Clothing";
+    }
+    if (category) {
+      return category
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    return 'All Products';
+  };
+
+  const getCategoryColor = () => {
+    if (parentCategory === 'maternity-clothing' || category?.includes('maternity')) {
+      return 'maternity';
+    }
+    return 'womens';
+  };
+
   return (
     <div className="products-page">
-      <div className="products-header">
-        <h1>
-          {search
-            ? `Search Results for "${search}"`
-            : category
-            ? category.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-            : 'All Products'}
-        </h1>
+      <div className={`products-header header-${getCategoryColor()}`}>
+        <h1>{getPageTitle()}</h1>
         <p className="results-count">
           {pagination.total ? `${pagination.total} products found` : ''}
         </p>

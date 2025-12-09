@@ -139,3 +139,31 @@ button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* Footer links */
+.footer-links {
+  margin-top: 15px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #9d7bb5;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .footer-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

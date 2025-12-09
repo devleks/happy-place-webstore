@@ -1,0 +1,4 @@
+{
+  "error": "pip_audit module not available",
+  "detail": "python3 -m pip_audit cannot run because pip_audit is not installed and network access is restricted for pip install"
+}

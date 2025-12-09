@@ -10,7 +10,6 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -27,10 +26,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData);
+      // Customer login only
+      await login(formData, false);
+
+      // Redirect to home page
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to login. Please try again.');
+      setError(err.response?.data?.error || 'Failed to login. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,8 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h1 className="auth-title">Login</h1>
+        <h1 className="auth-title">Customer Login</h1>
+        <p className="auth-subtitle">Sign in to your account</p>
 
         {error && <div className="error-message">{error}</div>}
 

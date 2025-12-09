@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System ERD - Visual Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .nav {
+            background: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .nav button {
+            padding: 12px 24px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .nav button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .diagram-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .diagram-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .diagram-title {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .diagram-description {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 POS System ERD</h1>
+            <p>Interactive Visual Database Schema</p>
+        </div>
+        
+        <div class="nav">
+            <button onclick="showDiagram('erd')" class="active">📊 Full ERD</button>
+            <button onclick="showDiagram('flow')">🔄 Flow Diagram</button>
+            <button onclick="showDiagram('sequence')">📈 Sequence Diagram</button>
+            <button onclick="showDiagram('states')">🔀 Transaction States</button>
+            <button onclick="showDiagram('cash')">💵 Cash Reconciliation</button>
+            <button onclick="showDiagram('procedures')">⚙️ Stored Procedures</button>
+        </div>
+        
+        <div class="content">
+            <!-- ERD Diagram -->
+            <div id="erd" class="diagram-section active">
+                <h2 class="diagram-title">Entity Relationship Diagram</h2>
+                <div class="diagram-description">
+                    <p><strong>Complete database schema</strong> showing all 6 core tables, their relationships, and foreign keys. This diagram illustrates how employees, shifts, transactions, and cash movements are interconnected.</p>
+                </div>
+                <div class="mermaid">
+erDiagram
+    EMPLOYEES ||--o{ POS_SHIFTS : "works"
+    EMPLOYEES ||--o{ POS_TRANSACTIONS : "processes"
+    EMPLOYEES ||--o{ POS_CASH_MOVEMENTS : "performs"
+    
+    STORE_LOCATIONS ||--o{ POS_SHIFTS : "hosts"
+    STORE_LOCATIONS ||--o{ POS_TRANSACTIONS : "occurs_at"
+    
+    POS_SHIFTS ||--o{ POS_TRANSACTIONS : "contains"
+    POS_SHIFTS ||--o{ POS_CASH_MOVEMENTS : "tracks"
+    
+    POS_TRANSACTIONS ||--o{ POS_TRANSACTION_ITEMS : "has"
+    
+    POS_TRANSACTION_ITEMS }o--|| PRODUCTS : "references"
+    POS_TRANSACTION_ITEMS }o--|| INVENTORY : "deducts_from"
+    
+    CUSTOMERS ||--o{ POS_TRANSACTIONS : "makes"
+    
+    EMPLOYEES {
+        int id PK
+        string first_name
+        string last_name
+        string email UK
+        string role
+        boolean is_active
+    }
+    
+    STORE_LOCATIONS {
+        int id PK
+        string name
+        string address
+        string city
+        boolean is_active
+    }
+    
+    POS_SHIFTS {
+        int id PK
+        int employee_id FK
+        int store_location_id FK
+        string shift_number UK
+        timestamp start_time
+        timestamp end_time
+        decimal opening_float
+        decimal closing_cash
+        decimal expected_cash
+        decimal variance
+        string status
+    }
+    
+    POS_TRANSACTIONS {
+        int id PK
+        string transaction_number UK
+        int employee_id FK
+        int shift_id FK
+        int customer_id FK
+        string payment_method
+        decimal total
+        string status
+        timestamp voided_at
+    }
+    
+    POS_TRANSACTION_ITEMS {
+        int id PK
+        int transaction_id FK
+        int product_id FK
+        int inventory_id FK
+        int quantity
+        decimal unit_price
+        decimal total_price
+    }
+    
+    POS_CASH_MOVEMENTS {
+        int id PK
+        int shift_id FK
+        string movement_type
+        decimal amount
+        int performed_by FK
+    }
+    
+    CUSTOMERS {
+        int id PK
+        string email
+        string first_name
+        string last_name
+    }
+    
+    PRODUCTS {
+        int id PK
+        string name
+        string sku
+        decimal price
+    }
+    
+    INVENTORY {
+        int id PK
+        int variant_id FK
+        int quantity
+        int available
+    }
+                </div>
+                <div class="info-box">
+                    <h3>Key Relationships</h3>
+                    <ul>
+                        <li><strong>Employee → Shifts (1:M):</strong> One employee can work multiple shifts</li>
+                        <li><strong>Shift → Transactions (1:M):</strong> One shift contains multiple transactions</li>
+                        <li><strong>Transaction → Items (1:M):</strong> One transaction has multiple line items</li>
+                        <li><strong>Shift → Cash Movements (1:M, CASCADE):</strong> Cash movements deleted with shift</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Flow Diagram -->
+            <div id="flow" class="diagram-section">
+                <h2 class="diagram-title">POS Workflow</h2>
+                <div class="diagram-description">
+                    <p><strong>End-to-end workflow</strong> from employee login through shift closure, showing all major operations and decision points.</p>
+                </div>
+                <div class="mermaid">
+flowchart TB
+    subgraph Login["🔐 Authentication"]
+        E[Employee Login]
+    end
+    
+    subgraph Shift["📅 Shift Management"]
+        S1[Start Shift<br/>sp_start_shift]
+        S2[Opening Float<br/>KSh 5,000]
+        S3[Shift Active<br/>Status: OPEN]
+    end
+    
+    subgraph Transaction["💰 Transaction Processing"]
+        T1[Scan Products]
+        T2[Add to Cart]
+        T3[Select Payment]
+        T4[Create Transaction<br/>sp_create_pos_transaction]
+        T5[Deduct Inventory]
+        T6[Print Receipt]
+    end
+    
+    subgraph Cash["💵 Cash Management"]
+        C1[Cash In/Out]
+        C2[Log Movement]
+    end
+    
+    subgraph Close["🔒 Shift Closure"]
+        CL1[Count Cash]
+        CL2[Close Shift<br/>sp_close_shift]
+        CL3[Calculate Variance]
+        CL4[Generate Report]
+    end
+    
+    E --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> T1
+    T1 --> T2
+    T2 --> T3
+    T3 --> T4
+    T4 --> T5
+    T5 --> T6
+    T6 --> T1
+    
+    S3 --> C1
+    C1 --> C2
+    C2 --> S3
+    
+    S3 --> CL1
+    CL1 --> CL2
+    CL2 --> CL3
+    CL3 --> CL4
+    
+    style E fill:#e1f5ff
+    style S1 fill:#c8e6c9
+    style T4 fill:#fff9c4
+    style CL2 fill:#ffccbc
+                </div>
+            </div>
+            
+            <!-- Sequence Diagram -->
+            <div id="sequence" class="diagram-section">
+                <h2 class="diagram-title">Data Flow Sequence</h2>
+                <div class="diagram-description">
+                    <p><strong>Step-by-step interaction</strong> between cashier, POS system, database, and inventory service showing the complete transaction lifecycle.</p>
+                </div>
+                <div class="mermaid">
+sequenceDiagram
+    participant C as Cashier
+    participant POS as POS System
+    participant DB as Database
+    participant INV as Inventory
+    
+    Note over C,INV: SHIFT START
+    C->>POS: Login
+    POS->>DB: Verify credentials
+    DB-->>POS: Authenticated
+    
+    C->>POS: Start Shift (5000)
+    POS->>DB: sp_start_shift()
+    DB->>DB: Create shift record
+    DB->>DB: Log opening float
+    DB-->>POS: Shift #10 created
+    
+    Note over C,INV: TRANSACTION
+    C->>POS: Scan product
+    POS->>DB: Get product details
+    DB-->>POS: Price: 5149
+    
+    C->>POS: Process payment (10000)
+    POS->>DB: sp_create_pos_transaction()
+    DB->>DB: Validate shift open
+    DB->>INV: Check availability
+    INV-->>DB: Available: 50
+    DB->>DB: Create transaction
+    DB->>INV: Deduct inventory (2)
+    INV->>INV: Update quantity
+    DB-->>POS: Success! TXN-001
+    POS->>C: Print receipt (change: 702)
+    
+    Note over C,INV: SHIFT CLOSE
+    C->>POS: Count cash (5300)
+    POS->>DB: sp_close_shift()
+    DB->>DB: Calculate variance
+    DB-->>POS: Variance: +300 OVER
+    POS->>C: Display summary
+                </div>
+            </div>
+            
+            <!-- Transaction States -->
+            <div id="states" class="diagram-section">
+                <h2 class="diagram-title">Transaction State Machine</h2>
+                <div class="diagram-description">
+                    <p><strong>Transaction lifecycle</strong> showing all possible states and transitions from creation to completion or void.</p>
+                </div>
+                <div class="mermaid">
+stateDiagram-v2
+    [*] --> Draft: Create Cart
+    Draft --> Pending: Submit Payment
+    Pending --> Completed: Payment Success
+    Pending --> Failed: Payment Failed
+    Completed --> Voided: Manager Void
+    Failed --> [*]
+    Voided --> [*]
+    Completed --> [*]
+    
+    note right of Completed
+        ✓ Inventory deducted
+        ✓ Receipt printed
+        ✓ Cash recorded
+    end note
+    
+    note right of Voided
+        ✓ Inventory restored
+        ✓ Void reason logged
+        ✓ Manager approval
+    end note
+                </div>
+            </div>
+            
+            <!-- Cash Reconciliation -->
+            <div id="cash" class="diagram-section">
+                <h2 class="diagram-title">Cash Reconciliation</h2>
+                <div class="diagram-description">
+                    <p><strong>Variance calculation</strong> showing how expected cash is calculated and compared to actual counted cash.</p>
+                </div>
+                <div class="mermaid">
+graph TD
+    A[Opening Float<br/>KSh 5,000] --> B[+ Cash Sales<br/>KSh 10,298]
+    B --> C[+ Cash In<br/>KSh 0]
+    C --> D[- Cash Out<br/>KSh 0]
+    D --> E[Expected Cash<br/>KSh 15,298]
+    
+    F[Closing Cash Count<br/>KSh 15,598] --> G{Compare}
+    E --> G
+    
+    G -->|Difference| H[Variance<br/>+KSh 300 OVER]
+    
+    style A fill:#e3f2fd
+    style E fill:#fff9c4
+    style F fill:#ffccbc
+    style H fill:#ffcdd2
+                </div>
+                <div class="info-box">
+                    <h3>Variance Interpretation</h3>
+                    <ul>
+                        <li><strong>Zero (0):</strong> Perfect reconciliation ✅</li>
+                        <li><strong>Positive (+300):</strong> Cash OVER - Extra money in drawer ⚠️</li>
+                        <li><strong>Negative (-300):</strong> Cash SHORT - Missing money ❌</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Stored Procedures -->
+            <div id="procedures" class="diagram-section">
+                <h2 class="diagram-title">Stored Procedures Flow</h2>
+                <div class="diagram-description">
+                    <p><strong>Internal logic</strong> of each stored procedure showing validation steps and database operations.</p>
+                </div>
+                <div class="mermaid">
+graph TB
+    subgraph sp_start_shift
+        SS1[Check no open shift]
+        SS2[Generate shift number]
+        SS3[Create pos_shifts]
+        SS4[Log opening_float]
+        SS1 --> SS2 --> SS3 --> SS4
+    end
+    
+    subgraph sp_create_pos_transaction
+        CT1[Validate shift open]
+        CT2[Check inventory]
+        CT3[Calculate totals]
+        CT4[Create transaction]
+        CT5[Create items]
+        CT6[Deduct inventory]
+        CT1 --> CT2 --> CT3 --> CT4 --> CT5 --> CT6
+    end
+    
+    subgraph sp_void_pos_transaction
+        VT1[Check not voided]
+        VT2[Verify manager role]
+        VT3[Restore inventory]
+        VT4[Mark as voided]
+        VT1 --> VT2 --> VT3 --> VT4
+    end
+    
+    subgraph sp_close_shift
+        CS1[Get shift details]
+        CS2[Calculate cash sales]
+        CS3[Sum cash movements]
+        CS4[Calculate expected]
+        CS5[Calculate variance]
+        CS6[Update shift closed]
+        CS1 --> CS2 --> CS3 --> CS4 --> CS5 --> CS6
+    end
+    
+    style sp_start_shift fill:#c8e6c9
+    style sp_create_pos_transaction fill:#fff9c4
+    style sp_void_pos_transaction fill:#ffccbc
+    style sp_close_shift fill:#e1bee7
+                </div>
+                <div class="info-box">
+                    <h3>Procedure Descriptions</h3>
+                    <ul>
+                        <li><strong>sp_start_shift:</strong> Opens new shift with smart numbering (YYYYMMDD-LOC1-EMP2-001)</li>
+                        <li><strong>sp_create_pos_transaction:</strong> Atomically creates transaction and deducts inventory</li>
+                        <li><strong>sp_void_pos_transaction:</strong> Voids transaction and restores inventory (manager only)</li>
+                        <li><strong>sp_close_shift:</strong> Closes shift with automatic variance calculation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>POS System ERD Documentation | Created: December 5, 2025 | Schema Version: 005</p>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#667eea',
+                secondaryColor: '#c8e6c9',
+                tertiaryColor: '#fff9c4'
+            }
+        });
+        
+        function showDiagram(diagramId) {
+            // Hide all diagrams
+            document.querySelectorAll('.diagram-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected diagram
+            document.getElementById(diagramId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

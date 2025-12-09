@@ -6,8 +6,11 @@ A full-stack e-commerce web application for women's and maternity clothing with 
 
 - **Product Catalog**: Browse women's and maternity clothing by category
 - **Search & Filter**: Search products and filter by category, price
-- **User Authentication**: Register and login functionality
+- **User Authentication**: Register and login functionality (customer & employee)
+- **International Size Conversion**: Interactive size guide supporting 8 regional sizing systems
 - **Unified Inventory**: Track stock for both online and physical store
+- **Point of Sale (POS)**: Complete POS system for in-store transactions
+- **Barcode Scanner Support**: Fast checkout with barcode scanning
 - **Store Locator**: Find physical store location with hours and contact info
 - **Responsive Design**: Mobile-friendly interface
 
@@ -204,20 +207,30 @@ npm start
 1. Navigate to "Store Location" in the menu
 2. View store hours, address, and contact info
 
-## Future Enhancements
+## Project Status
 
-For a detailed development plan, see [ROADMAP.md](ROADMAP.md)
+### ✅ Completed Phases
+- **Phase 1-8:** Online store functionality (authentication, products, cart, checkout, returns, shipping)
+- **Phase 9:** Point of Sale (POS) System - ✅ COMPLETE (November 27, 2025)
+  - Employee authentication & shift management
+  - Product search & shopping cart
+  - Cash payment processing
+  - Receipt generation (thermal 58mm/80mm + HTML)
+  - Transaction history & voiding
+  - Barcode scanner support
+  - International size conversion (8 regions, 9 sizes)
 
-**Upcoming Features:**
-- Shopping cart and wishlist functionality
-- M-Pesa payment integration (Lipa Na M-Pesa Online)
-- Checkout and order management
-- Customer order history and tracking
-- Product reviews and ratings
-- Admin dashboard for inventory management
-- Real-time inventory updates
-- Email/SMS notifications
-- Image upload for products
+### 🔜 Upcoming Phases
+- **Phase 10:** M-Pesa Payment Integration (Planned: January 2026)
+  - M-Pesa STK Push for online checkout
+  - M-Pesa payments at POS terminals
+  - Refund processing
+  - Split payment support
+
+For detailed project status, see:
+- [PHASE_9_COMPLETION_REPORT.md](PHASE_9_COMPLETION_REPORT.md) - POS System completion
+- [PHASE_10_MPESA_INTEGRATION_PLAN.md](PHASE_10_MPESA_INTEGRATION_PLAN.md) - M-Pesa integration plan
+- [FRONTEND_INTEGRATION_CHECKLIST.md](FRONTEND_INTEGRATION_CHECKLIST.md) - Frontend progress tracker
 
 ## License
 

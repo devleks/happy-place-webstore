@@ -1,0 +1,99 @@
+# DataDog Agent Configuration for Happy Place Webstore
+# Place this file in /etc/datadog-agent/conf.d/
+
+init_config:
+
+instances:
+  # Flask application monitoring
+  - name: happy_place_webstore
+    url: http://localhost:5001/health
+    timeout: 5
+    
+    # Custom tags for filtering
+    tags:
+      - app:happy-place
+      - env:production
+      - component:backend
+      - team:engineering
+    
+    # Health check endpoints
+    health_endpoints:
+      - /health
+      - /api/products
+      - /api/categories
+    
+    # Custom metrics to collect
+    min_collection_interval: 15
+    
+    # Authentication if needed
+    # username: datadog
+    # password: <password>
+
+logs:
+  # Backend application logs
+  - type: file
+    path: /var/log/happy_place/backend/*.log
+    service: happy-place-backend
+    source: python
+    sourcecategory: sourcecode
+    tags:
+      - env:production
+      - app:happy-place
+    
+  # Gunicorn access logs
+  - type: file
+    path: /var/log/happy_place/gunicorn/access.log
+    service: happy-place-backend
+    source: gunicorn
+    
+  # Gunicorn error logs
+  - type: file
+    path: /var/log/happy_place/gunicorn/error.log
+    service: happy-place-backend
+    source: gunicorn
+    log_processing_rules:
+      - type: multi_line
+        name: log_start_with_date
+        pattern: \d{4}-\d{2}-\d{2}
+
+  # PostgreSQL logs
+  - type: file
+    path: /var/log/postgresql/postgresql-*.log
+    service: happy-place-database
+    source: postgresql
+    sourcecategory: database
+    tags:
+      - env:production
+      - component:database
+
+# Process monitoring
+process:
+  - search_string:
+      - gunicorn
+    exact_match: false
+    tags:
+      - process:backend
+      - app:happy-place
+  
+  - search_string:
+      - postgres
+    exact_match: false
+    tags:
+      - process:database
+      - app:happy-place
+
+# Network monitoring
+network:
+  enabled: true
+
+# APM (Application Performance Monitoring)
+apm_config:
+  enabled: true
+  env: production
+  
+  # Service name in DataDog APM
+  service: happy-place-backend
+  
+  # Sample rate (1.0 = 100%)
+  analyzed_spans:
+    happy-place-backend|flask.request: 1.0

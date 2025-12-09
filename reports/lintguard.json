@@ -1,0 +1,13 @@
+{
+  "agent": "LintGuard",
+  "generated_at": "2025-11-26T07:08:29Z",
+  "artifacts": {
+    "ruff": "reports/lintguard_ruff.json",
+    "bandit": "reports/lintguard_bandit.json",
+    "eslint": "reports/lintguard_eslint.json"
+  },
+  "notes": [
+    "Review Ruff + Bandit JSON for rule-level detail",
+    "ESLint report stores all frontend findings with rule metadata"
+  ]
+}

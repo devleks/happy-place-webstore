@@ -1,25 +1,73 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { helpers } from '../services/api';
+import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
+import toast from '../utils/toast';
+import { formatSizeWithConversions } from '../utils/sizeConversion';
 import '../styles/ProductCard.css';
 
 const ProductCard = ({ product }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToWishlist, removeFromWishlist, isInWishlist, wishlist } = useWishlist();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isWishlisted = isInWishlist(product.id);
 
   // Generate rating (mock data for now - TODO: get from backend)
   const rating = product.rating || 4.5;
   const reviewCount = product.review_count || Math.floor(Math.random() * 50) + 5;
 
-  // Mock data for badges
-  const isNew = product.is_new || false;
-  const isOnSale = product.sale_price && product.sale_price < product.price;
+  // Calculate sale status and pricing using helpers
+  const isOnSale = helpers.isOnSale(product);
+  const discountPercent = helpers.getDiscountPercent(product);
+  const isClearance = product.is_clearance || false;
   const displayPrice = isOnSale ? product.sale_price : product.price;
 
-  // Mock color options
-  const colors = product.colors || ['#722F37', '#B76E79', '#F4E4E6'];
+  // Color options from product data
+  const colors = product.available_colors || [];
 
-  const handleWishlistClick = (e) => {
+  // Size options from product data
+  const sizes = product.available_sizes || [];
+
+  // Determine category type (Women's or Maternity)
+  const isMaternity = product.category_name?.toLowerCase().includes('maternity');
+  const categoryType = isMaternity ? 'maternity' : 'womens';
+
+  const handleWishlistClick = async (e) => {
     e.preventDefault();
-    setIsWishlisted(!isWishlisted);
+    e.stopPropagation();
+
+    if (!user) {
+      toast.warning('Please log in to add items to wishlist');
+      navigate('/login');
+      return;
+    }
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    if (isWishlisted) {
+      // Find the wishlist item for this product
+      const wishlistItem = wishlist?.items?.find(item => item.product_id === product.id);
+      if (wishlistItem) {
+        const result = await removeFromWishlist(wishlistItem.id);
+        if (!result.success) {
+          toast.error(result.error || 'Failed to remove from wishlist');
+        }
+      }
+    } else {
+      const result = await addToWishlist(product.id);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to add to wishlist');
+      } else {
+        toast.success('Added to wishlist!');
+      }
+    }
+
+    setIsLoading(false);
   };
 
   const renderStars = (rating) => {
@@ -43,14 +91,24 @@ const ProductCard = ({ product }) => {
     <div className="product-card">
       {/* Badges */}
       <div className="product-badges">
-        {isNew && <span className="badge badge-new">NEW</span>}
-        {isOnSale && <span className="badge badge-sale">SALE</span>}
+        {isClearance && <span className="badge badge-final-sale">FINAL SALE</span>}
+        {isOnSale && !isClearance && (
+          <span className="badge badge-sale">{discountPercent}% OFF</span>
+        )}
+      </div>
+
+      {/* Category Badge */}
+      <div className="category-badge-container">
+        <span className={`category-badge badge-${categoryType}`}>
+          {isMaternity ? 'MATERNITY' : "WOMEN'S"}
+        </span>
       </div>
 
       {/* Wishlist Button */}
       <button
         className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
         onClick={handleWishlistClick}
+        disabled={isLoading}
         title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
       >
         <svg viewBox="0 0 24 24" fill={isWishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
@@ -81,26 +139,43 @@ const ProductCard = ({ product }) => {
 
           {/* Price */}
           <div className="product-pricing">
-            <span className="product-price">KSh {displayPrice.toFixed(2)}</span>
-            {isOnSale && (
-              <span className="product-price-original">KSh {product.price.toFixed(2)}</span>
+            {isOnSale ? (
+              <>
+                <span className="product-price-sale">{helpers.formatPrice(displayPrice)}</span>
+                <span className="product-price-original">{helpers.formatPrice(product.price)}</span>
+              </>
+            ) : (
+              <span className="product-price">{helpers.formatPrice(displayPrice)}</span>
             )}
           </div>
 
-          {/* Color Swatches */}
+          {/* Available Colors */}
           {colors && colors.length > 0 && (
-            <div className="color-swatches">
-              {colors.slice(0, 4).map((color, index) => (
-                <span
-                  key={index}
-                  className="color-swatch"
-                  style={{ backgroundColor: color }}
-                  title={`Color option ${index + 1}`}
-                ></span>
-              ))}
-              {colors.length > 4 && (
-                <span className="color-more">+{colors.length - 4}</span>
-              )}
+            <div className="color-options-text">
+              <span className="color-label">Colors: </span>
+              <span className="color-list">
+                {colors.slice(0, 3).join(', ')}
+                {colors.length > 3 && ` +${colors.length - 3} more`}
+              </span>
+            </div>
+          )}
+
+          {/* Available Sizes */}
+          {sizes && sizes.length > 0 && (
+            <div className="size-options-text">
+              <span className="size-label">Sizes: </span>
+              <span className="size-list">
+                {sizes.slice(0, 4).map((size, index) => (
+                  <span
+                    key={size}
+                    className="size-item"
+                    title={formatSizeWithConversions(size)}
+                  >
+                    {size}{index < Math.min(sizes.length, 4) - 1 ? ', ' : ''}
+                  </span>
+                ))}
+                {sizes.length > 4 && ` +${sizes.length - 4} more`}
+              </span>
             </div>
           )}
         </div>

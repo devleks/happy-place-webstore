@@ -10,6 +10,11 @@ const Register = () => {
     confirmPassword: '',
     first_name: '',
     last_name: '',
+    phone: '',
+    gdpr_consent: false,
+    marketing_consent: false,
+    accept_terms: false,
+    accept_privacy: false,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,9 +23,10 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -33,8 +39,23 @@ const Register = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!formData.accept_terms) {
+      setError('You must accept the Terms of Service to continue');
+      return;
+    }
+
+    if (!formData.accept_privacy) {
+      setError('You must accept the Privacy Policy to continue');
+      return;
+    }
+
+    if (!formData.gdpr_consent) {
+      setError('You must consent to data processing (GDPR) to continue');
       return;
     }
 
@@ -101,6 +122,19 @@ const Register = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="phone">Phone Number (Optional)</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+254712345678"
+              className="form-input"
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -110,7 +144,11 @@ const Register = () => {
               onChange={handleChange}
               required
               className="form-input"
+              minLength="8"
             />
+            <small style={{ color: '#666', fontSize: '0.875rem' }}>
+              Must be at least 8 characters
+            </small>
           </div>
 
           <div className="form-group">
@@ -124,6 +162,74 @@ const Register = () => {
               required
               className="form-input"
             />
+          </div>
+
+          {/* Policy Acceptance Section */}
+          <div className="policy-section" style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '1rem', color: '#333' }}>
+              Terms & Policies
+            </h3>
+
+            <div className="policy-checkboxes">
+              <label className="policy-checkbox-label">
+                <input
+                  type="checkbox"
+                  name="accept_terms"
+                  checked={formData.accept_terms}
+                  onChange={handleChange}
+                  required
+                />
+                <span className="policy-text">
+                  I have read and agree to the{' '}
+                  <Link to="/terms-of-service" target="_blank" rel="noopener noreferrer" className="policy-link">
+                    Terms of Service
+                  </Link>{' '}
+                  *
+                </span>
+              </label>
+
+              <label className="policy-checkbox-label">
+                <input
+                  type="checkbox"
+                  name="accept_privacy"
+                  checked={formData.accept_privacy}
+                  onChange={handleChange}
+                  required
+                />
+                <span className="policy-text">
+                  I have read and agree to the{' '}
+                  <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className="policy-link">
+                    Privacy Policy
+                  </Link>{' '}
+                  *
+                </span>
+              </label>
+
+              <label className="policy-checkbox-label">
+                <input
+                  type="checkbox"
+                  name="gdpr_consent"
+                  checked={formData.gdpr_consent}
+                  onChange={handleChange}
+                  required
+                />
+                <span className="policy-text">
+                  I consent to the processing of my personal data in accordance with the Privacy Policy (GDPR compliance) *
+                </span>
+              </label>
+
+              <label className="policy-checkbox-label" style={{ borderColor: '#e5e5e5' }}>
+                <input
+                  type="checkbox"
+                  name="marketing_consent"
+                  checked={formData.marketing_consent}
+                  onChange={handleChange}
+                />
+                <span className="policy-text">
+                  I would like to receive marketing emails about new products and promotions (optional)
+                </span>
+              </label>
+            </div>
           </div>
 
           <button type="submit" disabled={loading} className="btn-primary-large">

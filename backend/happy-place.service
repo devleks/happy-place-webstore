@@ -1,0 +1,54 @@
+# Systemd Service File for Happy Place Boutique Backend
+# Copy this file to: /etc/systemd/system/happy-place.service
+#
+# Installation:
+#   sudo cp happy-place.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable happy-place
+#   sudo systemctl start happy-place
+#
+# Management:
+#   sudo systemctl status happy-place    # Check status
+#   sudo systemctl restart happy-place   # Restart service
+#   sudo systemctl stop happy-place      # Stop service
+#   sudo journalctl -u happy-place -f   # View logs
+
+[Unit]
+Description=Happy Place Boutique Backend API
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/happy_place_webstore/backend
+Environment="PATH=/var/www/happy_place_webstore/venv/bin"
+Environment="FLASK_ENV=production"
+ExecStart=/var/www/happy_place_webstore/venv/bin/gunicorn \
+    --config gunicorn_config.py \
+    --bind 0.0.0.0:5001 \
+    --workers 5 \
+    --worker-class sync \
+    --timeout 30 \
+    --log-level info \
+    app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5s
+
+# Security hardening
+NoNewPrivileges=true
+PrivateDevices=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/happy_place_webstore/backend/logs
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
+
+[Install]
+WantedBy=multi-user.target

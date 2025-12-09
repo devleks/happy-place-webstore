@@ -1,0 +1,4 @@
+{
+  "error": "bandit module not available",
+  "detail": "pip install --user bandit failed because outbound network is restricted in this environment"
+}
