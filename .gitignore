@@ -37,4 +37,6 @@ Thumbs.db
 *.log
 
 # Discussion logs (tracked separately)
-DISCUSSION_LOG.md
+# !DISCUSSION_LOG.md
+*.md
+!README.md
