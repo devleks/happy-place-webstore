@@ -10,7 +10,7 @@ const ShipperDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('packed');
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [shippingDetails, setShippingDetails] = useState({
@@ -103,22 +103,22 @@ const ShipperDashboard = () => {
       {/* Filter Tabs */}
       <div className="filter-tabs">
         <button
-          className={`filter-tab ${statusFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('pending')}
+          className={`filter-tab ${statusFilter === 'packed' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('packed')}
         >
-          Pending ({orders.filter(o => o.status === 'pending').length})
+          Pending ({orders.filter(o => o.order_status === 'packed').length})
         </button>
         <button
-          className={`filter-tab ${statusFilter === 'in_progress' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('in_progress')}
+          className={`filter-tab ${statusFilter === 'shipping' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('shipping')}
         >
-          In Progress ({orders.filter(o => o.status === 'in_progress').length})
+          In Progress ({orders.filter(o => o.order_status === 'shipping').length})
         </button>
         <button
           className={`filter-tab ${statusFilter === 'shipped' ? 'active' : ''}`}
           onClick={() => setStatusFilter('shipped')}
         >
-          Completed ({orders.filter(o => o.status === 'shipped').length})
+          Completed ({orders.filter(o => o.order_status === 'shipped').length})
         </button>
         <button
           className={`filter-tab ${statusFilter === 'all' ? 'active' : ''}`}
@@ -148,7 +148,7 @@ const ShipperDashboard = () => {
         ) : (
           <div className="orders-grid">
             {orders
-              .filter(order => statusFilter === 'all' || order.status === statusFilter)
+              .filter(order => statusFilter === 'all' || order.order_status === statusFilter)
               .map((order) => (
               <div key={order.assignment_id} className="order-card">
                 <div className="order-header">

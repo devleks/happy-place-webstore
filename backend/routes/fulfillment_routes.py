@@ -196,7 +196,8 @@ def get_packing_queue(current_employee):
                 'customer_name': customer_name,
                 'items_count': len(order.items) if order.items else 0,
                 'total': float(order.total),
-                'status': packing_status,
+                'status': packing_status,  # Assignment status for button logic
+                'order_status': order.status,  # Order status for filtering
                 'assigned_at': order.created_at.isoformat(),
                 'started_at': started_at
             })
@@ -430,7 +431,8 @@ def get_shipping_queue(current_employee):
                 'total': float(order.total),
                 'tracking_number': order.tracking_number,
                 'carrier': order.carrier,
-                'status': shipping_status,
+                'status': shipping_status,  # Assignment status for button logic
+                'order_status': order.status,  # Order status for filtering
                 'packed_by': packer_name,
                 'packed_at': packed_at,
                 'assigned_at': packed_at or order.created_at.isoformat(),

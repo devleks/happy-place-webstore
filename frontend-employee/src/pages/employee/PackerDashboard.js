@@ -10,7 +10,7 @@ const PackerDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('processing');
 
   useEffect(() => {
     if (!user) {
@@ -83,22 +83,22 @@ const PackerDashboard = () => {
       {/* Filter Tabs */}
       <div className="filter-tabs">
         <button
-          className={`filter-tab ${statusFilter === 'pending' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('pending')}
+          className={`filter-tab ${statusFilter === 'processing' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('processing')}
         >
-          Pending ({orders.filter(o => o.status === 'pending').length})
+          Pending ({orders.filter(o => o.order_status === 'processing').length})
         </button>
         <button
-          className={`filter-tab ${statusFilter === 'in_progress' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('in_progress')}
+          className={`filter-tab ${statusFilter === 'packing' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('packing')}
         >
-          In Progress ({orders.filter(o => o.status === 'in_progress').length})
+          In Progress ({orders.filter(o => o.order_status === 'packing').length})
         </button>
         <button
           className={`filter-tab ${statusFilter === 'packed' ? 'active' : ''}`}
           onClick={() => setStatusFilter('packed')}
         >
-          Completed ({orders.filter(o => o.status === 'packed').length})
+          Completed ({orders.filter(o => o.order_status === 'packed').length})
         </button>
         <button
           className={`filter-tab ${statusFilter === 'all' ? 'active' : ''}`}
@@ -128,7 +128,7 @@ const PackerDashboard = () => {
         ) : (
           <div className="orders-grid">
             {orders
-              .filter(order => statusFilter === 'all' || order.status === statusFilter)
+              .filter(order => statusFilter === 'all' || order.order_status === statusFilter)
               .map((order) => (
               <div key={order.assignment_id} className="order-card">
                 <div className="order-header">
