@@ -223,7 +223,7 @@ const AdminInventory = () => {
     <div className="admin-inventory">
       <div className="page-header">
         <h1>Inventory Management</h1>
-        <button className="btn-primary" onClick={() => navigate('/admin/inventory/add')}>
+        <button className="btn-primary" onClick={() => navigate('/inventory/add')}>
           Add Product
         </button>
       </div>
