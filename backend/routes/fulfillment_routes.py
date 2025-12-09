@@ -160,10 +160,10 @@ def get_packing_queue(current_employee):
         200: List of orders to pack
     """
     try:
-        # Get all orders with status 'processing' or 'packing'
-        # These are orders that have been paid and need to be packed
+        # Get all orders with status 'processing', 'packing', or recently 'packed'
+        # Include packed orders so completed tab shows recent completions
         orders = Order.query.filter(
-            Order.status.in_(['processing', 'packing'])
+            Order.status.in_(['processing', 'packing', 'packed'])
         ).order_by(Order.created_at.asc()).all()
         
         result = []
