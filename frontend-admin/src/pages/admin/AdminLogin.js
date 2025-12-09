@@ -48,7 +48,7 @@ const AdminLogin = () => {
       await loginAdmin(loginData); // Use dedicated admin login endpoint
 
       // Successful login - redirect to admin dashboard
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     } catch (err) {
       const errorMessage = err.response?.data?.error || 'Failed to login. Please check your credentials.';
 

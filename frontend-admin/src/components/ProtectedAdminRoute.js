@@ -12,7 +12,7 @@ const ProtectedAdminRoute = ({ children }) => {
   // Check if user is authenticated
   if (!isAuthenticated) {
     // Not logged in - redirect to admin login
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Check if user is an employee (not a customer)

@@ -73,12 +73,15 @@ const EmployeeLogin = () => {
 
   const redirectBasedOnRole = (employee) => {
     // Redirect based on employee role
-    if (employee.role === 'Admin' || employee.role === 'Manager') {
-      navigate('/admin/dashboard');
-    } else if (employee.role === 'Cashier') {
-      navigate('/pos/dashboard');
+    const role = employee.role.toLowerCase();
+    
+    if (role === 'packer') {
+      navigate('/packing');
+    } else if (role === 'shipper') {
+      navigate('/shipping');
     } else {
-      navigate('/pos/dashboard'); // Default for other staff
+      // For other roles, go to dashboard which will redirect appropriately
+      navigate('/dashboard');
     }
   };
 
