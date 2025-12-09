@@ -66,13 +66,22 @@ class ReportService:
 
         # POS sales
         if channel in ['all', 'pos']:
-            pos_sales = self._get_pos_sales(start, end, filters)
-            report['summary']['pos'] = pos_sales['summary']
-            if channel == 'pos':
-                report['by_category'] = pos_sales['by_category']
-                report['by_product'] = pos_sales['by_product']
-                report['by_day'] = pos_sales['by_day']
-                report['payment_methods'] = pos_sales['payment_methods']
+            try:
+                pos_sales = self._get_pos_sales(start, end, filters)
+                report['summary']['pos'] = pos_sales['summary']
+                if channel == 'pos':
+                    report['by_category'] = pos_sales['by_category']
+                    report['by_product'] = pos_sales['by_product']
+                    report['by_day'] = pos_sales['by_day']
+                    report['payment_methods'] = pos_sales['payment_methods']
+            except Exception as e:
+                # POS data might not be available yet
+                print(f"POS sales error (non-critical): {str(e)}")
+                report['summary']['pos'] = {
+                    'total_transactions': 0,
+                    'total_revenue': 0,
+                    'average_transaction': 0
+                }
 
         # Combined summary
         if channel == 'all':

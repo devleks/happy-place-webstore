@@ -2258,6 +2258,42 @@ def delete_promotion(current_employee, promotion_id):
         return jsonify({'error': 'Internal server error'}), 400
 
 
+@admin_bp.route('/promotions/<int:promotion_id>/toggle', methods=['PUT'])
+@jwt_required()
+@manager_required
+def toggle_promotion(current_employee, promotion_id):
+    """
+    Toggle promotion active status.
+
+    PUT /api/admin/promotions/:promotion_id/toggle
+    Body: {"isActive": true/false}
+
+    Returns:
+        200: Promotion toggled
+        400: Error
+    """
+    try:
+        data = request.get_json()
+        is_active = data.get('isActive', True)
+        
+        promotion = Promotion.query.get(promotion_id)
+        if not promotion:
+            return jsonify({'error': 'Promotion not found'}), 404
+        
+        promotion.is_active = is_active
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'promotion': promotion.to_dict(),
+            'message': f'Promotion {"activated" if is_active else "deactivated"} successfully'
+        }), 200
+    except Exception as e:
+        logger.error(f"Toggle promotion error: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+
 @admin_bp.route('/promotions/<int:promotion_id>/enable', methods=['POST'])
 @jwt_required()
 @manager_required

@@ -289,6 +289,9 @@ const AdminEmployees = () => {
                     <option value="cashier">Cashier</option>
                     <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
+                    <option value="packer">Packer</option>
+                    <option value="shipper">Shipper</option>
+                    <option value="staff">Staff</option>
                   </select>
                 </div>
 
