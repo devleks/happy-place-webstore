@@ -95,10 +95,10 @@ const PackerDashboard = () => {
           In Progress ({orders.filter(o => o.status === 'in_progress').length})
         </button>
         <button
-          className={`filter-tab ${statusFilter === 'completed' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('completed')}
+          className={`filter-tab ${statusFilter === 'packed' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('packed')}
         >
-          Completed ({orders.filter(o => o.status === 'completed').length})
+          Completed ({orders.filter(o => o.status === 'packed').length})
         </button>
         <button
           className={`filter-tab ${statusFilter === 'all' ? 'active' : ''}`}
@@ -127,7 +127,9 @@ const PackerDashboard = () => {
           </div>
         ) : (
           <div className="orders-grid">
-            {orders.map((order) => (
+            {orders
+              .filter(order => statusFilter === 'all' || order.status === statusFilter)
+              .map((order) => (
               <div key={order.assignment_id} className="order-card">
                 <div className="order-header">
                   <h3>Order #{order.order_number}</h3>

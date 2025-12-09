@@ -369,10 +369,10 @@ def get_shipping_queue(current_employee):
         200: List of orders to ship
     """
     try:
-        # Get all orders with status 'packed' or 'shipping'
-        # These are orders that have been packed and need to be shipped
+        # Get all orders with status 'packed', 'shipping', or recently 'shipped'
+        # Include shipped orders so completed tab shows recent completions
         orders = Order.query.filter(
-            Order.status.in_(['packed', 'shipping'])
+            Order.status.in_(['packed', 'shipping', 'shipped'])
         ).order_by(Order.created_at.asc()).all()
         
         result = []
