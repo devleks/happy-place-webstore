@@ -175,6 +175,16 @@ const AdminInventory = () => {
     },
     { key: 'sku', label: 'SKU' },
     { key: 'product_name', label: 'Product Name' },
+    {
+      key: 'variant_info',
+      label: 'Size / Color',
+      render: (product) => (
+        <span>
+          {product.size && <span style={{ padding: '2px 6px', background: '#e3f2fd', borderRadius: '3px', fontSize: '11px', marginRight: '5px' }}>{product.size}</span>}
+          {product.color && <span style={{ padding: '2px 6px', background: '#f3e5f5', borderRadius: '3px', fontSize: '11px' }}>{product.color}</span>}
+        </span>
+      ),
+    },
     { key: 'category', label: 'Category' },
     {
       key: 'price',

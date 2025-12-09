@@ -18,6 +18,9 @@ const AddProduct = () => {
     low_stock_threshold: '',
     sku: '',
   });
+  const [variants, setVariants] = useState([
+    { size: '', color: '', quantity: 0, sku_suffix: '' }
+  ]);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -27,6 +30,22 @@ const AddProduct = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
+
+  const addVariant = () => {
+    setVariants([...variants, { size: '', color: '', quantity: 0, sku_suffix: '' }]);
+  };
+
+  const removeVariant = (index) => {
+    if (variants.length > 1) {
+      setVariants(variants.filter((_, i) => i !== index));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -70,8 +89,18 @@ const AddProduct = () => {
     setError(null);
 
     try {
-      // Create product first
-      const productResponse = await adminAPI.createProduct(formData);
+      // Create product with variants
+      const productData = {
+        ...formData,
+        variants: variants.map(v => ({
+          size: v.size,
+          color: v.color,
+          quantity: parseInt(v.quantity) || 0,
+          sku: formData.sku + (v.sku_suffix ? `-${v.sku_suffix}` : '')
+        }))
+      };
+      
+      const productResponse = await adminAPI.createProduct(productData);
       const productId = productResponse.product_id || productResponse.id;
 
       // Upload images
@@ -220,6 +249,90 @@ const AddProduct = () => {
               />
             </div>
           </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Product Variants (Size & Color)</h2>
+          <p className="form-note">Add different sizes and colors for this product. Each variant will have its own stock quantity.</p>
+          
+          {variants.map((variant, index) => (
+            <div key={index} className="variant-row" style={{ display: 'flex', gap: '10px', marginBottom: '15px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', position: 'relative' }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Size *</label>
+                <select
+                  value={variant.size}
+                  onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                  required
+                  className="form-input"
+                >
+                  <option value="">Select Size</option>
+                  <option value="XS">XS</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                  <option value="XXL">XXL</option>
+                  <option value="XXXL">XXXL</option>
+                  <option value="One Size">One Size</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Color *</label>
+                <input
+                  type="text"
+                  value={variant.color}
+                  onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
+                  placeholder="e.g., Red, Blue, Black"
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Quantity *</label>
+                <input
+                  type="number"
+                  value={variant.quantity}
+                  onChange={(e) => handleVariantChange(index, 'quantity', e.target.value)}
+                  min="0"
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>SKU Suffix</label>
+                <input
+                  type="text"
+                  value={variant.sku_suffix}
+                  onChange={(e) => handleVariantChange(index, 'sku_suffix', e.target.value)}
+                  placeholder="e.g., RED-M"
+                  className="form-input"
+                />
+              </div>
+
+              {variants.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeVariant(index)}
+                  className="btn-danger"
+                  style={{ position: 'absolute', top: '5px', right: '5px', padding: '5px 10px', fontSize: '12px' }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addVariant}
+            className="btn-secondary"
+            style={{ marginTop: '10px' }}
+          >
+            + Add Another Variant
+          </button>
         </div>
 
         <div className="form-section">
