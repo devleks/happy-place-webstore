@@ -40,3 +40,4 @@ Thumbs.db
 # !DISCUSSION_LOG.md
 *.md
 !README.md
+!QUICK_START.md
