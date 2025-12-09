@@ -278,10 +278,20 @@ class Employee(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='staff')  # admin, manager, cashier, staff
+    role = db.Column(db.String(20), nullable=False, default='staff')  # admin, manager, cashier, staff, packer, shipper
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+    
+    # Security fields
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    account_locked_until = db.Column(db.DateTime)
+    login_count = db.Column(db.Integer, default=0, nullable=False)
+    
+    # 2FA fields
+    totp_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    totp_secret = db.Column(db.String(32))
+    backup_codes = db.Column(db.ARRAY(db.String))
 
     # Relationships
     pos_transactions = db.relationship('POSTransaction', backref='employee', lazy=True)

@@ -1,0 +1,293 @@
+.product-card {
+  background-color: white;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+  transition: all 0.3s;
+  border: 1px solid #e5e5e5;
+  position: relative;
+}
+
+.product-card:hover {
+  opacity: 1;
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #B76E79;
+}
+
+/* Badges */
+.product-badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.badge {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.badge-new {
+  background-color: #722F37;
+}
+
+.badge-sale {
+  background-color: #7c3aed;
+}
+
+.badge-final-sale {
+  background-color: #dc2626;
+}
+
+/* Category Badge */
+.category-badge-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+.category-badge {
+  padding: 4px 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.badge-womens {
+  background-color: #B76E79;
+}
+
+.badge-maternity {
+  background-color: #7c3aed;
+}
+
+/* Wishlist Button */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #777;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-btn:hover {
+  background-color: #722F37;
+  color: white;
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active {
+  background-color: #722F37;
+  color: white;
+}
+
+.wishlist-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.product-link {
+  display: block;
+  color: inherit;
+}
+
+.product-image-container {
+  width: 100%;
+  padding-top: 140%;
+  position: relative;
+  overflow: hidden;
+  background-color: #fafafa;
+}
+
+.product-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* Quick View Overlay */
+.quick-view-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(114, 47, 55, 0.9);
+  color: white;
+  padding: 12px;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .quick-view-overlay {
+  transform: translateY(0);
+}
+
+.quick-view-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.product-info {
+  padding: 20px;
+  text-align: center;
+}
+
+.product-name {
+  font-size: 0.95rem;
+  font-weight: 400;
+  margin-bottom: 8px;
+  color: #333;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+}
+
+.product-category {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 12px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Rating Stars */
+.product-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 0.9rem;
+  color: #ddd;
+}
+
+.star.filled {
+  color: #D4AF37;
+}
+
+.star.half {
+  color: #D4AF37;
+  opacity: 0.5;
+}
+
+.review-count {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: 300;
+}
+
+/* Pricing */
+.product-pricing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.product-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #D4AF37;
+}
+
+.product-price-sale {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.product-price-original {
+  font-size: 0.9rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 300;
+}
+
+/* Color Options Text */
+.color-options-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 300;
+}
+
+.color-label {
+  font-weight: 400;
+  color: #333;
+}
+
+.color-list {
+  color: #777;
+}
+
+/* Size Options Text */
+.size-options-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 300;
+  margin-top: 6px;
+}
+
+.size-label {
+  font-weight: 400;
+  color: #333;
+}
+
+.size-list {
+  color: #777;
+}
+
+.size-item {
+  cursor: help;
+  border-bottom: 1px dotted #9b59b6;
+  transition: color 0.2s;
+}
+
+.size-item:hover {
+  color: #9b59b6;
+}
