@@ -263,7 +263,7 @@ const ShipperDashboard = () => {
               />
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
               <button onClick={() => setShowShippingModal(false)} className="btn-secondary">
                 Cancel
               </button>
