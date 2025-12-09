@@ -15,6 +15,7 @@ const AdminOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [showModal, setShowModal] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -52,7 +53,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     filterOrders();
-  }, [statusFilter, paymentFilter, dateRange, orders]);
+  }, [statusFilter, paymentFilter, paymentMethodFilter, dateRange, orders]);
 
   const fetchOrders = async () => {
     try {
@@ -80,6 +81,11 @@ const AdminOrders = () => {
     // Payment filter
     if (paymentFilter !== 'all') {
       filtered = filtered.filter((order) => order.payment_status === paymentFilter);
+    }
+
+    // Payment method filter
+    if (paymentMethodFilter !== 'all') {
+      filtered = filtered.filter((order) => order.payment_method === paymentMethodFilter);
     }
 
     // Date range filter
@@ -261,8 +267,21 @@ const AdminOrders = () => {
       render: (order) => <StatusBadge status={order.status} />,
     },
     {
+      key: 'payment_method',
+      label: 'Payment Method',
+      render: (order) => {
+        const methodIcons = {
+          'cod': '💵',
+          'mpesa': '📱',
+          'card': '💳'
+        };
+        const icon = methodIcons[order.payment_method] || '💰';
+        return <span>{icon} {order.payment_method?.toUpperCase() || 'N/A'}</span>;
+      },
+    },
+    {
       key: 'payment_status',
-      label: 'Payment',
+      label: 'Payment Status',
       render: (order) => <StatusBadge status={order.payment_status} />,
     },
     {
@@ -351,6 +370,17 @@ const AdminOrders = () => {
           <option value="paid">Paid</option>
           <option value="failed">Failed</option>
           <option value="refunded">Refunded</option>
+        </select>
+
+        <select
+          value={paymentMethodFilter}
+          onChange={(e) => setPaymentMethodFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="all">All Payment Methods</option>
+          <option value="cod">💵 COD (Cash on Delivery)</option>
+          <option value="mpesa">📱 M-Pesa</option>
+          <option value="card">💳 Card</option>
         </select>
 
         <input
