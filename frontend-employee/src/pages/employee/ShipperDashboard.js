@@ -11,7 +11,6 @@ const ShipperDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('packed');
-  const [showShippingModal, setShowShippingModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [shippingDetails, setShippingDetails] = useState({
     carrier: '',
@@ -51,14 +50,13 @@ const ShipperDashboard = () => {
     }
   };
 
-  const openShippingModal = (order) => {
+  const openShippingForm = (order) => {
     setSelectedOrder(order);
     setShippingDetails({
       carrier: '',
       tracking_number: '',
       notes: ''
     });
-    setShowShippingModal(true);
   };
 
   const handleCompleteShipping = async () => {
@@ -69,7 +67,7 @@ const ShipperDashboard = () => {
 
     try {
       await api.post(`/fulfillment/shipping/${selectedOrder.assignment_id}/complete`, shippingDetails);
-      setShowShippingModal(false);
+      setSelectedOrder(null);
       fetchShippingQueue();
       alert('Shipping completed successfully!');
     } catch (err) {
@@ -101,7 +99,7 @@ const ShipperDashboard = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="filter-tabs">
+      <div className="filter-tabs" style={{ marginBottom: '20px' }}>
         <button
           className={`filter-tab ${statusFilter === 'packed' ? 'active' : ''}`}
           onClick={() => setStatusFilter('packed')}
@@ -138,8 +136,10 @@ const ShipperDashboard = () => {
         </div>
       )}
 
-      {/* Orders Queue */}
-      <div className="orders-queue">
+      {/* Two Column Layout */}
+      <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 250px)' }}>
+        {/* Left Column - Orders Queue */}
+        <div style={{ flex: selectedOrder ? '0 0 60%' : '1', overflowY: 'auto' }}>
         {orders.length === 0 ? (
           <div className="empty-state">
             <h3>No orders to ship</h3>
@@ -192,7 +192,7 @@ const ShipperDashboard = () => {
                   )}
                   {order.status === 'in_progress' && (
                     <button
-                      onClick={() => openShippingModal(order)}
+                      onClick={() => openShippingForm(order)}
                       className="btn-success"
                     >
                       Complete Shipping
@@ -206,29 +206,48 @@ const ShipperDashboard = () => {
             ))}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Refresh Button */}
-      <div className="dashboard-footer">
-        <button onClick={fetchShippingQueue} className="btn-refresh">
-          🔄 Refresh Queue
-        </button>
-      </div>
-
-      {/* Shipping Completion Modal */}
-      {showShippingModal && (
-        <div className="modal-overlay" onClick={() => setShowShippingModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Complete Shipping</h2>
-            <p><strong>Order:</strong> {selectedOrder?.order_number}</p>
-            <p><strong>Customer:</strong> {selectedOrder?.customer_name}</p>
+        {/* Right Column - Shipping Completion Form */}
+        {selectedOrder && (
+          <div style={{ 
+            flex: '0 0 38%', 
+            backgroundColor: '#f8f9fa', 
+            padding: '20px', 
+            borderRadius: '8px',
+            overflowY: 'auto',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>Complete Shipping</h2>
+              <button 
+                onClick={() => setSelectedOrder(null)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: '24px', 
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
             
-            <div className="form-group">
-              <label>Shipping Carrier/Agent *</label>
+            <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: 'white', borderRadius: '6px' }}>
+              <p style={{ margin: '5px 0' }}><strong>Order:</strong> {selectedOrder.order_number}</p>
+              <p style={{ margin: '5px 0' }}><strong>Customer:</strong> {selectedOrder.customer_name}</p>
+            </div>
+            
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Shipping Carrier/Agent *
+              </label>
               <select
                 value={shippingDetails.carrier}
                 onChange={(e) => setShippingDetails({...shippingDetails, carrier: e.target.value})}
                 required
+                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
               >
                 <option value="">Select Carrier...</option>
                 <option value="DHL">DHL</option>
@@ -242,38 +261,59 @@ const ShipperDashboard = () => {
               </select>
             </div>
 
-            <div className="form-group">
-              <label>Tracking Number *</label>
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Tracking Number *
+              </label>
               <input
                 type="text"
                 value={shippingDetails.tracking_number}
                 onChange={(e) => setShippingDetails({...shippingDetails, tracking_number: e.target.value})}
                 placeholder="Enter tracking number"
                 required
+                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
               />
             </div>
 
-            <div className="form-group">
-              <label>Notes (Optional)</label>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Notes (Optional)
+              </label>
               <textarea
                 value={shippingDetails.notes}
                 onChange={(e) => setShippingDetails({...shippingDetails, notes: e.target.value})}
                 placeholder="Add any shipping notes..."
                 rows="3"
+                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', resize: 'vertical' }}
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-              <button onClick={() => setShowShippingModal(false)} className="btn-secondary">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button 
+                onClick={() => setSelectedOrder(null)} 
+                className="btn-secondary"
+                style={{ padding: '10px 20px', borderRadius: '4px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}
+              >
                 Cancel
               </button>
-              <button onClick={handleCompleteShipping} className="btn-primary">
+              <button 
+                onClick={handleCompleteShipping} 
+                className="btn-primary"
+                style={{ padding: '10px 20px', borderRadius: '4px', border: 'none', background: '#28a745', color: 'white', cursor: 'pointer' }}
+              >
                 Complete Shipping
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Refresh Button */}
+      <div className="dashboard-footer" style={{ marginTop: '20px' }}>
+        <button onClick={fetchShippingQueue} className="btn-refresh">
+          🔄 Refresh Queue
+        </button>
+      </div>
     </div>
   );
 };
