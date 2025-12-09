@@ -16,7 +16,7 @@ const AdminEmployees = () => {
   const [modalType, setModalType] = useState('');
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     email: '',
     password: '',
     role: 'cashier',
@@ -50,7 +50,7 @@ const AdminEmployees = () => {
 
   const openAddModal = () => {
     setFormData({
-      name: '',
+      full_name: '',
       email: '',
       password: '',
       role: 'cashier',
@@ -64,7 +64,7 @@ const AdminEmployees = () => {
 
   const openEditModal = (employee) => {
     setFormData({
-      name: employee.name,
+      full_name: employee.full_name,
       email: employee.email,
       password: '',
       role: employee.role,
@@ -247,8 +247,8 @@ const AdminEmployees = () => {
                   <label>Name *</label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     className="form-input"
                     required
                   />

@@ -27,11 +27,16 @@ api.interceptors.request.use(
 // Handle errors
 const handleError = (error) => {
   if (error.response) {
-    throw new Error(error.response.data.message || 'An error occurred');
+    // Backend can return error in 'error', 'message', or 'msg' field
+    const errorMsg = error.response.data.error || 
+                     error.response.data.message || 
+                     error.response.data.msg ||
+                     'An error occurred';
+    throw new Error(errorMsg);
   } else if (error.request) {
-    throw new Error('No response from server');
+    throw new Error('No response from server. Please check your connection.');
   } else {
-    throw new Error(error.message);
+    throw new Error(error.message || 'An unexpected error occurred');
   }
 };
 
