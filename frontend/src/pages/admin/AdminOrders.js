@@ -31,6 +31,16 @@ const AdminOrders = () => {
   const [carriers, setCarriers] = useState([]);
   const [loadingCarriers, setLoadingCarriers] = useState(false);
 
+  // Phase 1: Fulfillment modal state
+  const [showFulfillmentModal, setShowFulfillmentModal] = useState(false);
+  const [fulfillmentData, setFulfillmentData] = useState({
+    role: 'packer',
+    employee_id: '',
+    notes: ''
+  });
+  const [employees, setEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
       navigate('/login');
@@ -179,6 +189,55 @@ const AdminOrders = () => {
     }
   };
 
+  // Phase 1: Fulfillment functions
+  const openFulfillmentModal = async (order) => {
+    setCurrentOrder(order);
+    setShowFulfillmentModal(true);
+    
+    // Reset form
+    setFulfillmentData({
+      role: 'packer',
+      employee_id: '',
+      notes: ''
+    });
+    
+    // Fetch employees
+    try {
+      setLoadingEmployees(true);
+      const data = await adminAPI.getEmployees();
+      setEmployees(data.employees || []);
+    } catch (err) {
+      console.error('Failed to load employees:', err);
+      alert('Failed to load employees');
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const handleAssignOrder = async () => {
+    if (!currentOrder) return;
+    
+    // Validation
+    if (!fulfillmentData.employee_id) {
+      alert('Please select an employee');
+      return;
+    }
+
+    try {
+      await adminAPI.assignOrder({
+        order_id: currentOrder.id,
+        employee_id: parseInt(fulfillmentData.employee_id),
+        role: fulfillmentData.role,
+        notes: fulfillmentData.notes
+      });
+      setShowFulfillmentModal(false);
+      fetchOrders();
+      alert(`Order assigned to ${fulfillmentData.role} successfully`);
+    } catch (err) {
+      alert(err.message || 'Failed to assign order');
+    }
+  };
+
   const columns = [
     { key: 'order_number', label: 'Order #' },
     {
@@ -218,6 +277,15 @@ const AdminOrders = () => {
           >
             👁️
           </button>
+          {order.status === 'processing' && (
+            <button
+              className="btn-icon"
+              onClick={() => openFulfillmentModal(order)}
+              title="Assign to Fulfillment"
+            >
+              👤
+            </button>
+          )}
           {(order.status === 'processing' || order.status === 'shipped') && (
             <button
               className="btn-icon"
@@ -400,6 +468,85 @@ const AdminOrders = () => {
               )}
               <button onClick={handleUpdateStatus} className="btn-primary">
                 Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fulfillment Assignment Modal (Phase 1) */}
+      {showFulfillmentModal && currentOrder && (
+        <div className="modal-overlay" onClick={() => setShowFulfillmentModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Assign Order #{currentOrder.order_number} to Fulfillment</h2>
+              <button onClick={() => setShowFulfillmentModal(false)} className="close-btn">
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="fulfillment_role">Assign To *</label>
+                <select
+                  id="fulfillment_role"
+                  className="form-input"
+                  value={fulfillmentData.role}
+                  onChange={(e) => setFulfillmentData({...fulfillmentData, role: e.target.value, employee_id: ''})}
+                >
+                  <option value="packer">Packer (for packing)</option>
+                  <option value="shipper">Shipper (for shipping)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="employee_id">Employee *</label>
+                {loadingEmployees ? (
+                  <p>Loading employees...</p>
+                ) : (
+                  <select
+                    id="employee_id"
+                    className="form-input"
+                    value={fulfillmentData.employee_id}
+                    onChange={(e) => setFulfillmentData({...fulfillmentData, employee_id: e.target.value})}
+                    required
+                  >
+                    <option value="">Select an employee</option>
+                    {employees
+                      .filter(emp => emp.role === fulfillmentData.role || emp.role === 'manager' || emp.role === 'admin')
+                      .map((employee) => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.full_name} ({employee.role})
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="fulfillment_notes">Assignment Notes</label>
+                <textarea
+                  id="fulfillment_notes"
+                  className="form-input"
+                  value={fulfillmentData.notes}
+                  onChange={(e) => setFulfillmentData({...fulfillmentData, notes: e.target.value})}
+                  placeholder="e.g., Priority order, handle with care"
+                  rows="3"
+                />
+              </div>
+
+              <div className="info-box">
+                <p><strong>Order Details:</strong></p>
+                <p>Customer: {currentOrder.customer_name}</p>
+                <p>Items: {currentOrder.items?.length || 0}</p>
+                <p>Total: KES {currentOrder.total_amount?.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowFulfillmentModal(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleAssignOrder} className="btn-primary">
+                Assign Order
               </button>
             </div>
           </div>

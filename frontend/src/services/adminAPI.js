@@ -218,6 +218,25 @@ export const adminAPI = {
     }
   },
 
+  // Phase 1: Fulfillment Methods
+  assignOrder: async (assignmentData) => {
+    try {
+      const response = await api.post('/fulfillment/assign', assignmentData);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getOrderAssignments: async (orderId) => {
+    try {
+      const response = await api.get(`/fulfillment/assignments/${orderId}`);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
   // ========== Customer Methods ==========
   getCustomers: async () => {
     try {
