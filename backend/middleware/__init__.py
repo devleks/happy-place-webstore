@@ -8,6 +8,8 @@ from .auth import (
     employee_required,
     admin_required,
     manager_required,
+    packer_required,
+    shipper_required,
     get_current_customer,
     get_current_employee
 )
@@ -17,6 +19,8 @@ __all__ = [
     'employee_required',
     'admin_required',
     'manager_required',
+    'packer_required',
+    'shipper_required',
     'get_current_customer',
     'get_current_employee'
 ]

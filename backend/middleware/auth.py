@@ -161,6 +161,90 @@ def manager_required(fn):
     return wrapper
 
 
+def packer_required(fn):
+    """
+    Decorator to require packer role (Phase 1 - Fulfillment).
+    
+    Usage:
+        @api.route('/fulfillment/packing')
+        @packer_required
+        def get_packing_queue(current_employee):
+            return jsonify({'orders': [...]})
+    """
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request()
+        claims = get_jwt()
+
+        # Check if user type is employee
+        if claims.get('user_type') != 'employee':
+            return jsonify({'error': 'Employee authentication required'}), 403
+
+        employee_id = get_jwt_identity()
+        employee = Employee.query.get(employee_id)
+
+        if not employee:
+            return jsonify({'error': 'Employee not found'}), 404
+
+        if not employee.is_active:
+            return jsonify({'error': 'Account is inactive'}), 403
+
+        # Check if employee has packer, manager, or admin role
+        if employee.role not in ['packer', 'manager', 'admin']:
+            return jsonify({
+                'error': 'Insufficient permissions',
+                'code': 'INSUFFICIENT_PERMISSIONS',
+                'details': {'required_role': 'packer, manager, or admin', 'current_role': employee.role}
+            }), 403
+
+        # Pass employee to route handler
+        return fn(current_employee=employee, *args, **kwargs)
+
+    return wrapper
+
+
+def shipper_required(fn):
+    """
+    Decorator to require shipper role (Phase 1 - Fulfillment).
+    
+    Usage:
+        @api.route('/fulfillment/shipping')
+        @shipper_required
+        def get_shipping_queue(current_employee):
+            return jsonify({'orders': [...]})
+    """
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request()
+        claims = get_jwt()
+
+        # Check if user type is employee
+        if claims.get('user_type') != 'employee':
+            return jsonify({'error': 'Employee authentication required'}), 403
+
+        employee_id = get_jwt_identity()
+        employee = Employee.query.get(employee_id)
+
+        if not employee:
+            return jsonify({'error': 'Employee not found'}), 404
+
+        if not employee.is_active:
+            return jsonify({'error': 'Account is inactive'}), 403
+
+        # Check if employee has shipper, manager, or admin role
+        if employee.role not in ['shipper', 'manager', 'admin']:
+            return jsonify({
+                'error': 'Insufficient permissions',
+                'code': 'INSUFFICIENT_PERMISSIONS',
+                'details': {'required_role': 'shipper, manager, or admin', 'current_role': employee.role}
+            }), 403
+
+        # Pass employee to route handler
+        return fn(current_employee=employee, *args, **kwargs)
+
+    return wrapper
+
+
 def get_current_customer():
     """
     Helper function to get current customer from JWT.
