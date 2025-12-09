@@ -75,13 +75,21 @@ const EmployeeLogin = () => {
     // Redirect based on employee role
     const role = employee.role.toLowerCase();
     
-    if (role === 'packer') {
+    if (role === 'admin' || role === 'manager') {
+      // Admins and managers should use the Admin Portal
+      alert('Please use the Admin Portal at http://localhost:3001 to login.');
+      setError('Admins and managers should use the Admin Portal.');
+      return;
+    } else if (role === 'packer') {
       navigate('/packing');
     } else if (role === 'shipper') {
       navigate('/shipping');
-    } else {
-      // For other roles, go to dashboard which will redirect appropriately
+    } else if (role === 'cashier' || role === 'staff') {
+      // Cashiers use POS system, staff use general dashboard
       navigate('/dashboard');
+    } else {
+      // Unknown role
+      setError('Your role does not have access to this portal.');
     }
   };
 
