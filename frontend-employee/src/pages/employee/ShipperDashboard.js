@@ -138,7 +138,13 @@ const ShipperDashboard = () => {
 
                 <div className="order-details">
                   <p><strong>Customer:</strong> {order.customer_name}</p>
-                  <p><strong>Address:</strong> {order.shipping_address}</p>
+                  {order.shipping_address && (
+                    <p><strong>Address:</strong> {
+                      typeof order.shipping_address === 'object' 
+                        ? `${order.shipping_address.street || ''}, ${order.shipping_address.city || ''}, ${order.shipping_address.state || ''} ${order.shipping_address.zip || ''}`
+                        : order.shipping_address
+                    }</p>
+                  )}
                   {order.tracking_number && (
                     <p><strong>Tracking:</strong> {order.tracking_number}</p>
                   )}
