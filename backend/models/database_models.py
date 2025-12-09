@@ -1245,6 +1245,47 @@ class EmployeeSession(db.Model):
 # PHASE 1: ORDER TRACKING MODELS (Task 1.1.2)
 # ============================================================================
 
+class OrderAssignment(db.Model):
+    """
+    Order assignments for fulfillment workflow (Phase 1, Task 1.2.1).
+    Tracks which packer/shipper is assigned to each order.
+    """
+    __tablename__ = 'order_assignments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    assigned_to = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='SET NULL'))
+    assigned_by = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='SET NULL'))
+    role = db.Column(db.String(20), nullable=False)  # packer or shipper
+    status = db.Column(db.String(20), nullable=False, default='pending')  # pending, in_progress, completed, cancelled
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime)
+    completed_at = db.Column(db.DateTime)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    assignee = db.relationship('Employee', foreign_keys=[assigned_to], backref='assigned_orders')
+    assigner = db.relationship('Employee', foreign_keys=[assigned_by])
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'order_id': self.order_id,
+            'assigned_to': self.assigned_to,
+            'assigned_by': self.assigned_by,
+            'role': self.role,
+            'status': self.status,
+            'assigned_at': self.assigned_at.isoformat() if self.assigned_at else None,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
 class ShippingCarrier(db.Model):
     """
     Shipping carriers configuration for order tracking.

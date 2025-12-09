@@ -6,6 +6,7 @@ from models import db
 from routes import api
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
+from routes.fulfillment_routes import fulfillment_bp
 
 def create_app():
     app = Flask(__name__)
@@ -33,6 +34,7 @@ def create_app():
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(auth_bp)  # Already has /api/auth prefix
     app.register_blueprint(admin_bp)  # Already has /api/admin prefix
+    app.register_blueprint(fulfillment_bp)  # Already has /api/fulfillment prefix
 
     # Create tables
     with app.app_context():
