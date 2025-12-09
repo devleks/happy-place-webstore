@@ -11,6 +11,13 @@ const ShipperDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('pending');
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [shippingDetails, setShippingDetails] = useState({
+    carrier: '',
+    tracking_number: '',
+    notes: ''
+  });
 
   useEffect(() => {
     if (!user) {
@@ -44,14 +51,27 @@ const ShipperDashboard = () => {
     }
   };
 
-  const handleCompleteShipping = async (assignmentId) => {
-    const notes = prompt('Add shipping notes (e.g., "Handed to DHL courier"):');
+  const openShippingModal = (order) => {
+    setSelectedOrder(order);
+    setShippingDetails({
+      carrier: '',
+      tracking_number: '',
+      notes: ''
+    });
+    setShowShippingModal(true);
+  };
+
+  const handleCompleteShipping = async () => {
+    if (!shippingDetails.carrier || !shippingDetails.tracking_number) {
+      alert('Please enter both carrier and tracking number');
+      return;
+    }
+
     try {
-      await api.post(`/fulfillment/shipping/${assignmentId}/complete`, {
-        notes: notes || ''
-      });
+      await api.post(`/fulfillment/shipping/${selectedOrder.assignment_id}/complete`, shippingDetails);
+      setShowShippingModal(false);
       fetchShippingQueue();
-      alert('Shipping completed!');
+      alert('Shipping completed successfully!');
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to complete shipping');
     }
@@ -170,7 +190,7 @@ const ShipperDashboard = () => {
                   )}
                   {order.status === 'in_progress' && (
                     <button
-                      onClick={() => handleCompleteShipping(order.assignment_id)}
+                      onClick={() => openShippingModal(order)}
                       className="btn-success"
                     >
                       Complete Shipping
@@ -192,6 +212,66 @@ const ShipperDashboard = () => {
           🔄 Refresh Queue
         </button>
       </div>
+
+      {/* Shipping Completion Modal */}
+      {showShippingModal && (
+        <div className="modal-overlay" onClick={() => setShowShippingModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Complete Shipping</h2>
+            <p><strong>Order:</strong> {selectedOrder?.order_number}</p>
+            <p><strong>Customer:</strong> {selectedOrder?.customer_name}</p>
+            
+            <div className="form-group">
+              <label>Shipping Carrier/Agent *</label>
+              <select
+                value={shippingDetails.carrier}
+                onChange={(e) => setShippingDetails({...shippingDetails, carrier: e.target.value})}
+                required
+              >
+                <option value="">Select Carrier...</option>
+                <option value="DHL">DHL</option>
+                <option value="FedEx">FedEx</option>
+                <option value="UPS">UPS</option>
+                <option value="Aramex">Aramex</option>
+                <option value="Posta Kenya">Posta Kenya</option>
+                <option value="G4S Courier">G4S Courier</option>
+                <option value="Sendy">Sendy</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Tracking Number *</label>
+              <input
+                type="text"
+                value={shippingDetails.tracking_number}
+                onChange={(e) => setShippingDetails({...shippingDetails, tracking_number: e.target.value})}
+                placeholder="Enter tracking number"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Notes (Optional)</label>
+              <textarea
+                value={shippingDetails.notes}
+                onChange={(e) => setShippingDetails({...shippingDetails, notes: e.target.value})}
+                placeholder="Add any shipping notes..."
+                rows="3"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={() => setShowShippingModal(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleCompleteShipping} className="btn-primary">
+                Complete Shipping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
