@@ -14,6 +14,7 @@ import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import OrderHistory from './pages/OrderHistory';
+import TrackOrder from './pages/TrackOrder';
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerDashboard from './pages/CustomerDashboard';
 import EmployeeLogin from './pages/EmployeeLogin';
@@ -66,6 +67,7 @@ function App() {
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
                       <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/track-order/:orderId" element={<TrackOrder />} />
                       <Route path="/customer/login" element={<CustomerLogin />} />
                       <Route path="/dashboard" element={<CustomerDashboard />} />
                       <Route path="/login" element={<Login />} />

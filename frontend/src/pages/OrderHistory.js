@@ -250,6 +250,18 @@ const OrderHistory = () => {
                   <div className="order-card-footer">
                     <div className="total-label">Total</div>
                     <div className="total-amount">{helpers.formatPrice(order.total)}</div>
+                    {/* Phase 1: Track Order Button */}
+                    {order.tracking_number && (order.status === 'shipped' || order.status === 'delivered') && (
+                      <button
+                        className="btn-track-order"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/track-order/${order.id}`);
+                        }}
+                      >
+                        📦 Track Order
+                      </button>
+                    )}
                   </div>
 
                   <div className="view-details-arrow">
