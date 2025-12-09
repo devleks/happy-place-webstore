@@ -1165,6 +1165,205 @@ def send_order_notification(current_employee, order_id):
 
 
 # =====================================================
+# ORDER TRACKING ENDPOINTS (Phase 1 - Task 1.1.3)
+# =====================================================
+
+@admin_bp.route('/orders/<int:order_id>/tracking', methods=['POST'])
+@jwt_required()
+@manager_required
+def add_order_tracking(current_employee, order_id):
+    """
+    Add tracking information to an order.
+    
+    POST /api/admin/orders/:order_id/tracking
+    Body: {
+        "tracking_number": "DHL123456789",
+        "carrier": "DHL Express",
+        "estimated_delivery": "2025-12-15",
+        "notes": "Package dispatched from warehouse"
+    }
+    
+    Returns:
+        200: Tracking added successfully
+        400: Validation error
+        404: Order not found
+    """
+    try:
+        from models import db
+        from models.database_models import Order, ShippingCarrier, ShipmentUpdate
+        from datetime import datetime
+        
+        data = request.get_json()
+        employee_id = int(get_jwt_identity())
+        
+        # Validate required fields
+        if not data.get('tracking_number'):
+            return jsonify({'error': 'Tracking number is required'}), 400
+        if not data.get('carrier'):
+            return jsonify({'error': 'Carrier is required'}), 400
+        
+        # Get order
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'error': 'Order not found'}), 404
+        
+        # Get carrier to generate tracking URL
+        carrier = ShippingCarrier.query.filter_by(name=data['carrier']).first()
+        tracking_url = None
+        if carrier:
+            tracking_url = carrier.generate_tracking_url(data['tracking_number'])
+        
+        # Update order with tracking info
+        order.tracking_number = data['tracking_number']
+        order.carrier = data['carrier']
+        order.tracking_url = tracking_url
+        order.shipping_notes = data.get('notes', '')
+        
+        # Parse estimated delivery date
+        if data.get('estimated_delivery'):
+            try:
+                order.estimated_delivery_date = datetime.strptime(
+                    data['estimated_delivery'], '%Y-%m-%d'
+                ).date()
+            except ValueError:
+                return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+        
+        # Update order status to shipped if not already
+        if order.status not in ['shipped', 'delivered']:
+            order.status = 'shipped'
+            order.shipped_at = datetime.utcnow()
+        
+        # Create shipment update
+        shipment_update = ShipmentUpdate(
+            order_id=order_id,
+            status='shipped',
+            location='Warehouse',
+            description=data.get('notes', 'Package shipped'),
+            timestamp=datetime.utcnow(),
+            created_by=employee_id
+        )
+        db.session.add(shipment_update)
+        
+        db.session.commit()
+        
+        logger.info(
+            f"Tracking added to order {order_id}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": employee_id, "order_id": order_id}
+            )}
+        )
+        
+        return jsonify({
+            'message': 'Tracking information added successfully',
+            'order': order.to_dict(include_items=False)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(
+            f"Failed to add tracking to order {order_id}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None}
+            )},
+            exc_info=True
+        )
+        return jsonify({'error': str(e)}), 400
+
+
+@admin_bp.route('/orders/<int:order_id>/tracking', methods=['GET'])
+@jwt_required()
+@manager_required
+def get_order_tracking(current_employee, order_id):
+    """
+    Get tracking information for an order.
+    
+    GET /api/admin/orders/:order_id/tracking
+    
+    Returns:
+        200: Tracking information
+        404: Order not found or no tracking info
+    """
+    try:
+        from models.database_models import Order, ShipmentUpdate
+        
+        order = Order.query.get(order_id)
+        if not order:
+            return jsonify({'error': 'Order not found'}), 404
+        
+        if not order.tracking_number:
+            return jsonify({'error': 'No tracking information available'}), 404
+        
+        # Get shipment updates
+        updates = ShipmentUpdate.query.filter_by(order_id=order_id)\
+            .order_by(ShipmentUpdate.timestamp.desc()).all()
+        
+        return jsonify({
+            'tracking_number': order.tracking_number,
+            'carrier': order.carrier,
+            'tracking_url': order.tracking_url,
+            'estimated_delivery_date': order.estimated_delivery_date.isoformat() if order.estimated_delivery_date else None,
+            'shipping_notes': order.shipping_notes,
+            'status': order.status,
+            'shipped_at': order.shipped_at.isoformat() if order.shipped_at else None,
+            'delivered_at': order.delivered_at.isoformat() if order.delivered_at else None,
+            'updates': [update.to_dict() for update in updates]
+        }), 200
+        
+    except Exception as e:
+        logger.error(
+            f"Failed to get tracking for order {order_id}",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None}
+            )},
+            exc_info=True
+        )
+        return jsonify({'error': str(e)}), 400
+
+
+@admin_bp.route('/shipping/carriers', methods=['GET'])
+@jwt_required()
+def get_shipping_carriers():
+    """
+    Get list of available shipping carriers.
+    
+    GET /api/shipping/carriers
+    
+    Returns:
+        200: List of carriers
+    """
+    try:
+        from models.database_models import ShippingCarrier
+        
+        carriers = ShippingCarrier.query.filter_by(is_active=True).all()
+        
+        return jsonify({
+            'carriers': [carrier.to_dict() for carrier in carriers]
+        }), 200
+        
+    except Exception as e:
+        logger.error(
+            "Failed to get shipping carriers",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None}
+            )},
+            exc_info=True
+        )
+        return jsonify({'error': str(e)}), 400
+
+
+# =====================================================
 # CUSTOMER MANAGEMENT ENDPOINTS
 # =====================================================
 
