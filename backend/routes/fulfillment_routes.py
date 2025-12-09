@@ -411,12 +411,21 @@ def get_shipping_queue(current_employee):
             if order.customer:
                 customer_name = f"{order.customer.first_name} {order.customer.last_name}"
             
+            # Get shipping address (decrypt from encrypted field)
+            shipping_address = None
+            if order.shipping_address_encrypted:
+                try:
+                    import json
+                    shipping_address = json.loads(order.shipping_address_encrypted)
+                except:
+                    shipping_address = None
+            
             result.append({
                 'assignment_id': assignment_id,
                 'order_id': order.id,
                 'order_number': order.order_number,
                 'customer_name': customer_name,
-                'shipping_address': order.shipping_address,
+                'shipping_address': shipping_address,
                 'items_count': len(order.items) if order.items else 0,
                 'total': float(order.total),
                 'tracking_number': order.tracking_number,
