@@ -303,10 +303,8 @@ App checks for updates on startup and hourly.
 ## 📚 Documentation
 
 ### Core Documentation
-- **[Authentication System](./AUTHENTICATION.md)** - Hybrid auth, session management, security
-- **[Security Audit](./SECURITY_AUDIT.md)** - Security features and compliance
-- **[Architecture Decision](./ARCHITECTURE_DECISION.md)** - React integration rationale
-- **[Test Suite](./tests/README.md)** - Testing guide and coverage
+- **[Authentication System](./AUTH_README.md)** - Hybrid auth, session management, security
+- **Test Suite** - See `__tests__/` directory for unit and integration tests
 
 ### External Resources
 - [Electron Documentation](https://www.electronjs.org/docs)
