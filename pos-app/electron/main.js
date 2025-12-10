@@ -17,6 +17,8 @@ const isDev = require('./is-dev');
 const { initLogger, logger, setupErrorHandlers, rotateLogs } = require('./logger');
 const { initCrashReporter, setupCrashHandlers, startHealthMonitoring } = require('./crash-reporter');
 const { initUpdater } = require('./updater');
+const { initSecurity } = require('./security');
+const { initMemoryManager, cleanupAllListeners, cleanupWindowListeners } = require('./memory-manager');
 
 // Core services
 const { initDatabase, closeDatabase } = require('./database');
@@ -76,6 +78,9 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
+  // Initialize security features for this window
+  initSecurity(mainWindow);
+
   // Handle window close
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
@@ -85,6 +90,10 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => {
+    // Clean up window-specific listeners
+    if (mainWindow) {
+      cleanupWindowListeners(mainWindow.id);
+    }
     mainWindow = null;
   });
 
@@ -113,6 +122,9 @@ async function initializeApp() {
     
     // Start health monitoring (every 5 minutes)
     startHealthMonitoring(5);
+    
+    // Initialize memory manager
+    initMemoryManager();
 
     // Initialize core services
     logger.info('Initializing core services...');
@@ -163,6 +175,10 @@ async function cleanup() {
   logger.separator('CLEANUP');
   
   try {
+    // Clean up all event listeners
+    cleanupAllListeners();
+    logger.success('Event listeners cleaned up');
+    
     stopBackgroundSync();
     logger.success('Background sync stopped');
     
@@ -278,6 +294,17 @@ ipcMain.handle('check-online', () => {
 ipcMain.handle('check-for-updates', () => {
   const { forceCheckForUpdates } = require('./updater');
   forceCheckForUpdates();
+});
+
+// Memory management
+ipcMain.handle('get-memory-usage', () => {
+  const { getMemoryUsage } = require('./memory-manager');
+  return getMemoryUsage();
+});
+
+ipcMain.handle('check-memory-leaks', () => {
+  const { checkMemoryLeaks } = require('./memory-manager');
+  return checkMemoryLeaks();
 });
 
 // ============================================================================

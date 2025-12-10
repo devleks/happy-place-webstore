@@ -44,6 +44,10 @@ contextBridge.exposeInMainWorld('electron', {
 
   // Network
   checkOnline: () => ipcRenderer.invoke('check-online'),
+  
+  // Memory management
+  getMemoryUsage: () => ipcRenderer.invoke('get-memory-usage'),
+  checkMemoryLeaks: () => ipcRenderer.invoke('check-memory-leaks'),
 
   // Database operations
   db: {
