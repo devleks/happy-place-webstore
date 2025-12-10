@@ -4,10 +4,8 @@
  */
 
 const AuthService = require('../../electron/auth');
-const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
-const path = require('path');
-const fs = require('fs');
+const { createTestDatabase } = require('../setup/testDatabase');
 
 // Mock logger
 jest.mock('../../electron/logger', () => ({
@@ -26,66 +24,10 @@ global.fetch = jest.fn();
 describe('AuthService', () => {
   let authService;
   let db;
-  let testDbPath;
 
   beforeEach(() => {
-    // Create test database
-    testDbPath = path.join(__dirname, 'test-auth.db');
-    
-    try {
-      db = new Database(testDbPath);
-    } catch (error) {
-      // If better-sqlite3 not available in test environment, skip
-      console.log('Skipping auth tests - better-sqlite3 not available');
-      return;
-    }
-
-    // Create tables
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS employees (
-        id INTEGER PRIMARY KEY,
-        backend_id INTEGER UNIQUE,
-        email TEXT UNIQUE NOT NULL,
-        full_name TEXT NOT NULL,
-        role TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        permissions TEXT,
-        is_active INTEGER DEFAULT 1,
-        last_synced_at TEXT,
-        sync_version INTEGER DEFAULT 1,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS sessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        employee_id INTEGER NOT NULL,
-        session_token TEXT UNIQUE NOT NULL,
-        started_at TEXT NOT NULL,
-        last_activity_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL,
-        is_active INTEGER DEFAULT 1,
-        device_info TEXT,
-        FOREIGN KEY (employee_id) REFERENCES employees(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS activity_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        employee_id INTEGER,
-        session_id INTEGER,
-        action TEXT NOT NULL,
-        details TEXT,
-        timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
-        synced INTEGER DEFAULT 0
-      );
-
-      CREATE TABLE IF NOT EXISTS sync_metadata (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
+    // Create in-memory test database
+    db = createTestDatabase();
     authService = new AuthService(db);
   });
 
@@ -97,11 +39,9 @@ describe('AuthService', () => {
     if (db) {
       db.close();
     }
-    if (fs.existsSync(testDbPath)) {
-      fs.unlinkSync(testDbPath);
-    }
     jest.clearAllMocks();
   });
+
 
   describe('login', () => {
     it('should successfully login with valid credentials', async () => {
