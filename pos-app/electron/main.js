@@ -1,17 +1,45 @@
 /**
  * Electron Main Process
  * Handles window management, IPC communication, and system integration
+ * 
+ * Production Features (Per ELECTRON_WINDSURF_RULES.md):
+ * - Comprehensive logging with electron-log
+ * - Crash reporting and error tracking
+ * - Auto-updates with electron-updater
+ * - Health monitoring
  */
 
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const isDev = require('./is-dev');
+
+// Production services
+const { initLogger, logger, setupErrorHandlers, rotateLogs } = require('./logger');
+const { initCrashReporter, setupCrashHandlers, startHealthMonitoring } = require('./crash-reporter');
+const { initUpdater } = require('./updater');
+
+// Core services
 const { initDatabase, closeDatabase } = require('./database');
 const { startBackgroundSync, stopBackgroundSync } = require('./sync');
 const { initHardware, cleanupHardware } = require('./hardware');
 
 let mainWindow;
 let isQuitting = false;
+
+// ============================================================================
+// EARLY INITIALIZATION
+// ============================================================================
+
+// Initialize logger as early as possible (before app.whenReady)
+app.on('will-finish-launching', () => {
+  initLogger();
+  setupErrorHandlers();
+  logger.info('App will finish launching...');
+});
+
+// ============================================================================
+// WINDOW MANAGEMENT
+// ============================================================================
 
 /**
  * Create the main application window
@@ -71,23 +99,59 @@ function createWindow() {
  */
 async function initializeApp() {
   try {
-    console.log('🚀 Initializing Happy Place POS...');
+    logger.separator('INITIALIZING HAPPY PLACE POS');
+
+    // Initialize production services first
+    logger.info('Initializing production services...');
+    
+    // Rotate old logs
+    rotateLogs();
+    
+    // Setup crash reporter
+    initCrashReporter();
+    setupCrashHandlers();
+    
+    // Start health monitoring (every 5 minutes)
+    startHealthMonitoring(5);
+
+    // Initialize core services
+    logger.info('Initializing core services...');
 
     // Initialize database
     await initDatabase();
-    console.log('✅ Database initialized');
+    logger.success('Database initialized');
 
     // Initialize hardware
     await initHardware(mainWindow);
-    console.log('✅ Hardware initialized');
+    logger.success('Hardware initialized');
 
     // Start background sync
     startBackgroundSync(mainWindow);
-    console.log('✅ Background sync started');
+    logger.success('Background sync started');
 
-    console.log('🎉 Happy Place POS ready!');
+    // Initialize auto-updater (only in production)
+    if (!isDev) {
+      initUpdater(mainWindow);
+      logger.success('Auto-updater initialized');
+    } else {
+      logger.info('Auto-updater disabled in development mode');
+    }
+
+    logger.separator();
+    logger.success('🎉 Happy Place POS ready!');
+    
+    // Log startup info
+    logger.startup({
+      'Version': app.getVersion(),
+      'Environment': isDev ? 'Development' : 'Production',
+      'Platform': `${process.platform} ${process.arch}`,
+      'Electron': process.versions.electron,
+      'Node': process.versions.node,
+      'Chrome': process.versions.chrome
+    });
+
   } catch (error) {
-    console.error('❌ Initialization failed:', error);
+    logger.fatal('Initialization failed', error);
     app.quit();
   }
 }
@@ -96,15 +160,22 @@ async function initializeApp() {
  * Cleanup before quit
  */
 async function cleanup() {
-  console.log('🧹 Cleaning up...');
+  logger.separator('CLEANUP');
   
   try {
     stopBackgroundSync();
+    logger.success('Background sync stopped');
+    
     await cleanupHardware();
+    logger.success('Hardware cleaned up');
+    
     await closeDatabase();
-    console.log('✅ Cleanup complete');
+    logger.success('Database closed');
+    
+    logger.separator();
+    logger.shutdown('Normal shutdown');
   } catch (error) {
-    console.error('❌ Cleanup error:', error);
+    logger.error('Cleanup error', error);
   }
 }
 
@@ -207,18 +278,15 @@ ipcMain.handle('check-online', () => {
 // ERROR HANDLING
 // ============================================================================
 
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  if (mainWindow) {
-    mainWindow.webContents.send('app-error', {
-      message: error.message,
-      stack: error.stack
-    });
-  }
-});
+// Note: Error handlers are now in logger.js and crash-reporter.js
+// They are initialized in initializeApp()
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+// Additional app-level error handler
+app.on('render-process-gone', (event, webContents, details) => {
+  logger.error('Renderer process gone', {
+    reason: details.reason,
+    exitCode: details.exitCode
+  });
 });
 
 // ============================================================================
