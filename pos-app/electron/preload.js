@@ -49,6 +49,16 @@ contextBridge.exposeInMainWorld('electron', {
   getMemoryUsage: () => ipcRenderer.invoke('get-memory-usage'),
   checkMemoryLeaks: () => ipcRenderer.invoke('check-memory-leaks'),
 
+  // Authentication
+  auth: {
+    login: (email, password) => ipcRenderer.invoke('auth-login', email, password),
+    validateSession: (sessionToken) => ipcRenderer.invoke('auth-validate-session', sessionToken),
+    logout: (sessionToken) => ipcRenderer.invoke('auth-logout', sessionToken),
+    getSessionStats: () => ipcRenderer.invoke('auth-get-session-stats'),
+    setSyncToken: (token) => ipcRenderer.invoke('auth-set-sync-token', token),
+    syncEmployees: () => ipcRenderer.invoke('auth-sync-employees')
+  },
+
   // Database operations
   db: {
     getProducts: () => ipcRenderer.invoke('db-get-products'),

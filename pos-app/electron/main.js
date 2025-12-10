@@ -26,6 +26,9 @@ const { initTray, destroyTray, updateTrayOnlineStatus, updateTraySyncStatus } = 
 const { initShortcuts, cleanupShortcuts } = require('./shortcuts');
 const { logRateLimitStats, cleanupRateLimiters } = require('./rate-limiter');
 
+// Auth service
+const AuthService = require('./auth');
+
 // Core services
 const { initDatabase, closeDatabase } = require('./database');
 const { startBackgroundSync, stopBackgroundSync } = require('./sync');
@@ -33,6 +36,7 @@ const { initHardware, cleanupHardware } = require('./hardware');
 
 let mainWindow;
 let isQuitting = false;
+let authService;
 
 // ============================================================================
 // EARLY INITIALIZATION
@@ -141,8 +145,13 @@ async function initializeApp() {
     logger.info('Initializing core services...');
 
     // Initialize database
-    await initDatabase();
+    const db = await initDatabase();
     logger.success('Database initialized');
+
+    // Initialize auth service
+    authService = new AuthService(db);
+    authService.initialize();
+    logger.success('Auth service initialized');
 
     // Initialize hardware
     await initHardware(mainWindow);
@@ -186,6 +195,12 @@ async function cleanup() {
   logger.separator('CLEANUP');
   
   try {
+    // Clean up auth service
+    if (authService) {
+      authService.cleanup();
+      logger.success('Auth service cleaned up');
+    }
+    
     // Clean up desktop UX
     cleanupShortcuts();
     logger.success('Shortcuts cleaned up');
@@ -326,6 +341,77 @@ ipcMain.handle('get-memory-usage', () => {
 ipcMain.handle('check-memory-leaks', () => {
   const { checkMemoryLeaks } = require('./memory-manager');
   return checkMemoryLeaks();
+});
+
+// ============================================================================
+// AUTH IPC HANDLERS
+// ============================================================================
+
+// Employee login
+ipcMain.handle('auth-login', async (event, email, password) => {
+  try {
+    const deviceInfo = {
+      platform: process.platform,
+      arch: process.arch,
+      electron_version: process.versions.electron
+    };
+    
+    return await authService.login(email, password, deviceInfo);
+  } catch (error) {
+    logger.error('Auth login error', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Validate session
+ipcMain.handle('auth-validate-session', async (event, sessionToken) => {
+  try {
+    return authService.validateSession(sessionToken);
+  } catch (error) {
+    logger.error('Session validation error', error);
+    return { valid: false, reason: 'validation_error' };
+  }
+});
+
+// Logout
+ipcMain.handle('auth-logout', async (event, sessionToken) => {
+  try {
+    return authService.logout(sessionToken);
+  } catch (error) {
+    logger.error('Logout error', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get session statistics
+ipcMain.handle('auth-get-session-stats', async () => {
+  try {
+    return authService.getSessionStats();
+  } catch (error) {
+    logger.error('Failed to get session stats', error);
+    return null;
+  }
+});
+
+// Set sync token (for initial setup)
+ipcMain.handle('auth-set-sync-token', async (event, token) => {
+  try {
+    authService.setSyncToken(token);
+    return { success: true };
+  } catch (error) {
+    logger.error('Failed to set sync token', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Manual sync trigger
+ipcMain.handle('auth-sync-employees', async () => {
+  try {
+    return await authService.syncEmployeesFromBackend();
+  } catch (error) {
+    logger.error('Manual sync error', error);
+    return { success: false, error: error.message };
+  }
 });
 
 // ============================================================================

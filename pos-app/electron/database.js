@@ -238,6 +238,67 @@ function createTables() {
       value TEXT NOT NULL,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    -- Employees table (synced from backend)
+    CREATE TABLE IF NOT EXISTS employees (
+      id INTEGER PRIMARY KEY,
+      backend_id INTEGER UNIQUE,
+      email TEXT UNIQUE NOT NULL,
+      full_name TEXT NOT NULL,
+      role TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      permissions TEXT,
+      is_active INTEGER DEFAULT 1,
+      last_synced_at TEXT,
+      sync_version INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(email);
+    CREATE INDEX IF NOT EXISTS idx_employees_backend_id ON employees(backend_id);
+    CREATE INDEX IF NOT EXISTS idx_employees_active ON employees(is_active);
+
+    -- Sessions table (local session management)
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL,
+      session_token TEXT UNIQUE NOT NULL,
+      started_at TEXT NOT NULL,
+      last_activity_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      device_info TEXT,
+      FOREIGN KEY (employee_id) REFERENCES employees(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sessions_employee ON sessions(employee_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+    CREATE INDEX IF NOT EXISTS idx_sessions_active ON sessions(is_active);
+
+    -- Activity log for security audit
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER,
+      session_id INTEGER,
+      action TEXT NOT NULL,
+      details TEXT,
+      timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+      synced INTEGER DEFAULT 0,
+      FOREIGN KEY (employee_id) REFERENCES employees(id),
+      FOREIGN KEY (session_id) REFERENCES sessions(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_activity_employee ON activity_log(employee_id);
+    CREATE INDEX IF NOT EXISTS idx_activity_timestamp ON activity_log(timestamp);
+    CREATE INDEX IF NOT EXISTS idx_activity_synced ON activity_log(synced);
+
+    -- Sync metadata table
+    CREATE TABLE IF NOT EXISTS sync_metadata (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   console.log('✅ Database tables created');

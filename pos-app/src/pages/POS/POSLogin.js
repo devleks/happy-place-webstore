@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/electronAPI';
 import '../../styles/POSLogin.css';
 
 const POSLogin = ({ onLogin }) => {
@@ -9,7 +10,43 @@ const POSLogin = ({ onLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Online status monitoring
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Check for existing valid session
+    checkExistingSession();
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const checkExistingSession = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (sessionToken) {
+      const result = await api.auth.validateSession(sessionToken);
+      if (result.valid) {
+        // Session still valid, redirect to dashboard
+        if (onLogin) {
+          onLogin(result.session);
+        }
+        navigate('/dashboard');
+      } else {
+        // Session invalid, clear storage
+        localStorage.removeItem('session_token');
+        localStorage.removeItem('employee_info');
+      }
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -26,38 +63,25 @@ const POSLogin = ({ onLogin }) => {
     setError('');
 
     try {
-      // For Electron POS, we'll use a simplified login
-      // In production, you might want to validate against a local employee database
-      // or sync employee credentials from the backend
-      
-      // Simple validation for demo
-      if (!formData.email || !formData.password) {
-        setError('Please enter email and password');
-        setLoading(false);
-        return;
+      const result = await api.auth.login(formData.email, formData.password);
+
+      if (result.success) {
+        // Store session token and employee info
+        localStorage.setItem('session_token', result.session.token);
+        localStorage.setItem('employee_info', JSON.stringify(result.employee));
+        
+        // Call parent onLogin
+        if (onLogin) {
+          onLogin(result.employee);
+        }
+        
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Login failed');
       }
-
-      // Create employee object
-      const employee = {
-        id: 1, // In production, this would come from local DB
-        email: formData.email,
-        full_name: formData.email.split('@')[0], // Extract name from email
-        role: 'cashier'
-      };
-
-      // Store employee info locally
-      localStorage.setItem('employee_info', JSON.stringify(employee));
-
-      // Call parent component's onLogin
-      if (onLogin) {
-        onLogin(employee);
-      }
-
-      // Redirect to dashboard
-      navigate('/dashboard');
     } catch (err) {
-      setError('Login error. Please try again.');
       console.error('Login error:', err);
+      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +94,23 @@ const POSLogin = ({ onLogin }) => {
 
   return (
     <div className="pos-login-container">
-      <div className="pos-login-box">
+      {/* Online Status Indicator */}
+      <div className="online-status-banner" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        padding: '8px',
+        textAlign: 'center',
+        backgroundColor: isOnline ? '#27ae60' : '#e74c3c',
+        color: 'white',
+        fontSize: '14px',
+        zIndex: 1000
+      }}>
+        {isOnline ? '🟢 Online - Auto-sync enabled' : '🔴 Offline - Using cached credentials'}
+      </div>
+
+      <div className="pos-login-box" style={{ marginTop: '40px' }}>
         <div className="pos-login-header">
           <div className="pos-logo">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none">

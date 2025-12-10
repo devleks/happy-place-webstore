@@ -16,6 +16,60 @@ const ensureElectron = () => {
 };
 
 // ============================================================================
+// AUTHENTICATION OPERATIONS
+// ============================================================================
+
+export const authAPI = {
+  /**
+   * Login with email and password
+   */
+  async login(email, password) {
+    ensureElectron();
+    return await window.electron.auth.login(email, password);
+  },
+
+  /**
+   * Validate current session
+   */
+  async validateSession(sessionToken) {
+    ensureElectron();
+    return await window.electron.auth.validateSession(sessionToken);
+  },
+
+  /**
+   * Logout
+   */
+  async logout(sessionToken) {
+    ensureElectron();
+    return await window.electron.auth.logout(sessionToken);
+  },
+
+  /**
+   * Get session statistics
+   */
+  async getSessionStats() {
+    ensureElectron();
+    return await window.electron.auth.getSessionStats();
+  },
+
+  /**
+   * Set sync token (for initial setup)
+   */
+  async setSyncToken(token) {
+    ensureElectron();
+    return await window.electron.auth.setSyncToken(token);
+  },
+
+  /**
+   * Manual employee sync
+   */
+  async syncEmployees() {
+    ensureElectron();
+    return await window.electron.auth.syncEmployees();
+  }
+};
+
+// ============================================================================
 // PRODUCT OPERATIONS
 // ============================================================================
 
@@ -277,6 +331,7 @@ export const calculateTotal = (items, tax = 0, discount = 0) => {
 
 // Export all APIs as default
 export default {
+  auth: authAPI,
   product: productAPI,
   transaction: transactionAPI,
   heldTransaction: heldTransactionAPI,
