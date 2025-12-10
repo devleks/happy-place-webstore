@@ -20,6 +20,12 @@ const { initUpdater } = require('./updater');
 const { initSecurity } = require('./security');
 const { initMemoryManager, cleanupAllListeners, cleanupWindowListeners } = require('./memory-manager');
 
+// Desktop UX services
+const { initMenu, updateOnlineStatus: updateMenuOnlineStatus } = require('./menu');
+const { initTray, destroyTray, updateTrayOnlineStatus, updateTraySyncStatus } = require('./tray');
+const { initShortcuts, cleanupShortcuts } = require('./shortcuts');
+const { logRateLimitStats, cleanupRateLimiters } = require('./rate-limiter');
+
 // Core services
 const { initDatabase, closeDatabase } = require('./database');
 const { startBackgroundSync, stopBackgroundSync } = require('./sync');
@@ -80,6 +86,11 @@ function createWindow() {
 
   // Initialize security features for this window
   initSecurity(mainWindow);
+
+  // Initialize desktop UX features
+  initMenu(mainWindow);
+  initTray(mainWindow);
+  initShortcuts(mainWindow);
 
   // Handle window close
   mainWindow.on('close', (event) => {
@@ -175,6 +186,16 @@ async function cleanup() {
   logger.separator('CLEANUP');
   
   try {
+    // Clean up desktop UX
+    cleanupShortcuts();
+    logger.success('Shortcuts cleaned up');
+    
+    destroyTray();
+    logger.success('System tray destroyed');
+    
+    cleanupRateLimiters();
+    logger.success('Rate limiters cleaned up');
+    
     // Clean up all event listeners
     cleanupAllListeners();
     logger.success('Event listeners cleaned up');
