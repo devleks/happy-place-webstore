@@ -427,7 +427,7 @@ const POSNewSale = ({ employee: propEmployee }) => {
                           key={variant.id}
                           className={`variant-item ${variant.pos_stock <= 0 ? 'out-of-stock' : ''}`}
                           onClick={() => variant.pos_stock > 0 && addToCart(product, variant)}
-                          title={formatSizeWithConversions(variant.size)}
+                          title={`${variant.size} - ${variant.color}`}
                         >
                           <div className="variant-details">
                             <span className="variant-size">{variant.size}</span>
