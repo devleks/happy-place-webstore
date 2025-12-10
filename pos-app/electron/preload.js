@@ -11,8 +11,29 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
   // App info
-  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-  getAppPath: (name) => ipcRenderer.invoke('get-app-path', name),
+  app: {
+    getVersion: () => ipcRenderer.invoke('get-app-version'),
+    getPlatform: () => ipcRenderer.invoke('get-platform'),
+    getPath: (name) => ipcRenderer.invoke('get-path', name),
+    
+    // Update management
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    onUpdateStatus: (callback) => {
+      const subscription = (event, data) => callback(data);
+      ipcRenderer.on('update-status', subscription);
+      return () => ipcRenderer.removeListener('update-status', subscription);
+    },
+    onUpdateDownloading: (callback) => {
+      const subscription = () => callback();
+      ipcRenderer.on('update-downloading', subscription);
+      return () => ipcRenderer.removeListener('update-downloading', subscription);
+    },
+    onUpdateReadyOnRestart: (callback) => {
+      const subscription = () => callback();
+      ipcRenderer.on('update-ready-on-restart', subscription);
+      return () => ipcRenderer.removeListener('update-ready-on-restart', subscription);
+    }
+  },
 
   // Window controls
   toggleFullscreen: () => ipcRenderer.invoke('toggle-fullscreen'),

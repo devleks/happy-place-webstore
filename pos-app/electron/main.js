@@ -274,6 +274,12 @@ ipcMain.handle('check-online', () => {
     .catch(() => false);
 });
 
+// Update management
+ipcMain.handle('check-for-updates', () => {
+  const { forceCheckForUpdates } = require('./updater');
+  forceCheckForUpdates();
+});
+
 // ============================================================================
 // ERROR HANDLING
 // ============================================================================
