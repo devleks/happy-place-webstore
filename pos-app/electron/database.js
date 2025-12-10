@@ -1,6 +1,8 @@
 /**
  * SQLite Database Layer
  * Handles all local data storage for offline-first POS
+ * 
+ * Security: All IPC handlers validate input per Electron best practices
  */
 
 const Database = require('better-sqlite3');
@@ -8,6 +10,105 @@ const { app, ipcMain } = require('electron');
 const path = require('path');
 
 let db = null;
+
+// ============================================================================
+// VALIDATION HELPERS
+// ============================================================================
+
+/**
+ * Validate and sanitize input data
+ */
+const validators = {
+  /**
+   * Validate string input
+   */
+  validateString(value, fieldName, maxLength = 1000) {
+    if (typeof value !== 'string') {
+      throw new Error(`${fieldName} must be a string`);
+    }
+    if (value.length > maxLength) {
+      throw new Error(`${fieldName} exceeds maximum length of ${maxLength}`);
+    }
+    return value.trim();
+  },
+
+  /**
+   * Validate number input
+   */
+  validateNumber(value, fieldName, min = 0, max = Number.MAX_SAFE_INTEGER) {
+    const num = Number(value);
+    if (isNaN(num)) {
+      throw new Error(`${fieldName} must be a valid number`);
+    }
+    if (num < min || num > max) {
+      throw new Error(`${fieldName} must be between ${min} and ${max}`);
+    }
+    return num;
+  },
+
+  /**
+   * Validate integer input
+   */
+  validateInteger(value, fieldName, min = 0, max = Number.MAX_SAFE_INTEGER) {
+    const num = this.validateNumber(value, fieldName, min, max);
+    if (!Number.isInteger(num)) {
+      throw new Error(`${fieldName} must be an integer`);
+    }
+    return num;
+  },
+
+  /**
+   * Validate array input
+   */
+  validateArray(value, fieldName, maxLength = 1000) {
+    if (!Array.isArray(value)) {
+      throw new Error(`${fieldName} must be an array`);
+    }
+    if (value.length > maxLength) {
+      throw new Error(`${fieldName} exceeds maximum length of ${maxLength}`);
+    }
+    return value;
+  },
+
+  /**
+   * Validate object input
+   */
+  validateObject(value, fieldName) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(`${fieldName} must be a valid object`);
+    }
+    return value;
+  },
+
+  /**
+   * Validate enum value
+   */
+  validateEnum(value, fieldName, allowedValues) {
+    if (!allowedValues.includes(value)) {
+      throw new Error(`${fieldName} must be one of: ${allowedValues.join(', ')}`);
+    }
+    return value;
+  },
+
+  /**
+   * Sanitize file path (prevent directory traversal)
+   */
+  sanitizePath(filePath, fieldName = 'filePath') {
+    if (typeof filePath !== 'string') {
+      throw new Error(`${fieldName} must be a string`);
+    }
+
+    const normalized = path.normalize(filePath);
+    const userDataPath = app.getPath('userData');
+
+    // Ensure path is within userData directory
+    if (!normalized.startsWith(userDataPath)) {
+      throw new Error(`${fieldName} must be within user data directory`);
+    }
+
+    return normalized;
+  }
+};
 
 /**
  * Initialize the database
@@ -161,7 +262,14 @@ function getProducts() {
 
 function searchProducts(query) {
   try {
-    const searchTerm = `%${query}%`;
+    // ✅ Validate input
+    const validatedQuery = validators.validateString(query, 'search query', 100);
+    
+    if (validatedQuery.length < 1) {
+      throw new Error('Search query must be at least 1 character');
+    }
+
+    const searchTerm = `%${validatedQuery}%`;
     return db.prepare(`
       SELECT * FROM products 
       WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?)
@@ -171,18 +279,21 @@ function searchProducts(query) {
     `).all(searchTerm, searchTerm, searchTerm);
   } catch (error) {
     console.error('Error searching products:', error);
-    return [];
+    throw error; // Re-throw to inform caller
   }
 }
 
 function getProductBySku(sku) {
   try {
+    // ✅ Validate input
+    const validatedSku = validators.validateString(sku, 'SKU', 50);
+
     return db.prepare(`
       SELECT * FROM products WHERE sku = ?
-    `).get(sku);
+    `).get(validatedSku);
   } catch (error) {
     console.error('Error getting product by SKU:', error);
-    return null;
+    throw error;
   }
 }
 
@@ -245,6 +356,70 @@ function updateProductStock(productId, quantity) {
 
 function createTransaction(transaction) {
   try {
+    // ✅ COMPREHENSIVE INPUT VALIDATION
+    validators.validateObject(transaction, 'transaction');
+
+    // Validate transaction fields
+    const validatedTxn = {
+      transaction_number: validators.validateString(transaction.transaction_number, 'transaction_number', 50),
+      employee_id: transaction.employee_id ? validators.validateInteger(transaction.employee_id, 'employee_id', 1) : null,
+      employee_name: transaction.employee_name ? validators.validateString(transaction.employee_name, 'employee_name', 100) : null,
+      customer_id: transaction.customer_id ? validators.validateInteger(transaction.customer_id, 'customer_id', 1) : null,
+      customer_name: transaction.customer_name ? validators.validateString(transaction.customer_name, 'customer_name', 100) : null,
+      subtotal: validators.validateNumber(transaction.subtotal, 'subtotal', 0, 1000000),
+      tax: validators.validateNumber(transaction.tax || 0, 'tax', 0, 100000),
+      discount: validators.validateNumber(transaction.discount || 0, 'discount', 0, 100000),
+      total: validators.validateNumber(transaction.total, 'total', 0, 1000000),
+      payment_method: validators.validateEnum(
+        transaction.payment_method,
+        'payment_method',
+        ['cash', 'card', 'mpesa', 'cod']
+      ),
+      payment_status: validators.validateEnum(
+        transaction.payment_status || 'completed',
+        'payment_status',
+        ['pending', 'completed', 'failed', 'refunded']
+      ),
+      notes: transaction.notes ? validators.validateString(transaction.notes, 'notes', 500) : null,
+      status: validators.validateEnum(
+        transaction.status || 'completed',
+        'status',
+        ['pending', 'processing', 'completed', 'cancelled']
+      )
+    };
+
+    // Validate items array
+    const items = validators.validateArray(transaction.items, 'items', 100);
+    
+    if (items.length === 0) {
+      throw new Error('Transaction must have at least one item');
+    }
+
+    // Validate each item
+    const validatedItems = items.map((item, index) => {
+      validators.validateObject(item, `item[${index}]`);
+      
+      return {
+        product_id: validators.validateInteger(item.product_id, `item[${index}].product_id`, 1),
+        product_sku: validators.validateString(item.product_sku, `item[${index}].product_sku`, 50),
+        product_name: validators.validateString(item.product_name, `item[${index}].product_name`, 200),
+        quantity: validators.validateInteger(item.quantity, `item[${index}].quantity`, 1, 1000),
+        unit_price: validators.validateNumber(item.unit_price, `item[${index}].unit_price`, 0, 1000000),
+        subtotal: validators.validateNumber(item.subtotal, `item[${index}].subtotal`, 0, 1000000),
+        discount: validators.validateNumber(item.discount || 0, `item[${index}].discount`, 0, 100000),
+        total: validators.validateNumber(item.total, `item[${index}].total`, 0, 1000000)
+      };
+    });
+
+    // Validate total calculation
+    const calculatedSubtotal = validatedItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const calculatedTotal = calculatedSubtotal + validatedTxn.tax - validatedTxn.discount;
+    
+    if (Math.abs(calculatedTotal - validatedTxn.total) > 0.01) {
+      throw new Error('Transaction total does not match calculated total');
+    }
+
+    // ✅ ALL VALIDATION PASSED - Proceed with database operations
     const insertTransaction = db.prepare(`
       INSERT INTO transactions (
         transaction_number, employee_id, employee_name, customer_id, customer_name,
@@ -268,25 +443,25 @@ function createTransaction(transaction) {
     const result = db.transaction(() => {
       // Insert transaction
       const txnResult = insertTransaction.run(
-        transaction.transaction_number,
-        transaction.employee_id || null,
-        transaction.employee_name || null,
-        transaction.customer_id || null,
-        transaction.customer_name || null,
-        transaction.subtotal,
-        transaction.tax || 0,
-        transaction.discount || 0,
-        transaction.total,
-        transaction.payment_method,
-        transaction.payment_status || 'completed',
-        transaction.notes || null,
-        transaction.status || 'completed'
+        validatedTxn.transaction_number,
+        validatedTxn.employee_id,
+        validatedTxn.employee_name,
+        validatedTxn.customer_id,
+        validatedTxn.customer_name,
+        validatedTxn.subtotal,
+        validatedTxn.tax,
+        validatedTxn.discount,
+        validatedTxn.total,
+        validatedTxn.payment_method,
+        validatedTxn.payment_status,
+        validatedTxn.notes,
+        validatedTxn.status
       );
 
       const transactionId = txnResult.lastInsertRowid;
 
       // Insert items
-      for (const item of transaction.items) {
+      for (const item of validatedItems) {
         insertItem.run(
           transactionId,
           item.product_id,
@@ -295,7 +470,7 @@ function createTransaction(transaction) {
           item.quantity,
           item.unit_price,
           item.subtotal,
-          item.discount || 0,
+          item.discount,
           item.total
         );
 
@@ -303,7 +478,7 @@ function createTransaction(transaction) {
         updateProductStock(item.product_id, item.quantity);
       }
 
-      // Add to sync queue
+      // Add to sync queue (use original transaction for backend compatibility)
       addToSyncQueue.run(
         'transaction',
         transactionId,
@@ -314,10 +489,10 @@ function createTransaction(transaction) {
       return transactionId;
     })();
 
-    console.log(`✅ Transaction created: ${transaction.transaction_number}`);
+    console.log(`✅ Transaction created: ${validatedTxn.transaction_number}`);
     return result;
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    console.error('❌ Error creating transaction:', error);
     throw error;
   }
 }
@@ -377,6 +552,23 @@ function getTransaction(id) {
 
 function holdTransaction(transaction) {
   try {
+    // ✅ Validate input
+    validators.validateObject(transaction, 'transaction');
+
+    const validatedHold = {
+      hold_number: validators.validateString(transaction.hold_number, 'hold_number', 50),
+      employee_id: transaction.employee_id ? validators.validateInteger(transaction.employee_id, 'employee_id', 1) : null,
+      employee_name: transaction.employee_name ? validators.validateString(transaction.employee_name, 'employee_name', 100) : null,
+      customer_name: transaction.customer_name ? validators.validateString(transaction.customer_name, 'customer_name', 100) : null,
+      items: validators.validateArray(transaction.items, 'items', 100),
+      subtotal: validators.validateNumber(transaction.subtotal, 'subtotal', 0, 1000000),
+      notes: transaction.notes ? validators.validateString(transaction.notes, 'notes', 500) : null
+    };
+
+    if (validatedHold.items.length === 0) {
+      throw new Error('Cannot hold transaction with no items');
+    }
+
     const stmt = db.prepare(`
       INSERT INTO held_transactions (
         hold_number, employee_id, employee_name, customer_name,
@@ -385,16 +577,16 @@ function holdTransaction(transaction) {
     `);
 
     return stmt.run(
-      transaction.hold_number,
-      transaction.employee_id || null,
-      transaction.employee_name || null,
-      transaction.customer_name || null,
-      JSON.stringify(transaction.items),
-      transaction.subtotal,
-      transaction.notes || null
+      validatedHold.hold_number,
+      validatedHold.employee_id,
+      validatedHold.employee_name,
+      validatedHold.customer_name,
+      JSON.stringify(validatedHold.items),
+      validatedHold.subtotal,
+      validatedHold.notes
     );
   } catch (error) {
-    console.error('Error holding transaction:', error);
+    console.error('❌ Error holding transaction:', error);
     throw error;
   }
 }
@@ -485,40 +677,116 @@ function updateSyncQueueError(id, error) {
 }
 
 // ============================================================================
-// IPC HANDLERS
+// IPC HANDLERS (WITH COMPREHENSIVE ERROR HANDLING)
 // ============================================================================
+
+/**
+ * Wrap IPC handler with error handling and logging
+ */
+function wrapIpcHandler(handlerName, handler) {
+  return async (event, ...args) => {
+    try {
+      console.log(`📥 IPC: ${handlerName}`, args.length > 0 ? `(${args.length} args)` : '');
+      const result = await handler(...args);
+      console.log(`✅ IPC: ${handlerName} completed`);
+      return result;
+    } catch (error) {
+      console.error(`❌ IPC: ${handlerName} failed:`, error.message);
+      // Return error object instead of throwing (better for renderer)
+      return {
+        success: false,
+        error: error.message,
+        code: error.code || 'UNKNOWN_ERROR'
+      };
+    }
+  };
+}
 
 function setupIpcHandlers() {
   // Products
-  ipcMain.handle('db-get-products', () => getProducts());
-  ipcMain.handle('db-search-products', (event, query) => searchProducts(query));
-  ipcMain.handle('db-get-product-by-sku', (event, sku) => getProductBySku(sku));
-  ipcMain.handle('db-update-product-stock', (event, productId, quantity) => 
-    updateProductStock(productId, quantity)
-  );
+  ipcMain.handle('db-get-products', wrapIpcHandler('db-get-products', 
+    () => getProducts()
+  ));
+  
+  ipcMain.handle('db-search-products', wrapIpcHandler('db-search-products',
+    (query) => searchProducts(query)
+  ));
+  
+  ipcMain.handle('db-get-product-by-sku', wrapIpcHandler('db-get-product-by-sku',
+    (sku) => getProductBySku(sku)
+  ));
+  
+  ipcMain.handle('db-update-product-stock', wrapIpcHandler('db-update-product-stock',
+    (productId, quantity) => {
+      // ✅ Validate inputs
+      const validatedId = validators.validateInteger(productId, 'productId', 1);
+      const validatedQty = validators.validateInteger(quantity, 'quantity', 1, 1000);
+      return updateProductStock(validatedId, validatedQty);
+    }
+  ));
 
   // Transactions
-  ipcMain.handle('db-create-transaction', (event, transaction) => 
-    createTransaction(transaction)
-  );
-  ipcMain.handle('db-get-transactions', (event, filters) => 
-    getTransactions(filters)
-  );
-  ipcMain.handle('db-get-transaction', (event, id) => getTransaction(id));
+  ipcMain.handle('db-create-transaction', wrapIpcHandler('db-create-transaction',
+    (transaction) => createTransaction(transaction)
+  ));
+  
+  ipcMain.handle('db-get-transactions', wrapIpcHandler('db-get-transactions',
+    (filters) => {
+      // ✅ Validate filters
+      if (filters && typeof filters !== 'object') {
+        throw new Error('Filters must be an object');
+      }
+      return getTransactions(filters || {});
+    }
+  ));
+  
+  ipcMain.handle('db-get-transaction', wrapIpcHandler('db-get-transaction',
+    (id) => {
+      const validatedId = validators.validateInteger(id, 'id', 1);
+      return getTransaction(validatedId);
+    }
+  ));
 
   // Held transactions
-  ipcMain.handle('db-hold-transaction', (event, transaction) => 
-    holdTransaction(transaction)
-  );
-  ipcMain.handle('db-get-held-transactions', () => getHeldTransactions());
-  ipcMain.handle('db-recall-transaction', (event, id) => recallTransaction(id));
-  ipcMain.handle('db-delete-held-transaction', (event, id) => 
-    deleteHeldTransaction(id)
-  );
+  ipcMain.handle('db-hold-transaction', wrapIpcHandler('db-hold-transaction',
+    (transaction) => holdTransaction(transaction)
+  ));
+  
+  ipcMain.handle('db-get-held-transactions', wrapIpcHandler('db-get-held-transactions',
+    () => getHeldTransactions()
+  ));
+  
+  ipcMain.handle('db-recall-transaction', wrapIpcHandler('db-recall-transaction',
+    (id) => {
+      const validatedId = validators.validateInteger(id, 'id', 1);
+      return recallTransaction(validatedId);
+    }
+  ));
+  
+  ipcMain.handle('db-delete-held-transaction', wrapIpcHandler('db-delete-held-transaction',
+    (id) => {
+      const validatedId = validators.validateInteger(id, 'id', 1);
+      return deleteHeldTransaction(validatedId);
+    }
+  ));
 
   // Sync queue
-  ipcMain.handle('db-get-sync-queue', () => getSyncQueue());
-  ipcMain.handle('db-clear-sync-queue', (event, ids) => clearSyncQueue(ids));
+  ipcMain.handle('db-get-sync-queue', wrapIpcHandler('db-get-sync-queue',
+    () => getSyncQueue()
+  ));
+  
+  ipcMain.handle('db-clear-sync-queue', wrapIpcHandler('db-clear-sync-queue',
+    (ids) => {
+      const validatedIds = validators.validateArray(ids, 'ids', 1000);
+      // Validate each ID
+      validatedIds.forEach((id, index) => {
+        validators.validateInteger(id, `ids[${index}]`, 1);
+      });
+      return clearSyncQueue(validatedIds);
+    }
+  ));
+
+  console.log('✅ IPC handlers registered with validation');
 }
 
 // ============================================================================
