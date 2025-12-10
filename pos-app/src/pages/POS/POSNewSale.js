@@ -177,30 +177,25 @@ const POSNewSale = ({ employee: propEmployee }) => {
     }
   };
 
-  const checkShiftAndLoadProducts = async (token) => {
+  const checkShiftAndLoadProducts = async () => {
     try {
-      // Check current shift
-      const shiftResponse = await fetch('http://127.0.0.1:5001/api/pos/shifts/current', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      const shiftData = await shiftResponse.json();
-
-      if (!shiftData.shift) {
+      // Check current shift from localStorage
+      const shift = localStorage.getItem('current_shift');
+      
+      if (!shift) {
         alert('No active shift. Please start a shift first.');
-        navigate('/pos/dashboard');
+        navigate('/dashboard');
         return;
       }
 
-      setCurrentShift(shiftData.shift);
+      setCurrentShift(JSON.parse(shift));
 
-      // Load products with variants
-      const productsResponse = await fetch('http://127.0.0.1:5001/api/products/with-variants');
-      const productsData = await productsResponse.json();
-
-      if (productsData.success) {
-        setProducts(productsData.products);
-        setFilteredProducts(productsData.products);
+      // Load products using Electron API
+      const productsData = await api.product.getAll();
+      
+      if (productsData) {
+        setProducts(productsData);
+        setFilteredProducts(productsData);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -299,41 +294,48 @@ const POSNewSale = ({ employee: propEmployee }) => {
     setError('');
 
     try {
-      const token = localStorage.getItem('employee_token');
-      const items = cart.map(item => ({
-        variant_id: item.variant_id,
-        quantity: item.quantity
-      }));
-
+      const { subtotal, tax, total } = calculateTotals();
+      
+      // Prepare transaction data
       const transactionData = {
-        shift_id: currentShift.shift_id,
+        employee_id: employee.id,
+        employee_name: employee.full_name,
+        shift_id: currentShift.id,
         payment_method: paymentMethod,
-        items: items
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        items: cart.map(item => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unit_price: item.price,
+          subtotal: item.price * item.quantity
+        }))
       };
 
       if (paymentMethod === 'cash') {
         transactionData.cash_tendered = parseFloat(cashTendered);
+        transactionData.change_given = change;
       }
 
-      const response = await fetch('http://127.0.0.1:5001/api/pos/transactions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(transactionData)
-      });
+      // Create transaction using Electron API
+      const result = await api.transaction.create(transactionData);
 
-      const data = await response.json();
+      if (result && result.id) {
+        // Update stock for each item
+        for (const item of cart) {
+          await api.product.updateStock(item.product_id, -item.quantity);
+        }
 
-      if (response.ok && data.success) {
         // Show success and navigate to receipt
-        navigate(`/pos/receipt/${data.transaction_id}`);
+        navigate(`/receipt/${result.id}`);
       } else {
-        setError(data.error || 'Transaction failed');
+        setError('Transaction failed');
       }
     } catch (err) {
-      setError('Connection error. Please try again.');
+      setError('Transaction error. Please try again.');
       console.error('Transaction error:', err);
     } finally {
       setProcessing(false);
@@ -360,7 +362,7 @@ const POSNewSale = ({ employee: propEmployee }) => {
     <div className="pos-new-sale">
       {/* Header */}
       <header className="pos-sale-header">
-        <button className="back-btn" onClick={() => navigate('/pos/dashboard')}>
+        <button className="back-btn" onClick={() => navigate('/dashboard')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M5 12l7 7m-7-7l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

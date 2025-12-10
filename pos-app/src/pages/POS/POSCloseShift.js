@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/electronAPI';
 import '../../styles/POSCloseShift.css';
 
-const POSCloseShift = () => {
-  const [employee, setEmployee] = useState(null);
+const POSCloseShift = ({ employee: propEmployee }) => {
+  const [employee, setEmployee] = useState(propEmployee);
   const [currentShift, setCurrentShift] = useState(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1); // 1: Review, 2: Count Cash, 3: Confirm
@@ -24,32 +25,31 @@ const POSCloseShift = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('employee_token');
     const employeeInfo = localStorage.getItem('employee_info');
 
-    if (!token || !employeeInfo) {
-      navigate('/pos/login');
+    if (!employeeInfo && !propEmployee) {
+      navigate('/login');
       return;
     }
 
-    setEmployee(JSON.parse(employeeInfo));
-    loadShiftData(token);
-  }, [navigate]);
+    if (!employee) {
+      setEmployee(JSON.parse(employeeInfo));
+    }
+    
+    loadShiftData();
+  }, [navigate, propEmployee, employee]);
 
-  const loadShiftData = async (token) => {
+  const loadShiftData = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/pos/shifts/current', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.shift) {
-        setCurrentShift(data.shift);
-      } else {
+      const shift = localStorage.getItem('current_shift');
+      
+      if (!shift) {
         alert('No active shift found');
-        navigate('/pos/dashboard');
+        navigate('/dashboard');
+        return;
       }
+
+      setCurrentShift(JSON.parse(shift));
     } catch (err) {
       console.error('Error loading shift:', err);
       setError('Failed to load shift data');
@@ -93,32 +93,27 @@ const POSCloseShift = () => {
     setProcessing(true);
     setError('');
 
-    const token = localStorage.getItem('employee_token');
-
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/pos/shifts/close', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          closing_cash_count: calculateCashTotal(),
-          cash_variance: calculateVariance(),
-          notes: notes
-        })
-      });
+      // Update shift with closing data
+      const closedShift = {
+        ...currentShift,
+        closed_at: new Date().toISOString(),
+        closing_cash_count: calculateCashTotal(),
+        cash_variance: calculateVariance(),
+        notes: notes,
+        status: 'closed'
+      };
 
-      const data = await response.json();
+      // Store closed shift (in production, this would sync to backend)
+      localStorage.setItem('last_closed_shift', JSON.stringify(closedShift));
+      
+      // Remove current shift
+      localStorage.removeItem('current_shift');
 
-      if (response.ok && data.success) {
-        alert('Shift closed successfully!');
-        navigate('/pos/dashboard');
-      } else {
-        setError(data.error || 'Failed to close shift');
-      }
+      alert('Shift closed successfully!');
+      navigate('/dashboard');
     } catch (err) {
-      setError('Connection error. Please try again.');
+      setError('Failed to close shift. Please try again.');
       console.error('Close shift error:', err);
     } finally {
       setProcessing(false);
