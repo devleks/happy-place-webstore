@@ -5,6 +5,8 @@ Electron-based Point of Sale desktop application for Happy Place Boutique with o
 ## 🚀 Features
 
 - ✅ **Offline-First** - Works without internet connection
+- ✅ **Secure Authentication** - Hybrid auth with auto-sync ([docs](./AUTHENTICATION.md))
+- ✅ **Session Management** - Automatic expiration & validation
 - ✅ **Background Sync** - Auto-syncs when online
 - ✅ **Barcode Scanner** - Hardware integration support
 - ✅ **Receipt Printing** - Direct printer support
@@ -298,8 +300,15 @@ App checks for updates on startup and hourly.
 2. Configure `electron-builder.yml`
 3. App auto-downloads updates
 
-## 📚 Resources
+## 📚 Documentation
 
+### Core Documentation
+- **[Authentication System](./AUTHENTICATION.md)** - Hybrid auth, session management, security
+- **[Security Audit](./SECURITY_AUDIT.md)** - Security features and compliance
+- **[Architecture Decision](./ARCHITECTURE_DECISION.md)** - React integration rationale
+- **[Test Suite](./tests/README.md)** - Testing guide and coverage
+
+### External Resources
 - [Electron Documentation](https://www.electronjs.org/docs)
 - [React Documentation](https://react.dev/)
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
@@ -326,5 +335,5 @@ For issues or questions:
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** December 10, 2025  
-**Status:** In Development
+**Last Updated:** December 11, 2025  
+**Status:** ✅ Production Ready (Authentication Complete)
