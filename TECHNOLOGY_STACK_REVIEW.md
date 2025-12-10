@@ -177,25 +177,42 @@ JWT_ALGORITHM = 'HS256'
 ```
 
 **Security Features:**
-- ✅ **Bcrypt password hashing** - Industry-standard (cost factor 12)
-- ✅ **JWT tokens** - Stateless authentication
-- ✅ **Role-based access control** - Admin, manager, packer, shipper, cashier
-- ✅ **2FA support** - TOTP (Google Authenticator)
-- ✅ **Field-level encryption** - Cryptography library (Fernet)
-- ✅ **Rate limiting** - Flask-Limiter (prevent abuse)
-- ✅ **CORS protection** - Configured origins only
+- ✅ JWT authentication
+- ✅ Role-based access (5 roles)
+- ✅ Bcrypt password hashing
+- ✅ Field-level encryption (MultiFernet)
+- ✅ Zero-downtime key rotation
+- ✅ Separate encryption keys per data type
+- ✅ SHA-256 email hashing
+- ✅ 2FA support (TOTP)
+- ✅ Rate limiting
+- ✅ GDPR compliance
+- ✅ Decryption audit logging
 
 **Encryption Strategy:**
 ```python
-# Cryptography 46.0.3 (Fernet symmetric encryption)
-from cryptography.fernet import Fernet
+# Cryptography 46.0.3 (MultiFernet with key rotation support)
+from cryptography.fernet import Fernet, MultiFernet
+
+# MultiFernet Architecture:
+# - Separate key sets for customer, address, and payment data
+# - Zero-downtime key rotation support
+# - AES-128-CBC + HMAC-SHA256
+# - Always encrypts with newest key, decrypts with any key
+
+# Three separate MultiFernet ciphers:
+customer_cipher = MultiFernet([Fernet(key1), Fernet(key2), ...])
+address_cipher = MultiFernet([Fernet(key1), Fernet(key2), ...])
+payment_cipher = MultiFernet([Fernet(key1), Fernet(key2), ...])
 
 # Encrypted fields:
-- customers.email_encrypted
+- customers.email_encrypted (+ SHA-256 hash for search)
 - customers.first_name_encrypted
 - customers.last_name_encrypted
 - customers.phone_encrypted
 - addresses.street_encrypted
+- addresses.city_encrypted
+- addresses.postal_code_encrypted
 - payments.mpesa_phone_encrypted
 - payments.transaction_id_encrypted
 ```
@@ -487,10 +504,40 @@ shipping_address JSONB
 }
 ```
 
-**5. Encryption at Rest**
-- PostgreSQL encryption enabled
-- Encrypted backups
-- SSL/TLS for connections
+**5. Encryption at Rest & Key Management**
+```python
+# MultiFernet Implementation
+class EncryptionService:
+    def __init__(self):
+        # Three separate cipher sets for data isolation
+        self.customer_cipher = MultiFernet([...])  # Customer PII
+        self.address_cipher = MultiFernet([...])   # Address data
+        self.payment_cipher = MultiFernet([...])   # Payment data
+    
+    def encrypt_customer_field(self, plaintext):
+        # Encrypts with first (newest) key
+        return self.customer_cipher.encrypt(plaintext)
+    
+    def decrypt_customer_field(self, ciphertext):
+        # Tries all keys until one succeeds
+        return self.customer_cipher.decrypt(ciphertext)
+    
+    def rotate_customer_field(self, ciphertext):
+        # Re-encrypts with newest key (zero-downtime rotation)
+        return self.customer_cipher.rotate(ciphertext)
+```
+
+**Key Features:**
+- ✅ **MultiFernet** - Multiple keys per data type
+- ✅ **Key Rotation** - Zero-downtime key updates
+- ✅ **Data Isolation** - Separate keys for customer/address/payment
+- ✅ **AES-128-CBC** - Symmetric encryption
+- ✅ **HMAC-SHA256** - Message authentication
+- ✅ **SHA-256 Hashing** - Searchable email indexes
+- ✅ **Audit Logging** - Track all decryption operations
+- ✅ PostgreSQL encryption enabled
+- ✅ Encrypted backups
+- ✅ SSL/TLS for connections
 
 ---
 
@@ -641,12 +688,16 @@ location / {
 - ✅ XSS protection (React escaping)
 - ✅ CSRF tokens
 
-**3. Data Security**
+### **3. Data Security**
 - ✅ Bcrypt password hashing (cost 12)
-- ✅ Field-level encryption (Fernet)
-- ✅ Encrypted database connections
+- ✅ Field-level encryption (MultiFernet with key rotation)
+- ✅ Separate encryption keys per data type
+- ✅ Zero-downtime key rotation support
+- ✅ SHA-256 email hashing for searchable indexes
+- ✅ Encrypted database connections (SSL/TLS)
 - ✅ Encrypted backups
-- ✅ PII encryption (GDPR)
+- ✅ PII encryption (GDPR compliance)
+- ✅ Audit logging of decryption operations
 
 **4. Compliance**
 - ✅ GDPR right to be forgotten
@@ -660,26 +711,48 @@ location / {
 ```python
 # 1. Environment-based secrets
 SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+CUSTOMER_ENCRYPTION_KEYS = os.getenv('CUSTOMER_ENCRYPTION_KEYS')  # Comma-separated
+ADDRESS_ENCRYPTION_KEYS = os.getenv('ADDRESS_ENCRYPTION_KEYS')
+PAYMENT_ENCRYPTION_KEYS = os.getenv('PAYMENT_ENCRYPTION_KEYS')
 
-# 2. Password complexity requirements
+# 2. MultiFernet encryption with key rotation
+from cryptography.fernet import Fernet, MultiFernet
+
+keys = [Fernet(key1), Fernet(key2), Fernet(key3)]
+cipher = MultiFernet(keys)
+
+# Encrypts with first key, decrypts with any key
+encrypted = cipher.encrypt(plaintext)
+decrypted = cipher.decrypt(encrypted)
+
+# Zero-downtime key rotation
+rotated = cipher.rotate(encrypted)  # Re-encrypts with newest key
+
+# 3. Password complexity requirements
 # Min 8 chars, uppercase, lowercase, number, special char
 
-# 3. JWT token expiration
+# 4. JWT token expiration
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
-# 4. Rate limiting
+# 5. Rate limiting
 @limiter.limit("100 per minute")
 def api_endpoint():
     pass
 
-# 5. SQL injection prevention
+# 6. SQL injection prevention
 query = Order.query.filter(Order.id == order_id)  # Parameterized
 
-# 6. XSS prevention
+# 7. XSS prevention
 # React automatically escapes output
 
-# 7. CORS configuration
+# 8. CORS configuration
 CORS(app, origins=['https://happyplace.co.ke'])
+
+# 9. Email hashing for searchable indexes
+email_hash = hashlib.sha256(email.lower().encode()).hexdigest()
+
+# 10. Audit logging
+logger.info(f"Customer field decrypted by user {user_id}")
 ```
 
 ---
