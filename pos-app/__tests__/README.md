@@ -1,14 +1,25 @@
-# 🧪 POS App Test Suite
+# 🧪 POS Test Suite
 
-Comprehensive test suite for the Happy Place POS Electron application.
+Comprehensive testing for the Happy Place POS Electron application.
 
 ---
 
-## 📋 Overview
+## 📋 Test Structure
 
-**Test Framework:** Jest  
-**Coverage Target:** 70%  
-**Test Types:** Unit Tests, Integration Tests
+```
+__tests__/
+├── setup/              # Test utilities and helpers
+│   └── testDatabase.js # Test database creation
+├── unit/               # Unit tests (isolated, fast)
+│   ├── auth.test.js    # AuthService unit tests
+│   └── POSLogin.test.js # React component tests
+├── integration/        # Integration tests (with dependencies)
+│   ├── auth-flow.test.js    # Complete auth flow
+│   └── backend-sync.test.js # Backend sync tests
+├── e2e/                # End-to-end tests
+│   └── complete-flow.test.js # Complete POS workflow
+└── README.md           # This file
+```
 
 ---
 
