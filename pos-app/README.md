@@ -302,8 +302,12 @@ App checks for updates on startup and hourly.
 
 ## 📚 Documentation
 
-### Core Documentation
+### Project Documentation
+- **[Phase 1 Summary](./PHASE_1_SUMMARY.md)** - Electron foundation implementation
+- **[Phase 2 Summary](./PHASE_2_SUMMARY.md)** - React integration & component migration
+- **[Phase 3 Plan](./PHASE_3_PLAN.md)** - Testing & integration roadmap
 - **[Authentication System](./AUTH_README.md)** - Hybrid auth, session management, security
+- **[Architecture Decision](./ARCHITECTURE_DECISION.md)** - React integration rationale
 - **Test Suite** - See `__tests__/` directory for unit and integration tests
 
 ### External Resources
