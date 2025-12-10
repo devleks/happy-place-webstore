@@ -899,3 +899,239 @@ def health_check():
         'service': 'POS API',
         'status': 'healthy'
     }), 200
+
+
+# ============================================================================
+# EMPLOYEE SYNC ENDPOINTS (for POS Electron App)
+# ============================================================================
+
+@api.route('/employees/sync', methods=['GET'])
+@jwt_required()
+def sync_employees():
+    """
+    Full employee sync for POS Electron app
+    Returns all employees with password hashes for local authentication
+    
+    Security: Requires admin or manager JWT token
+    """
+    try:
+        from models.database_models import Employee
+        from datetime import datetime
+        
+        claims = get_jwt()
+        user_type = claims.get('user_type')
+        user_role = claims.get('role')
+        
+        # Only allow admin or manager to sync employees
+        if user_type != 'employee' or user_role not in ['admin', 'manager']:
+            logger.warning(
+                "Unauthorized employee sync attempt",
+                extra={"context": safe_auth_context(
+                    user_type=user_type,
+                    role=user_role,
+                    ip=request.remote_addr
+                )}
+            )
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized. Admin or manager access required.'
+            }), 403
+        
+        # Get all employees
+        employees = Employee.query.all()
+        
+        # Get sync version (latest update timestamp)
+        sync_version = datetime.utcnow().isoformat()
+        
+        # Prepare employee data for POS
+        employee_data = []
+        for emp in employees:
+            employee_data.append({
+                'id': emp.id,
+                'email': emp.email,
+                'full_name': emp.full_name,
+                'role': emp.role,
+                'password_hash': emp.password_hash,  # For local validation
+                'permissions': {},  # Can be expanded later
+                'is_active': emp.is_active,
+                'updated_at': emp.created_at.isoformat() if emp.created_at else sync_version
+            })
+        
+        logger.info(
+            f"Employee sync completed: {len(employee_data)} employees",
+            extra={"context": safe_auth_context(
+                user_type=user_type,
+                role=user_role,
+                ip=request.remote_addr
+            )}
+        )
+        
+        return jsonify({
+            'success': True,
+            'sync_version': sync_version,
+            'employees': employee_data
+        }), 200
+        
+    except Exception as e:
+        logger.error(
+            "Employee sync failed",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr
+            )},
+            exc_info=True
+        )
+        return jsonify({
+            'success': False,
+            'error': 'Employee sync failed'
+        }), 500
+
+
+@api.route('/employees/sync/incremental', methods=['GET'])
+@jwt_required()
+def sync_employees_incremental():
+    """
+    Incremental employee sync for POS Electron app
+    Returns only employees updated since last_sync timestamp
+    
+    Query Parameters:
+        last_sync: ISO timestamp of last sync
+    
+    Security: Requires admin or manager JWT token
+    """
+    try:
+        from models.database_models import Employee
+        from datetime import datetime
+        
+        claims = get_jwt()
+        user_type = claims.get('user_type')
+        user_role = claims.get('role')
+        
+        # Only allow admin or manager to sync employees
+        if user_type != 'employee' or user_role not in ['admin', 'manager']:
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized. Admin or manager access required.'
+            }), 403
+        
+        # Get last_sync parameter
+        last_sync_str = request.args.get('last_sync')
+        
+        if last_sync_str:
+            try:
+                # Parse last_sync timestamp
+                last_sync = datetime.fromisoformat(last_sync_str.replace('Z', '+00:00'))
+                
+                # Get employees updated since last_sync
+                employees = Employee.query.filter(
+                    Employee.created_at > last_sync
+                ).all()
+                
+                logger.info(f"Incremental sync: {len(employees)} employees updated since {last_sync_str}")
+            except ValueError:
+                # Invalid timestamp, do full sync
+                employees = Employee.query.all()
+                logger.warning(f"Invalid last_sync timestamp, performing full sync")
+        else:
+            # No last_sync provided, do full sync
+            employees = Employee.query.all()
+        
+        # Get sync version
+        sync_version = datetime.utcnow().isoformat()
+        
+        # Prepare employee data
+        employee_data = []
+        for emp in employees:
+            employee_data.append({
+                'id': emp.id,
+                'email': emp.email,
+                'full_name': emp.full_name,
+                'role': emp.role,
+                'password_hash': emp.password_hash,
+                'permissions': {},
+                'is_active': emp.is_active,
+                'updated_at': emp.created_at.isoformat() if emp.created_at else sync_version
+            })
+        
+        return jsonify({
+            'success': True,
+            'sync_version': sync_version,
+            'employees': employee_data
+        }), 200
+        
+    except Exception as e:
+        logger.error(
+            "Incremental employee sync failed",
+            exc_info=True
+        )
+        return jsonify({
+            'success': False,
+            'error': 'Incremental sync failed'
+        }), 500
+
+
+@api.route('/pos/activity-log', methods=['POST'])
+@jwt_required()
+def receive_activity_log():
+    """
+    Receive activity logs from POS for centralized auditing
+    
+    Request Body:
+        logs: Array of activity log entries
+    
+    Security: Requires employee JWT token
+    """
+    try:
+        from models.database_models import ActivityLog
+        from models import db
+        
+        claims = get_jwt()
+        user_type = claims.get('user_type')
+        
+        if user_type != 'employee':
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
+        data = request.get_json()
+        logs = data.get('logs', [])
+        
+        if not logs:
+            return jsonify({
+                'success': False,
+                'error': 'No logs provided'
+            }), 400
+        
+        # Store activity logs
+        stored_count = 0
+        for log_entry in logs:
+            try:
+                activity_log = ActivityLog(
+                    employee_id=log_entry.get('employee_id'),
+                    action=log_entry.get('action'),
+                    details=log_entry.get('details'),
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent')
+                )
+                db.session.add(activity_log)
+                stored_count += 1
+            except Exception as e:
+                logger.error(f"Failed to store activity log: {e}")
+                continue
+        
+        db.session.commit()
+        
+        logger.info(f"Stored {stored_count} activity logs from POS")
+        
+        return jsonify({
+            'success': True,
+            'stored': stored_count
+        }), 200
+        
+    except Exception as e:
+        logger.error("Failed to receive activity logs", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': 'Failed to store activity logs'
+        }), 500
