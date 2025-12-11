@@ -9,6 +9,48 @@ const crypto = require('crypto');
 const { logger } = require('./logger');
 const fetch = require('node-fetch');
 
+/**
+ * Verify password against Werkzeug hash (pbkdf2:sha256 format from Flask backend)
+ * Format: pbkdf2:sha256:iterations$salt$hash
+ * Example: pbkdf2:sha256:600000$abc123$def456
+ */
+function verifyWerkzeugPassword(password, passwordHash) {
+  try {
+    // Check if it's a Werkzeug hash
+    if (!passwordHash.startsWith('pbkdf2:sha256:')) {
+      return false;
+    }
+
+    // Parse the hash: pbkdf2:sha256:iterations$salt$hash
+    const parts = passwordHash.split(':');
+    if (parts.length !== 3) return false;
+
+    const [, , data] = parts;
+    const hashParts = data.split('$');
+    if (hashParts.length !== 3) return false;
+
+    const [iterations, salt, expectedHash] = hashParts;
+
+    // Derive key using same parameters as Werkzeug
+    const derivedKey = crypto.pbkdf2Sync(
+      Buffer.from(password, 'utf8'),
+      Buffer.from(salt, 'utf8'),
+      parseInt(iterations),
+      32, // 32 bytes for sha256
+      'sha256'
+    );
+
+    // Werkzeug uses base64 encoding without padding
+    const derivedHash = derivedKey.toString('base64').replace(/=+$/, '');
+    
+    // Compare hashes
+    return derivedHash === expectedHash;
+  } catch (error) {
+    logger.error('Werkzeug password verification error', error);
+    return false;
+  }
+}
+
 // Session configuration
 const SESSION_CONFIG = {
   TIMEOUT_MINUTES: 30,        // Auto-logout after 30 min inactivity
@@ -59,8 +101,16 @@ class AuthService {
         return { success: false, error: 'Invalid credentials' };
       }
 
-      // 2. Verify password
-      const isValid = await bcrypt.compare(password, employee.password_hash);
+      // 2. Verify password (support both bcrypt and Werkzeug formats)
+      let isValid = false;
+      
+      // Try Werkzeug format first (from Flask backend)
+      if (employee.password_hash.startsWith('pbkdf2:sha256:')) {
+        isValid = verifyWerkzeugPassword(password, employee.password_hash);
+      } else {
+        // Fall back to bcrypt
+        isValid = await bcrypt.compare(password, employee.password_hash);
+      }
       
       if (!isValid) {
         logger.warn('Login failed: invalid password', { email });
