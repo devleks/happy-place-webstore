@@ -312,7 +312,6 @@ function getProducts() {
   try {
     return db.prepare(`
       SELECT * FROM products 
-      WHERE stock_quantity > 0 
       ORDER BY name ASC
     `).all();
   } catch (error) {
@@ -334,7 +333,6 @@ function searchProducts(query) {
     return db.prepare(`
       SELECT * FROM products 
       WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?)
-        AND stock_quantity > 0
       ORDER BY name ASC
       LIMIT 50
     `).all(searchTerm, searchTerm, searchTerm);
@@ -360,6 +358,13 @@ function getProductBySku(sku) {
 
 function upsertProduct(product) {
   try {
+    if (!db) {
+      console.error('❌ Database not initialized!');
+      throw new Error('Database not initialized');
+    }
+
+    console.log(`📦 Upserting product: ${product.name} (ID: ${product.id})`);
+    
     const stmt = db.prepare(`
       INSERT INTO products (
         id, sku, name, description, category_id, category_name,
@@ -378,7 +383,7 @@ function upsertProduct(product) {
         synced_at = CURRENT_TIMESTAMP
     `);
 
-    return stmt.run(
+    const result = stmt.run(
       product.id,
       product.sku,
       product.name,
@@ -392,8 +397,11 @@ function upsertProduct(product) {
       product.size || null,
       product.color || null
     );
+    
+    console.log(`✅ Product upserted: ${product.name}, changes: ${result.changes}`);
+    return result;
   } catch (error) {
-    console.error('Error upserting product:', error);
+    console.error(`❌ Error upserting product ${product.name}:`, error);
     throw error;
   }
 }
