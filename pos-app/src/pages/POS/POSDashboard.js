@@ -45,14 +45,17 @@ const POSDashboard = ({ employee: propEmployee }) => {
     setError('');
 
     try {
-      // Create shift object
+      // Create shift object with consistent property names
       const shift = {
         id: Date.now(),
+        shift_number: Date.now(), // Use timestamp as shift number
         employee_id: employee.id,
         employee_name: employee.full_name,
         opening_float: parseFloat(openingFloat),
         started_at: new Date().toISOString(),
-        status: 'open'
+        start_time: new Date().toISOString(), // Add start_time for display
+        status: 'open',
+        transaction_count: 0
       };
 
       // Store shift in localStorage
