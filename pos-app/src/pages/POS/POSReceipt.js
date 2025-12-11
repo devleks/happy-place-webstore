@@ -44,7 +44,7 @@ const POSReceipt = () => {
   };
 
   const handleNewSale = () => {
-    navigate('/new-sale');
+    navigate('/pos/sale');
   };
 
   const handleBackToDashboard = () => {

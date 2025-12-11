@@ -94,9 +94,21 @@ function App() {
             } 
           />
           <Route 
+            path="/pos/sale" 
+            element={
+              employee ? <POSNewSale employee={employee} /> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
             path="/new-sale" 
             element={
               employee ? <POSNewSale employee={employee} /> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
+            path="/pos/close-shift" 
+            element={
+              employee ? <POSCloseShift employee={employee} /> : <Navigate to="/login" />
             } 
           />
           <Route 

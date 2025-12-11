@@ -179,8 +179,11 @@ const POSNewSale = ({ employee: propEmployee }) => {
 
   const checkShiftAndLoadProducts = async () => {
     try {
+      console.log('🔍 POSNewSale: Starting to load products...');
+      
       // Check current shift from localStorage
       const shift = localStorage.getItem('current_shift');
+      console.log('🔍 POSNewSale: Current shift:', shift ? 'Found' : 'Not found');
       
       if (!shift) {
         alert('No active shift. Please start a shift first.');
@@ -189,20 +192,28 @@ const POSNewSale = ({ employee: propEmployee }) => {
       }
 
       setCurrentShift(JSON.parse(shift));
+      console.log('🔍 POSNewSale: Shift set, loading products...');
 
       // Load products using Electron API
       const productsData = await api.product.getAll();
+      console.log('🔍 POSNewSale: Products received:', productsData ? productsData.length : 0, 'items');
       
-      if (productsData) {
+      if (productsData && productsData.length > 0) {
         // Group flat products into hierarchical structure
         const groupedProducts = groupProducts(productsData);
+        console.log('🔍 POSNewSale: Grouped products:', groupedProducts.length, 'groups');
         setProducts(groupedProducts);
         setFilteredProducts(groupedProducts);
+      } else {
+        console.warn('⚠️ POSNewSale: No products returned from API');
+        setProducts([]);
+        setFilteredProducts([]);
       }
     } catch (err) {
-      console.error('Error loading data:', err);
+      console.error('❌ POSNewSale: Error loading data:', err);
       setError('Failed to load products');
     } finally {
+      console.log('🔍 POSNewSale: Setting loading to false');
       setLoading(false);
     }
   };
@@ -331,47 +342,52 @@ const POSNewSale = ({ employee: propEmployee }) => {
     try {
       const { subtotal, tax, total } = calculateTotals();
       
+      // Generate transaction number
+      const transactionNumber = api.generateTransactionNumber();
+      
       // Prepare transaction data
       const transactionData = {
+        transaction_number: transactionNumber,
         employee_id: employee.id,
         employee_name: employee.full_name,
-        shift_id: currentShift.id,
         payment_method: paymentMethod,
         subtotal: subtotal,
         tax: tax,
+        discount: 0,
         total: total,
         items: cart.map(item => ({
           product_id: item.product_id,
+          product_sku: item.sku,
           product_name: item.product_name,
-          sku: item.sku,
           quantity: item.quantity,
           unit_price: item.price,
-          subtotal: item.price * item.quantity
+          subtotal: item.price * item.quantity,
+          discount: 0,
+          total: item.price * item.quantity
         }))
       };
 
-      if (paymentMethod === 'cash') {
-        transactionData.cash_tendered = parseFloat(cashTendered);
-        transactionData.change_given = change;
-      }
+      console.log('💳 Creating transaction:', transactionNumber);
 
       // Create transaction using Electron API
       const result = await api.transaction.create(transactionData);
 
-      if (result && result.id) {
-        // Update stock for each item
-        for (const item of cart) {
-          await api.product.updateStock(item.product_id, -item.quantity);
-        }
+      console.log('💳 Transaction result:', result);
 
-        // Show success and navigate to receipt
-        navigate(`/receipt/${result.id}`);
+      if (result && !result.error) {
+        console.log('✅ Transaction created successfully');
+        
+        // Clear cart and navigate to dashboard
+        setCart([]);
+        alert(`Transaction completed! Total: ${formatCurrency(total)}\nChange: ${formatCurrency(change)}`);
+        navigate('/dashboard');
       } else {
-        setError('Transaction failed');
+        console.error('❌ Transaction failed:', result);
+        setError(result.error || 'Transaction failed');
       }
     } catch (err) {
+      console.error('❌ Transaction error:', err);
       setError('Transaction error. Please try again.');
-      console.error('Transaction error:', err);
     } finally {
       setProcessing(false);
     }

@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/electronAPI';
 import '../../styles/POSDashboard.css';
 
 const POSDashboard = ({ employee: propEmployee }) => {
   const [employee, setEmployee] = useState(propEmployee);
   const [currentShift, setCurrentShift] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [todayStats, setTodayStats] = useState({
+    totalSales: 0,
+    transactionCount: 0,
+    cashSales: 0,
+    mpesaSales: 0
+  });
   const [loading, setLoading] = useState(true);
   const [shiftModal, setShiftModal] = useState(false);
   const [openingFloat, setOpeningFloat] = useState('5000.00');
@@ -25,6 +33,7 @@ const POSDashboard = ({ employee: propEmployee }) => {
     }
     
     checkCurrentShift();
+    loadTodayTransactions();
   }, [navigate, propEmployee, employee]);
 
   const checkCurrentShift = async () => {
@@ -38,6 +47,57 @@ const POSDashboard = ({ employee: propEmployee }) => {
       console.error('Error checking shift:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTodayTransactions = async () => {
+    try {
+      console.log('📊 Loading today\'s transactions...');
+      
+      // Get today's date range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = today.toISOString();
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const endDate = tomorrow.toISOString();
+      
+      // Load transactions from database
+      const txns = await api.transaction.getAll({
+        startDate,
+        endDate
+      });
+      
+      console.log('📊 Transactions loaded:', txns ? txns.length : 0);
+      
+      if (txns && Array.isArray(txns)) {
+        setTransactions(txns);
+        
+        // Calculate stats
+        const stats = txns.reduce((acc, txn) => {
+          acc.totalSales += parseFloat(txn.total || 0);
+          acc.transactionCount += 1;
+          
+          if (txn.payment_method === 'cash') {
+            acc.cashSales += parseFloat(txn.total || 0);
+          } else if (txn.payment_method === 'mpesa') {
+            acc.mpesaSales += parseFloat(txn.total || 0);
+          }
+          
+          return acc;
+        }, {
+          totalSales: 0,
+          transactionCount: 0,
+          cashSales: 0,
+          mpesaSales: 0
+        });
+        
+        setTodayStats(stats);
+        console.log('📊 Today\'s stats:', stats);
+      }
+    } catch (err) {
+      console.error('❌ Error loading transactions:', err);
     }
   };
 
@@ -211,30 +271,28 @@ const POSDashboard = ({ employee: propEmployee }) => {
           </div>
         )}
 
-        {/* Shift Stats */}
-        {currentShift && (
-          <div className="pos-shift-stats">
-            <h3>Today's Summary</h3>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-label">Total Sales</div>
-                <div className="stat-value">{formatCurrency(currentShift.total_sales || 0)}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">Transactions</div>
-                <div className="stat-value">{currentShift.transaction_count || 0}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">Cash Sales</div>
-                <div className="stat-value">{formatCurrency(currentShift.cash_sales || 0)}</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">M-Pesa Sales</div>
-                <div className="stat-value">{formatCurrency(currentShift.mpesa_sales || 0)}</div>
-              </div>
+        {/* Today's Summary - Always show */}
+        <div className="pos-shift-stats">
+          <h3>Today's Summary</h3>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-label">Total Sales</div>
+              <div className="stat-value">{formatCurrency(todayStats.totalSales)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Transactions</div>
+              <div className="stat-value">{todayStats.transactionCount}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Cash Sales</div>
+              <div className="stat-value">{formatCurrency(todayStats.cashSales)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">M-Pesa Sales</div>
+              <div className="stat-value">{formatCurrency(todayStats.mpesaSales)}</div>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Start Shift Modal */}

@@ -155,7 +155,7 @@ const POSCloseShift = ({ employee: propEmployee }) => {
     <div className="pos-close-shift">
       {/* Header */}
       <header className="close-shift-header">
-        <button className="back-btn" onClick={() => navigate('/pos/dashboard')}>
+        <button className="back-btn" onClick={() => navigate('/dashboard')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M5 12l7 7m-7-7l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -268,11 +268,11 @@ const POSCloseShift = ({ employee: propEmployee }) => {
             </div>
 
             <div className="step-actions">
-              <button className="btn-cancel" onClick={() => navigate('/pos/dashboard')}>
+              <button className="btn-cancel" onClick={() => navigate('/dashboard')}>
                 Cancel
               </button>
               <button className="btn-next" onClick={() => setStep(2)}>
-                Proceed to Cash Count
+                Next: Count Cash
               </button>
             </div>
           </div>
