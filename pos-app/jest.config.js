@@ -1,26 +1,55 @@
 /**
- * Jest Configuration
- * Testing setup for Electron POS app
+ * Jest Configuration for POS Electron App
+ * Handles React + Electron testing
  */
 
 module.exports = {
-  // Test environment
-  testEnvironment: 'node',
+  // Use jsdom for React component testing
+  testEnvironment: 'jsdom',
 
-  // Root directory
-  rootDir: '.',
+  // Setup files
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
 
-  // Test match patterns
-  testMatch: [
-    '**/__tests__/**/*.test.js',
-    '**/__tests__/**/*.spec.js'
+  // Module name mapping for CSS and Electron
+  moduleNameMapper: {
+    // Handle CSS imports
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    
+    // Mock Electron
+    '^electron$': '<rootDir>/__tests__/mocks/electron.js',
+    
+    // Handle image imports
+    '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__tests__/mocks/fileMock.js'
+  },
+
+  // Transform files with Babel
+  transform: {
+    '^.+\\.(js|jsx)$': 'babel-jest'
+  },
+
+  // Don't transform node_modules except specific packages
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-router-dom|@testing-library)/)'
   ],
 
-  // Coverage directory
-  coverageDirectory: 'coverage',
+  // Test file patterns
+  testMatch: [
+    '**/__tests__/**/*.test.js',
+    '**/?(*.)+(spec|test).js'
+  ],
+
+  // Coverage collection
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx}',
+    'electron/**/*.js',
+    '!src/index.js',
+    '!src/reportWebVitals.js',
+    '!**/__tests__/**',
+    '!**/node_modules/**'
+  ],
 
   // Coverage thresholds
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 70,
       functions: 70,
@@ -29,40 +58,12 @@ module.exports = {
     }
   },
 
-  // Files to collect coverage from
-  collectCoverageFrom: [
-    'electron/**/*.js',
-    '!electron/is-dev.js',
-    '!**/node_modules/**',
-    '!**/dist/**',
-    '!**/build/**'
-  ],
+  // Coverage reporters
+  coverageReporters: ['text', 'lcov', 'html'],
 
-  // Setup files
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.js'],
-
-  // Module paths
-  modulePaths: ['<rootDir>'],
-
-  // Transform files
-  transform: {},
-
-  // Ignore patterns
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/build/'
-  ],
+  // Test timeout
+  testTimeout: 10000,
 
   // Verbose output
-  verbose: true,
-
-  // Clear mocks between tests
-  clearMocks: true,
-
-  // Reset mocks between tests
-  resetMocks: true,
-
-  // Restore mocks between tests
-  restoreMocks: true
+  verbose: true
 };

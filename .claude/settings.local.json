@@ -128,7 +128,8 @@
       "Bash(./test_admin_errors.sh:*)",
       "Bash([ -f test_admin_login.sh ])",
       "Bash(./test_admin_login.sh:*)",
-      "Bash(timeout 3 curl:*)"
+      "Bash(timeout 3 curl:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

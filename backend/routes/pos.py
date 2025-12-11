@@ -928,7 +928,6 @@ def sync_employees():
                 "Unauthorized employee sync attempt",
                 extra={"context": safe_auth_context(
                     user_type=user_type,
-                    role=user_role,
                     ip=request.remote_addr
                 )}
             )
@@ -961,7 +960,6 @@ def sync_employees():
             f"Employee sync completed: {len(employee_data)} employees",
             extra={"context": safe_auth_context(
                 user_type=user_type,
-                role=user_role,
                 ip=request.remote_addr
             )}
         )

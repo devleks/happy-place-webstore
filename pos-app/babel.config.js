@@ -1,6 +1,18 @@
+/**
+ * Babel Configuration for Jest
+ * Transforms JSX and modern JavaScript for testing
+ */
+
 module.exports = {
   presets: [
-    ['@babel/preset-env', { targets: { node: 'current' } }],
-    ['@babel/preset-react', { runtime: 'automatic' }]
+    // Transform modern JavaScript to Node-compatible code
+    ['@babel/preset-env', { 
+      targets: { node: 'current' }
+    }],
+    
+    // Transform JSX to JavaScript
+    ['@babel/preset-react', { 
+      runtime: 'automatic'  // Use new JSX transform
+    }]
   ]
 };
