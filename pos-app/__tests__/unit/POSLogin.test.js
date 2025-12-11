@@ -7,16 +7,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import POSLogin from '../../src/pages/POS/POSLogin';
 
-// Mock electron API
-const mockElectronAPI = {
-  auth: {
-    login: jest.fn(),
-    validateSession: jest.fn()
-  }
-};
-
-window.electron = mockElectronAPI;
-
 // Mock useNavigate
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -28,6 +18,17 @@ describe('POSLogin Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+
+    // Reset window.electron mock to default success state
+    window.electron.auth.login.mockResolvedValue({
+      success: true,
+      employee: { id: 1, email: 'test@example.com', role: 'cashier' },
+      session: { token: 'test-token', expires_at: '2025-12-12T00:00:00Z' }
+    });
+    window.electron.auth.validateSession.mockResolvedValue({
+      valid: true,
+      session: { id: 1, email: 'test@example.com' }
+    });
   });
 
   const renderLogin = (props = {}) => {
@@ -57,7 +58,7 @@ describe('POSLogin Component', () => {
 
   it('should handle successful login', async () => {
     const mockOnLogin = jest.fn();
-    mockElectronAPI.auth.login.mockResolvedValueOnce({
+    window.electron.auth.login.mockResolvedValueOnce({
       success: true,
       employee: {
         id: 1,
@@ -85,7 +86,7 @@ describe('POSLogin Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /login to pos/i }));
 
     await waitFor(() => {
-      expect(mockElectronAPI.auth.login).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(window.electron.auth.login).toHaveBeenCalledWith('test@example.com', 'password123');
       expect(localStorage.getItem('session_token')).toBe('test-token');
       expect(mockOnLogin).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
@@ -93,7 +94,7 @@ describe('POSLogin Component', () => {
   });
 
   it('should handle failed login', async () => {
-    mockElectronAPI.auth.login.mockResolvedValueOnce({
+    window.electron.auth.login.mockResolvedValueOnce({
       success: false,
       error: 'Invalid credentials'
     });
@@ -119,16 +120,19 @@ describe('POSLogin Component', () => {
   });
 
   it('should clear error when user starts typing', async () => {
-    mockElectronAPI.auth.login.mockResolvedValueOnce({
+    window.electron.auth.login.mockResolvedValueOnce({
       success: false,
       error: 'Invalid credentials'
     });
 
     renderLogin();
 
-    // Trigger error
+    // Trigger error - need both fields filled for form submission
     fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test@example.com' }
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'wrongpassword' }
     });
     fireEvent.click(screen.getByRole('button', { name: /login to pos/i }));
 
@@ -136,7 +140,7 @@ describe('POSLogin Component', () => {
       expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
     });
 
-    // Start typing
+    // Start typing - error should clear
     fireEvent.change(screen.getByLabelText('Email Address'), {
       target: { value: 'test2@example.com' }
     });
@@ -146,8 +150,8 @@ describe('POSLogin Component', () => {
 
   it('should check for existing valid session on mount', async () => {
     localStorage.setItem('session_token', 'existing-token');
-    
-    mockElectronAPI.auth.validateSession.mockResolvedValueOnce({
+
+    window.electron.auth.validateSession.mockResolvedValueOnce({
       valid: true,
       session: {
         id: 1,
@@ -162,7 +166,7 @@ describe('POSLogin Component', () => {
     renderLogin({ onLogin: mockOnLogin });
 
     await waitFor(() => {
-      expect(mockElectronAPI.auth.validateSession).toHaveBeenCalledWith('existing-token');
+      expect(window.electron.auth.validateSession).toHaveBeenCalledWith('existing-token');
       expect(mockOnLogin).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
@@ -171,8 +175,8 @@ describe('POSLogin Component', () => {
   it('should clear invalid session on mount', async () => {
     localStorage.setItem('session_token', 'invalid-token');
     localStorage.setItem('employee_info', JSON.stringify({ id: 1 }));
-    
-    mockElectronAPI.auth.validateSession.mockResolvedValueOnce({
+
+    window.electron.auth.validateSession.mockResolvedValueOnce({
       valid: false,
       reason: 'session_expired'
     });
@@ -186,7 +190,7 @@ describe('POSLogin Component', () => {
   });
 
   it('should show loading state during login', async () => {
-    mockElectronAPI.auth.login.mockImplementation(() => 
+    window.electron.auth.login.mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
     );
 

@@ -329,11 +329,18 @@ function setupProtocolHandlers() {
       
       logger.security('File protocol access', { url });
 
-      // Only allow access to app files
+      // Only allow access to app files and build folder
       const appPath = require('electron').app.getAppPath();
       const userDataPath = require('electron').app.getPath('userData');
+      const path = require('path');
+      const buildPath = path.join(appPath, 'build');
+      const projectRoot = path.dirname(appPath);
 
-      if (url.startsWith(appPath) || url.startsWith(userDataPath)) {
+      // Allow access to app files, user data, build folder, or project root
+      if (url.startsWith(appPath) || 
+          url.startsWith(userDataPath) || 
+          url.startsWith(buildPath) ||
+          url.startsWith(projectRoot)) {
         callback({ path: url });
       } else {
         logger.warn('Blocked file protocol access', { url });

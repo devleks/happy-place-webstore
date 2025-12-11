@@ -14,10 +14,13 @@ module.exports = {
   moduleNameMapper: {
     // Handle CSS imports
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    
+
     // Mock Electron
     '^electron$': '<rootDir>/__tests__/mocks/electron.js',
-    
+
+    // Mock electron-log
+    '^electron-log$': '<rootDir>/__tests__/mocks/electron-log.js',
+
     // Handle image imports
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__tests__/mocks/fileMock.js'
   },

@@ -21,6 +21,9 @@ const POSLogin = ({ onLogin }) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
+    // Auto-sync employees from backend on component mount
+    autoSyncEmployees();
+    
     // Check for existing valid session
     checkExistingSession();
     
@@ -29,6 +32,30 @@ const POSLogin = ({ onLogin }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  const autoSyncEmployees = async () => {
+    try {
+      console.log('🔄 Auto-sync: Starting employee sync from backend...');
+      
+      // Set sync token (this should be configured or obtained from backend login)
+      const syncToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NTQxMTY0OCwianRpIjoiZWVhMWRiYzgtMDk4Ni00MjAzLWI2OGItZThjOTBkOWZhNTcwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjU0MTE2NDgsImNzcmYiOiI2MjZhMTE4NC02ODZkLTRhYmItYWJkNi05N2VlNTk5OGM2ZDkiLCJleHAiOjE3NjU0NDA0NDgsInVzZXJfdHlwZSI6ImVtcGxveWVlIiwicm9sZSI6ImFkbWluIn0.TY2ZE5Z3bWtZt5ZqbbQAGjhhclzRwDDfUYpUhaaua6Q';
+      
+      await api.auth.setSyncToken(syncToken);
+      console.log('✅ Auto-sync: Sync token set');
+      
+      // Sync employees from backend
+      const result = await api.auth.syncEmployees();
+      
+      if (result.success) {
+        console.log(`✅ Auto-sync: Successfully synced ${result.count} employees from backend`);
+      } else {
+        console.warn('⚠️ Auto-sync: Failed to sync employees:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Auto-sync: Error during employee sync:', error);
+      // Don't block login if sync fails - offline mode should still work
+    }
+  };
 
   const checkExistingSession = async () => {
     const sessionToken = localStorage.getItem('session_token');

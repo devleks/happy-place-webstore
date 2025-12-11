@@ -352,10 +352,10 @@ class AuthService {
       // Get last sync timestamp for incremental sync
       const lastSync = this.getLastSyncTimestamp();
       
-      // Build sync URL
+      // Build sync URL (use 127.0.0.1 instead of localhost to avoid IPv6 issues)
       const syncUrl = lastSync 
-        ? `http://localhost:5001/api/employees/sync/incremental?last_sync=${lastSync}`
-        : 'http://localhost:5001/api/employees/sync';
+        ? `http://127.0.0.1:5001/api/employees/sync/incremental?last_sync=${lastSync}`
+        : 'http://127.0.0.1:5001/api/employees/sync';
 
       // Get sync token
       const syncToken = this.getSyncToken();
