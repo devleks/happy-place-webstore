@@ -12,7 +12,7 @@ const {
   updateSyncQueueError
 } = require('./database');
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5001/api';
 const SYNC_INTERVAL = 30000; // 30 seconds
 
 let syncInterval = null;
@@ -106,7 +106,8 @@ async function syncNow() {
  */
 async function checkOnlineStatus() {
   try {
-    await axios.get(`${API_URL}/health`, { timeout: 5000 });
+    // Health endpoint is at /health, not /api/health
+    await axios.get('http://127.0.0.1:5001/health', { timeout: 5000 });
     return true;
   } catch (error) {
     return false;
@@ -120,33 +121,51 @@ async function syncProducts() {
   try {
     console.log('📦 Syncing products...');
 
-    const response = await axios.get(`${API_URL}/products`, {
-      timeout: 10000
-    });
+    // Fetch all products with variants (paginated)
+    let allProducts = [];
+    let page = 1;
+    let hasMore = true;
 
-    const products = response.data;
+    while (hasMore) {
+      const response = await axios.get(`${API_URL}/products?page=${page}&per_page=100`, {
+        timeout: 10000
+      });
 
-    if (!Array.isArray(products)) {
-      throw new Error('Invalid products response');
+      const data = response.data;
+      
+      // Handle paginated response
+      if (data.products && Array.isArray(data.products)) {
+        allProducts = allProducts.concat(data.products);
+        hasMore = page < (data.total_pages || 1);
+        page++;
+      } else if (Array.isArray(data)) {
+        // Fallback for non-paginated response
+        allProducts = data;
+        hasMore = false;
+      } else {
+        throw new Error('Invalid products response format');
+      }
     }
+
+    console.log(`📦 Fetched ${allProducts.length} products from backend`);
 
     // Upsert products in batch
     let syncedCount = 0;
-    for (const product of products) {
+    for (const product of allProducts) {
       try {
         upsertProduct({
           id: product.id,
-          sku: product.sku,
-          name: product.name || product.product_name,
-          description: product.description,
+          sku: product.slug || `product-${product.id}`, // Use slug as SKU
+          name: product.name,
+          description: product.description || '',
           category_id: product.category_id,
-          category_name: product.category,
+          category_name: product.category_name || product.category,
           price: parseFloat(product.price),
-          stock_quantity: parseInt(product.stock_quantity) || 0,
-          low_stock_threshold: parseInt(product.low_stock_threshold) || 5,
+          stock_quantity: parseInt(product.variants_count) || 0,
+          low_stock_threshold: 5,
           image_url: product.image_url,
-          size: product.size,
-          color: product.color
+          size: null,
+          color: null
         });
         syncedCount++;
       } catch (error) {
@@ -154,11 +173,11 @@ async function syncProducts() {
       }
     }
 
-    console.log(`✅ Synced ${syncedCount}/${products.length} products`);
+    console.log(`✅ Synced ${syncedCount}/${allProducts.length} products`);
     return syncedCount;
 
   } catch (error) {
-    console.error('❌ Product sync failed:', error);
+    console.error('❌ Product sync failed:', error.message);
     throw error;
   }
 }

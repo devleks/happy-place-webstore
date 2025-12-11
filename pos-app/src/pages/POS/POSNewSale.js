@@ -194,8 +194,10 @@ const POSNewSale = ({ employee: propEmployee }) => {
       const productsData = await api.product.getAll();
       
       if (productsData) {
-        setProducts(productsData);
-        setFilteredProducts(productsData);
+        // Group flat products into hierarchical structure
+        const groupedProducts = groupProducts(productsData);
+        setProducts(groupedProducts);
+        setFilteredProducts(groupedProducts);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -203,6 +205,39 @@ const POSNewSale = ({ employee: propEmployee }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper to group flat products by name
+  const groupProducts = (flatProducts) => {
+    const groups = {};
+    
+    flatProducts.forEach(item => {
+      // Use name as key
+      const key = item.name;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          id: item.id, // Use first ID as group ID
+          name: item.name,
+          category: item.category_name || 'Uncategorized',
+          description: item.description,
+          image_url: item.image_url,
+          variants: []
+        };
+      }
+      
+      // Add as variant
+      groups[key].variants.push({
+        id: item.id,
+        sku: item.sku,
+        price: item.price,
+        size: item.size || 'Std',
+        color: item.color || 'Std',
+        pos_stock: item.stock_quantity
+      });
+    });
+    
+    return Object.values(groups);
   };
 
   const handleSearch = (term) => {
