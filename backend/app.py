@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, g
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from config import Config
@@ -7,6 +7,9 @@ from routes import api
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.fulfillment_routes import fulfillment_bp
+import logging
+import uuid
+from datetime import datetime
 
 def create_app():
     app = Flask(__name__)
@@ -15,9 +18,19 @@ def create_app():
     # Validate secrets (especially for production deployments)
     Config.validate_secrets()
 
+    # Configure logging
+    configure_logging(app)
+
     # Initialize extensions
     db.init_app(app)
-    CORS(app)
+    
+    # Configure CORS properly
+    CORS(app,
+         origins=Config.CORS_ORIGINS,
+         supports_credentials=Config.CORS_SUPPORTS_CREDENTIALS,
+         allow_headers=Config.CORS_ALLOW_HEADERS,
+         methods=Config.CORS_METHODS)
+    
     JWTManager(app)
 
     # Initialize monitoring
@@ -26,9 +39,9 @@ def create_app():
         init_monitoring(app)
         log_slow_queries(app)
     except ImportError:
-        print("⚠️  Monitoring middleware not found (optional feature)")
+        app.logger.warning("Monitoring middleware not found (optional feature)")
     except Exception as e:
-        print(f"⚠️  Monitoring initialization failed: {e}")
+        app.logger.warning(f"Monitoring initialization failed: {e}")
 
     # Register blueprints
     app.register_blueprint(api, url_prefix='/api')
@@ -36,11 +49,152 @@ def create_app():
     app.register_blueprint(admin_bp)  # Already has /api/admin prefix
     app.register_blueprint(fulfillment_bp)  # Already has /api/fulfillment prefix
 
+    # Register middleware
+    register_middleware(app)
+    
+    # Register error handlers
+    register_error_handlers(app)
+    
+    # Register health check
+    register_health_check(app)
+
     # Create tables
     with app.app_context():
         db.create_all()
 
     return app
+
+def configure_logging(app):
+    """Configure application logging."""
+    if not app.debug:
+        # Production logging
+        from logging.handlers import RotatingFileHandler
+        import os
+        
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        file_handler = RotatingFileHandler(
+            'logs/app.log',
+            maxBytes=10240000,  # 10MB
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Happy Place Boutique startup')
+
+def register_middleware(app):
+    """Register request/response middleware."""
+    
+    @app.before_request
+    def add_request_id():
+        """Add unique request ID for tracing."""
+        g.request_id = str(uuid.uuid4())
+    
+    @app.after_request
+    def add_security_headers(response):
+        """Add security headers to all responses."""
+        # Security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['X-Request-ID'] = g.get('request_id', 'unknown')
+        
+        # HSTS (only in production with HTTPS)
+        if not app.debug:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        
+        # CSP (Content Security Policy)
+        response.headers['Content-Security-Policy'] = "default-src 'self'"
+        
+        return response
+
+def register_error_handlers(app):
+    """Register global error handlers."""
+    
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 'Bad request',
+            'message': str(error),
+            'request_id': g.get('request_id')
+        }), 400
+    
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return jsonify({
+            'success': False,
+            'error': 'Unauthorized',
+            'message': 'Authentication required',
+            'request_id': g.get('request_id')
+        }), 401
+    
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({
+            'success': False,
+            'error': 'Forbidden',
+            'message': 'Insufficient permissions',
+            'request_id': g.get('request_id')
+        }), 403
+    
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 'Not found',
+            'message': 'Resource not found',
+            'request_id': g.get('request_id')
+        }), 404
+    
+    @app.errorhandler(429)
+    def rate_limit_exceeded(error):
+        return jsonify({
+            'success': False,
+            'error': 'Rate limit exceeded',
+            'message': 'Too many requests. Please try again later.',
+            'request_id': g.get('request_id')
+        }), 429
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        app.logger.error(f'Internal error: {error}', exc_info=True)
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'message': 'An unexpected error occurred',
+            'request_id': g.get('request_id')
+        }), 500
+
+def register_health_check(app):
+    """Register health check endpoint."""
+    
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for monitoring."""
+        health_status = {
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'version': '1.0.0'
+        }
+        
+        # Check database connection
+        try:
+            db.session.execute('SELECT 1')
+            health_status['database'] = 'healthy'
+        except Exception as e:
+            app.logger.error(f'Database health check failed: {e}')
+            health_status['database'] = 'unhealthy'
+            health_status['status'] = 'degraded'
+        
+        status_code = 200 if health_status['status'] == 'healthy' else 503
+        return jsonify(health_status), status_code
 
 if __name__ == '__main__':
     app = create_app()
