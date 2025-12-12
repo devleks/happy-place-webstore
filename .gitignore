@@ -38,6 +38,3 @@ Thumbs.db
 
 # Discussion logs (tracked separately)
 # !DISCUSSION_LOG.md
-*.md
-!README.md
-!QUICK_START.md
