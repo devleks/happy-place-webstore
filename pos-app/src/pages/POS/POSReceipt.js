@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../../services/electronAPI';
 import '../../styles/POSReceipt.css';
 
 const POSReceipt = () => {
@@ -11,36 +10,38 @@ const POSReceipt = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadTransactionReceipt();
+    const token = localStorage.getItem('employee_token');
+    if (!token) {
+      navigate('/pos/login');
+      return;
+    }
+
+    loadTransactionReceipt(token);
   }, [transactionId, navigate]);
 
-  const loadTransactionReceipt = async () => {
+  const loadTransactionReceipt = async (token) => {
     try {
-      // Load transaction using Electron API
-      const data = await api.transaction.getById(transactionId);
+      const response = await fetch(`http://127.0.0.1:5001/api/pos/transactions/${transactionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-      if (data) {
-        setTransaction(data);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setTransaction(data.transaction);
       } else {
         setError('Failed to load receipt');
       }
     } catch (err) {
       console.error('Error loading receipt:', err);
-      setError('Transaction not found');
+      setError('Connection error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePrint = async () => {
-    try {
-      // Use Electron hardware API to print receipt
-      await api.hardware.printReceipt(transaction);
-    } catch (err) {
-      console.error('Print error:', err);
-      // Fallback to browser print
-      window.print();
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
   const handleNewSale = () => {
@@ -48,7 +49,7 @@ const POSReceipt = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/pos/dashboard');
   };
 
   const formatCurrency = (amount) => {

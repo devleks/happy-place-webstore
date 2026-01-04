@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/electronAPI';
+import { shiftAPI, productAPI, transactionAPI } from '../../services/electronAPI';
+import { formatSizeWithConversions } from '../../utils/sizeConversion';
 import '../../styles/POSNewSale.css';
 
-const POSNewSale = ({ employee: propEmployee }) => {
-  const [employee, setEmployee] = useState(propEmployee);
+const POSNewSale = () => {
+  const [employee, setEmployee] = useState(null);
   const [currentShift, setCurrentShift] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -21,19 +22,17 @@ const POSNewSale = ({ employee: propEmployee }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const sessionToken = localStorage.getItem('session_token');
     const employeeInfo = localStorage.getItem('employee_info');
 
-    if (!employeeInfo && !propEmployee) {
+    if (!sessionToken || !employeeInfo) {
       navigate('/login');
       return;
     }
 
-    if (!employee) {
-      setEmployee(JSON.parse(employeeInfo));
-    }
-    
+    setEmployee(JSON.parse(employeeInfo));
     checkShiftAndLoadProducts();
-  }, [navigate, propEmployee, employee]);
+  }, [navigate]);
 
   // Barcode scanner listener
   useEffect(() => {
@@ -75,17 +74,31 @@ const POSNewSale = ({ employee: propEmployee }) => {
 
   const scanBarcode = async (barcode) => {
     try {
+      const token = localStorage.getItem('employee_token');
+
       setScanMessage(`Scanning: ${barcode}...`);
 
-      // Search for product by SKU using Electron API
-      const product = await api.product.getBySku(barcode);
+      const response = await fetch('http://127.0.0.1:5001/api/pos/scan', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ barcode })
+      });
 
-      if (product) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const product = data.product;
+
         // Create cart item from scanned product
         const cartItem = {
-          product_id: product.id,
-          product_sku: product.sku,
-          product_name: product.name,
+          product_id: product.product_id,
+          variant_id: product.variant_id,
+          product_name: product.product_name,
+          size: product.size,
+          color: product.color,
           sku: product.sku,
           price: product.effective_price,
           quantity: 1,
@@ -179,76 +192,30 @@ const POSNewSale = ({ employee: propEmployee }) => {
 
   const checkShiftAndLoadProducts = async () => {
     try {
-      console.log('🔍 POSNewSale: Starting to load products...');
-      
-      // Check current shift from localStorage
-      const shift = localStorage.getItem('current_shift');
-      console.log('🔍 POSNewSale: Current shift:', shift ? 'Found' : 'Not found');
-      
+      // Use PWA API - works offline with IndexedDB
+      const shift = await shiftAPI.getCurrent();
+
       if (!shift) {
         alert('No active shift. Please start a shift first.');
         navigate('/dashboard');
         return;
       }
 
-      setCurrentShift(JSON.parse(shift));
-      console.log('🔍 POSNewSale: Shift set, loading products...');
+      setCurrentShift(shift);
 
-      // Load products using Electron API
-      const productsData = await api.product.getAll();
-      console.log('🔍 POSNewSale: Products received:', productsData ? productsData.length : 0, 'items');
+      // Load products from IndexedDB
+      const productsData = await productAPI.getAll();
       
       if (productsData && productsData.length > 0) {
-        // Group flat products into hierarchical structure
-        const groupedProducts = groupProducts(productsData);
-        console.log('🔍 POSNewSale: Grouped products:', groupedProducts.length, 'groups');
-        setProducts(groupedProducts);
-        setFilteredProducts(groupedProducts);
-      } else {
-        console.warn('⚠️ POSNewSale: No products returned from API');
-        setProducts([]);
-        setFilteredProducts([]);
+        setProducts(productsData);
+        setFilteredProducts(productsData);
       }
     } catch (err) {
-      console.error('❌ POSNewSale: Error loading data:', err);
+      console.error('Error loading data:', err);
       setError('Failed to load products');
     } finally {
-      console.log('🔍 POSNewSale: Setting loading to false');
       setLoading(false);
     }
-  };
-
-  // Helper to group flat products by name
-  const groupProducts = (flatProducts) => {
-    const groups = {};
-    
-    flatProducts.forEach(item => {
-      // Use name as key
-      const key = item.name;
-      
-      if (!groups[key]) {
-        groups[key] = {
-          id: item.id, // Use first ID as group ID
-          name: item.name,
-          category: item.category_name || 'Uncategorized',
-          description: item.description,
-          image_url: item.image_url,
-          variants: []
-        };
-      }
-      
-      // Add as variant
-      groups[key].variants.push({
-        id: item.id,
-        sku: item.sku,
-        price: item.price,
-        size: item.size || 'Std',
-        color: item.color || 'Std',
-        pos_stock: item.stock_quantity
-      });
-    });
-    
-    return Object.values(groups);
   };
 
   const handleSearch = (term) => {
@@ -340,14 +307,11 @@ const POSNewSale = ({ employee: propEmployee }) => {
     setError('');
 
     try {
+      // Use PWA API - creates transaction in IndexedDB and syncs to backend when online
       const { subtotal, tax, total } = calculateTotals();
       
-      // Generate transaction number
-      const transactionNumber = api.generateTransactionNumber();
-      
-      // Prepare transaction data
       const transactionData = {
-        transaction_number: transactionNumber,
+        shift_id: currentShift.id,
         employee_id: employee.id,
         employee_name: employee.full_name,
         payment_method: paymentMethod,
@@ -355,39 +319,30 @@ const POSNewSale = ({ employee: propEmployee }) => {
         tax: tax,
         discount: 0,
         total: total,
+        cash_tendered: paymentMethod === 'cash' ? parseFloat(cashTendered) : 0,
+        change_given: paymentMethod === 'cash' ? change : 0,
         items: cart.map(item => ({
           product_id: item.product_id,
-          product_sku: item.sku,
+          sku: item.sku,
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.price,
           subtotal: item.price * item.quantity,
-          discount: 0,
           total: item.price * item.quantity
         }))
       };
 
-      console.log('💳 Creating transaction:', transactionNumber);
+      const transaction = await transactionAPI.create(transactionData);
 
-      // Create transaction using Electron API
-      const result = await api.transaction.create(transactionData);
-
-      console.log('💳 Transaction result:', result);
-
-      if (result && !result.error) {
-        console.log('✅ Transaction created successfully');
-        
-        // Clear cart and navigate to dashboard
-        setCart([]);
-        alert(`Transaction completed! Total: ${formatCurrency(total)}\nChange: ${formatCurrency(change)}`);
-        navigate('/dashboard');
+      if (transaction && transaction.id) {
+        // Show success and navigate to receipt
+        navigate(`/receipt/${transaction.id}`);
       } else {
-        console.error('❌ Transaction failed:', result);
-        setError(result.error || 'Transaction failed');
+        setError('Transaction failed');
       }
     } catch (err) {
-      console.error('❌ Transaction error:', err);
-      setError('Transaction error. Please try again.');
+      setError('Error processing transaction. Please try again.');
+      console.error('Transaction error:', err);
     } finally {
       setProcessing(false);
     }
@@ -478,7 +433,7 @@ const POSNewSale = ({ employee: propEmployee }) => {
                           key={variant.id}
                           className={`variant-item ${variant.pos_stock <= 0 ? 'out-of-stock' : ''}`}
                           onClick={() => variant.pos_stock > 0 && addToCart(product, variant)}
-                          title={`${variant.size} - ${variant.color}`}
+                          title={formatSizeWithConversions(variant.size)}
                         >
                           <div className="variant-details">
                             <span className="variant-size">{variant.size}</span>

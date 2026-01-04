@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/electronAPI';
+import { authAPI } from '../../services/electronAPI';
 import '../../styles/POSLogin.css';
 
 const POSLogin = ({ onLogin }) => {
@@ -10,70 +10,7 @@ const POSLogin = ({ onLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Online status monitoring
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    // Auto-sync employees from backend on component mount
-    autoSyncEmployees();
-    
-    // Check for existing valid session
-    checkExistingSession();
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  const autoSyncEmployees = async () => {
-    try {
-      console.log('🔄 Auto-sync: Starting employee sync from backend...');
-      
-      // Set sync token (this should be configured or obtained from backend login)
-      const syncToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NTQxMTY0OCwianRpIjoiZWVhMWRiYzgtMDk4Ni00MjAzLWI2OGItZThjOTBkOWZhNTcwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjU0MTE2NDgsImNzcmYiOiI2MjZhMTE4NC02ODZkLTRhYmItYWJkNi05N2VlNTk5OGM2ZDkiLCJleHAiOjE3NjU0NDA0NDgsInVzZXJfdHlwZSI6ImVtcGxveWVlIiwicm9sZSI6ImFkbWluIn0.TY2ZE5Z3bWtZt5ZqbbQAGjhhclzRwDDfUYpUhaaua6Q';
-      
-      await api.auth.setSyncToken(syncToken);
-      console.log('✅ Auto-sync: Sync token set');
-      
-      // Sync employees from backend
-      const result = await api.auth.syncEmployees();
-      
-      if (result.success) {
-        console.log(`✅ Auto-sync: Successfully synced ${result.count} employees from backend`);
-      } else {
-        console.warn('⚠️ Auto-sync: Failed to sync employees:', result.error);
-      }
-    } catch (error) {
-      console.error('❌ Auto-sync: Error during employee sync:', error);
-      // Don't block login if sync fails - offline mode should still work
-    }
-  };
-
-  const checkExistingSession = async () => {
-    const sessionToken = localStorage.getItem('session_token');
-    if (sessionToken) {
-      const result = await api.auth.validateSession(sessionToken);
-      if (result.valid) {
-        // Session still valid, redirect to dashboard
-        if (onLogin) {
-          onLogin(result.session);
-        }
-        navigate('/dashboard');
-      } else {
-        // Session invalid, clear storage
-        localStorage.removeItem('session_token');
-        localStorage.removeItem('employee_info');
-      }
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -90,25 +27,27 @@ const POSLogin = ({ onLogin }) => {
     setError('');
 
     try {
-      const result = await api.auth.login(formData.email, formData.password);
+      // Use PWA API service (works offline with IndexedDB)
+      const result = await authAPI.login(formData.email, formData.password);
 
       if (result.success) {
         // Store session token and employee info
         localStorage.setItem('session_token', result.session.token);
         localStorage.setItem('employee_info', JSON.stringify(result.employee));
-        
-        // Call parent onLogin
+
+        // Update parent component state
         if (onLogin) {
           onLogin(result.employee);
         }
-        
+
+        // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
+      setError('Login error. Please try again.');
       console.error('Login error:', err);
-      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -121,23 +60,7 @@ const POSLogin = ({ onLogin }) => {
 
   return (
     <div className="pos-login-container">
-      {/* Online Status Indicator */}
-      <div className="online-status-banner" style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        padding: '8px',
-        textAlign: 'center',
-        backgroundColor: isOnline ? '#27ae60' : '#e74c3c',
-        color: 'white',
-        fontSize: '14px',
-        zIndex: 1000
-      }}>
-        {isOnline ? '🟢 Online - Auto-sync enabled' : '🔴 Offline - Using cached credentials'}
-      </div>
-
-      <div className="pos-login-box" style={{ marginTop: '40px' }}>
+      <div className="pos-login-box">
         <div className="pos-login-header">
           <div className="pos-logo">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
@@ -209,14 +132,14 @@ const POSLogin = ({ onLogin }) => {
           <div className="pos-quick-login-buttons">
             <button
               className="pos-quick-btn admin"
-              onClick={() => quickLogin('admin@happyplace.co.ke', 'admin123')}
+              onClick={() => quickLogin('admin@happyplace.com', 'admin123')}
               disabled={loading}
             >
               Admin
             </button>
             <button
               className="pos-quick-btn manager"
-              onClick={() => quickLogin('manager@happyplace.co.ke', 'manager123')}
+              onClick={() => quickLogin('manager1@happyplace.co.ke', 'manager123')}
               disabled={loading}
             >
               Manager

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/electronAPI';
+import { shiftAPI } from '../../services/electronAPI';
 import '../../styles/POSCloseShift.css';
 
-const POSCloseShift = ({ employee: propEmployee }) => {
-  const [employee, setEmployee] = useState(propEmployee);
+const POSCloseShift = () => {
+  const [employee, setEmployee] = useState(null);
   const [currentShift, setCurrentShift] = useState(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1); // 1: Review, 2: Count Cash, 3: Confirm
@@ -25,31 +25,29 @@ const POSCloseShift = ({ employee: propEmployee }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const sessionToken = localStorage.getItem('session_token');
     const employeeInfo = localStorage.getItem('employee_info');
 
-    if (!employeeInfo && !propEmployee) {
+    if (!sessionToken || !employeeInfo) {
       navigate('/login');
       return;
     }
 
-    if (!employee) {
-      setEmployee(JSON.parse(employeeInfo));
-    }
-    
+    setEmployee(JSON.parse(employeeInfo));
     loadShiftData();
-  }, [navigate, propEmployee, employee]);
+  }, [navigate]);
 
   const loadShiftData = async () => {
     try {
-      const shift = localStorage.getItem('current_shift');
-      
-      if (!shift) {
-        alert('No active shift found');
-        navigate('/dashboard');
-        return;
-      }
+      // Use PWA API - works offline with IndexedDB
+      const shift = await shiftAPI.getCurrent();
 
-      setCurrentShift(JSON.parse(shift));
+      if (shift) {
+        setCurrentShift(shift);
+      } else {
+        alert('No active shift found. Please start a shift first.');
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Error loading shift:', err);
       setError('Failed to load shift data');
@@ -80,9 +78,9 @@ const POSCloseShift = ({ employee: propEmployee }) => {
   };
 
   const calculateExpectedCash = () => {
-    const openingFloat = parseFloat(currentShift?.opening_float || 0);
+    const startingCash = parseFloat(currentShift?.starting_cash || 0);
     const cashSales = parseFloat(currentShift?.cash_sales || 0);
-    return openingFloat + cashSales;
+    return startingCash + cashSales;
   };
 
   const calculateVariance = () => {
@@ -94,26 +92,22 @@ const POSCloseShift = ({ employee: propEmployee }) => {
     setError('');
 
     try {
-      // Update shift with closing data
-      const closedShift = {
-        ...currentShift,
-        closed_at: new Date().toISOString(),
-        closing_cash_count: calculateCashTotal(),
-        cash_variance: calculateVariance(),
-        notes: notes,
-        status: 'closed'
-      };
+      // Use PWA API - closes shift in IndexedDB and syncs to backend when online
+      const closedShift = await shiftAPI.close(currentShift.id, {
+        closing_cash: calculateCashTotal(),
+        cash_counted: calculateCashTotal(),
+        variance: calculateVariance(),
+        notes: notes
+      });
 
-      // Store closed shift (in production, this would sync to backend)
-      localStorage.setItem('last_closed_shift', JSON.stringify(closedShift));
-      
-      // Remove current shift
-      localStorage.removeItem('current_shift');
-
-      alert('Shift closed successfully!');
-      navigate('/dashboard');
+      if (closedShift) {
+        alert('Shift closed successfully!');
+        navigate('/dashboard');
+      } else {
+        setError('Failed to close shift');
+      }
     } catch (err) {
-      setError('Failed to close shift. Please try again.');
+      setError('Error closing shift. Please try again.');
       console.error('Close shift error:', err);
     } finally {
       setProcessing(false);
@@ -155,7 +149,7 @@ const POSCloseShift = ({ employee: propEmployee }) => {
     <div className="pos-close-shift">
       {/* Header */}
       <header className="close-shift-header">
-        <button className="back-btn" onClick={() => navigate('/dashboard')}>
+        <button className="back-btn" onClick={() => navigate('/pos/dashboard')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M5 12l7 7m-7-7l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -268,11 +262,11 @@ const POSCloseShift = ({ employee: propEmployee }) => {
             </div>
 
             <div className="step-actions">
-              <button className="btn-cancel" onClick={() => navigate('/dashboard')}>
+              <button className="btn-cancel" onClick={() => navigate('/pos/dashboard')}>
                 Cancel
               </button>
               <button className="btn-next" onClick={() => setStep(2)}>
-                Next: Count Cash
+                Proceed to Cash Count
               </button>
             </div>
           </div>

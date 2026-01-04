@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/electronAPI';
+import { shiftAPI, transactionAPI } from '../../services/electronAPI';
 import '../../styles/POSDashboard.css';
 
-const POSDashboard = ({ employee: propEmployee }) => {
-  const [employee, setEmployee] = useState(propEmployee);
+const POSDashboard = () => {
+  const [employee, setEmployee] = useState(null);
   const [currentShift, setCurrentShift] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [todayStats, setTodayStats] = useState({
-    totalSales: 0,
-    transactionCount: 0,
-    cashSales: 0,
-    mpesaSales: 0
-  });
   const [loading, setLoading] = useState(true);
   const [shiftModal, setShiftModal] = useState(false);
   const [openingFloat, setOpeningFloat] = useState('5000.00');
@@ -21,27 +14,26 @@ const POSDashboard = ({ employee: propEmployee }) => {
 
   useEffect(() => {
     // Check if employee is logged in
+    const sessionToken = localStorage.getItem('session_token');
     const employeeInfo = localStorage.getItem('employee_info');
 
-    if (!employeeInfo && !propEmployee) {
+    if (!sessionToken || !employeeInfo) {
       navigate('/login');
       return;
     }
 
-    if (!employee) {
-      setEmployee(JSON.parse(employeeInfo));
-    }
-    
-    checkCurrentShift();
-    loadTodayTransactions();
-  }, [navigate, propEmployee, employee]);
+    const emp = JSON.parse(employeeInfo);
+    setEmployee(emp);
+    checkCurrentShift(emp.id);
+  }, [navigate]);
 
-  const checkCurrentShift = async () => {
+  const checkCurrentShift = async (employeeId) => {
     try {
-      // Check for current shift in localStorage
-      const shift = localStorage.getItem('current_shift');
+      // Use PWA API - works offline with IndexedDB
+      const shift = await shiftAPI.getCurrent();
+
       if (shift) {
-        setCurrentShift(JSON.parse(shift));
+        setCurrentShift(shift);
       }
     } catch (err) {
       console.error('Error checking shift:', err);
@@ -50,87 +42,32 @@ const POSDashboard = ({ employee: propEmployee }) => {
     }
   };
 
-  const loadTodayTransactions = async () => {
-    try {
-      console.log('📊 Loading today\'s transactions...');
-      
-      // Get today's date range
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const startDate = today.toISOString();
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const endDate = tomorrow.toISOString();
-      
-      // Load transactions from database
-      const txns = await api.transaction.getAll({
-        startDate,
-        endDate
-      });
-      
-      console.log('📊 Transactions loaded:', txns ? txns.length : 0);
-      
-      if (txns && Array.isArray(txns)) {
-        setTransactions(txns);
-        
-        // Calculate stats
-        const stats = txns.reduce((acc, txn) => {
-          acc.totalSales += parseFloat(txn.total || 0);
-          acc.transactionCount += 1;
-          
-          if (txn.payment_method === 'cash') {
-            acc.cashSales += parseFloat(txn.total || 0);
-          } else if (txn.payment_method === 'mpesa') {
-            acc.mpesaSales += parseFloat(txn.total || 0);
-          }
-          
-          return acc;
-        }, {
-          totalSales: 0,
-          transactionCount: 0,
-          cashSales: 0,
-          mpesaSales: 0
-        });
-        
-        setTodayStats(stats);
-        console.log('📊 Today\'s stats:', stats);
-      }
-    } catch (err) {
-      console.error('❌ Error loading transactions:', err);
-    }
-  };
-
   const startShift = async () => {
     setError('');
 
     try {
-      // Create shift object with consistent property names
-      const shift = {
-        id: Date.now(),
-        shift_number: Date.now(), // Use timestamp as shift number
+      // Use PWA API - creates shift in IndexedDB and syncs to backend when online
+      const shift = await shiftAPI.start({
         employee_id: employee.id,
         employee_name: employee.full_name,
-        opening_float: parseFloat(openingFloat),
-        started_at: new Date().toISOString(),
-        start_time: new Date().toISOString(), // Add start_time for display
-        status: 'open',
-        transaction_count: 0
-      };
+        opening_float: parseFloat(openingFloat)
+      });
 
-      // Store shift in localStorage
-      localStorage.setItem('current_shift', JSON.stringify(shift));
-      setCurrentShift(shift);
-      setShiftModal(false);
+      if (shift) {
+        setCurrentShift(shift);
+        setShiftModal(false);
+      } else {
+        setError('Failed to start shift');
+      }
     } catch (err) {
-      setError('Failed to start shift. Please try again.');
+      setError('Error starting shift. Please try again.');
       console.error('Start shift error:', err);
     }
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('session_token');
     localStorage.removeItem('employee_info');
-    localStorage.removeItem('current_shift');
     navigate('/login');
   };
 
@@ -271,28 +208,30 @@ const POSDashboard = ({ employee: propEmployee }) => {
           </div>
         )}
 
-        {/* Today's Summary - Always show */}
-        <div className="pos-shift-stats">
-          <h3>Today's Summary</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-label">Total Sales</div>
-              <div className="stat-value">{formatCurrency(todayStats.totalSales)}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">Transactions</div>
-              <div className="stat-value">{todayStats.transactionCount}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">Cash Sales</div>
-              <div className="stat-value">{formatCurrency(todayStats.cashSales)}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">M-Pesa Sales</div>
-              <div className="stat-value">{formatCurrency(todayStats.mpesaSales)}</div>
+        {/* Shift Stats */}
+        {currentShift && (
+          <div className="pos-shift-stats">
+            <h3>Today's Summary</h3>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-label">Total Sales</div>
+                <div className="stat-value">{formatCurrency(currentShift.total_sales || 0)}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Transactions</div>
+                <div className="stat-value">{currentShift.transaction_count || 0}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Cash Sales</div>
+                <div className="stat-value">{formatCurrency(currentShift.cash_sales || 0)}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">M-Pesa Sales</div>
+                <div className="stat-value">{formatCurrency(currentShift.mpesa_sales || 0)}</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Start Shift Modal */}

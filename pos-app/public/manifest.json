@@ -1,0 +1,29 @@
+{
+  "short_name": "Happy Place POS",
+  "name": "Happy Place Boutique - Point of Sale",
+  "description": "Offline-capable POS system for Happy Place Boutique",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#9333ea",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "categories": ["business", "productivity"],
+  "scope": "/"
+}

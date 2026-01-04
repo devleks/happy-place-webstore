@@ -7,7 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
-// POS Pages (to be copied from frontend-employee)
+// POS Pages
+import POSSetup from './pages/POS/POSSetup';
 import POSLogin from './pages/POS/POSLogin';
 import POSDashboard from './pages/POS/POSDashboard';
 import POSNewSale from './pages/POS/POSNewSale';
@@ -17,26 +18,29 @@ import POSReceipt from './pages/POS/POSReceipt';
 function App() {
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState('synced');
-  const [employee, setEmployee] = useState(null);
+  const [employee, setEmployee] = useState(() => {
+    // Check for existing session on mount
+    const savedEmployee = localStorage.getItem('employee_info');
+    return savedEmployee ? JSON.parse(savedEmployee) : null;
+  });
 
   // Check online status
   useEffect(() => {
-    const checkOnline = async () => {
-      try {
-        const online = await window.electron.checkOnline();
-        setIsOnline(online);
-      } catch (error) {
-        console.error('Failed to check online status:', error);
-      }
+    const checkOnline = () => {
+      setIsOnline(navigator.onLine);
     };
 
     // Check immediately
     checkOnline();
 
-    // Check every 30 seconds
-    const interval = setInterval(checkOnline, 30000);
+    // Listen for online/offline events
+    window.addEventListener('online', checkOnline);
+    window.addEventListener('offline', checkOnline);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener('online', checkOnline);
+      window.removeEventListener('offline', checkOnline);
+    };
   }, []);
 
   // Listen for sync status updates
@@ -56,8 +60,8 @@ function App() {
 
   // Listen for app-ready event
   useEffect(() => {
-    console.log('POS App mounted and ready');
-    console.log('Electron API available:', !!window.electron);
+    console.log('✅ PWA POS App mounted and ready');
+    console.log('📱 Running as Progressive Web App');
   }, []);
 
   return (
@@ -78,7 +82,7 @@ function App() {
         </div>
         {employee && (
           <div className="status-item">
-            <span>👤 {employee.name}</span>
+            <span>👤 {employee.full_name || employee.name}</span>
           </div>
         )}
       </div>
@@ -86,6 +90,7 @@ function App() {
       {/* Main Router */}
       <Router>
         <Routes>
+          <Route path="/setup" element={<POSSetup />} />
           <Route path="/login" element={<POSLogin onLogin={setEmployee} />} />
           <Route 
             path="/dashboard" 

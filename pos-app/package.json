@@ -1,22 +1,14 @@
 {
   "name": "happy-place-pos",
   "version": "1.0.0",
-  "description": "Happy Place Boutique - Point of Sale Desktop Application",
+  "description": "Happy Place Boutique - Point of Sale Progressive Web App",
   "author": "Happy Place Boutique",
   "license": "MIT",
-  "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
-    "start": "concurrently \"npm run react-start\" \"wait-on http://localhost:3003 && npm run electron-start\"",
-    "react-start": "cross-env BROWSER=none PORT=3003 react-scripts start",
-    "electron-start": "electron .",
+    "start": "cross-env HOST=127.0.0.1 PORT=3003 BROWSER=none react-scripts start",
     "build": "react-scripts build",
-    "electron-build": "npm run build && electron-builder",
-    "dist": "npm run build && electron-builder --mac --win --linux",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "postinstall": "electron-builder install-app-deps",
+    "serve": "serve -s build -l 3003",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -26,88 +18,25 @@
   "dependencies": {
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^9.2.2",
-    "electron-log": "^5.0.1",
-    "electron-store": "^8.1.0",
-    "electron-updater": "^6.1.7",
-    "node-fetch": "^2.7.0",
+    "dexie": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "workbox-webpack-plugin": "^7.4.0",
+    "workbox-window": "^7.4.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
-    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "electron": "^28.1.0",
-    "electron-builder": "^24.9.1",
-    "electron-devtools-installer": "^3.2.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "react-scripts": "5.0.1",
-    "spectron": "^19.0.0",
-    "sql.js": "^1.13.0",
-    "wait-on": "^7.2.0"
-  },
-  "build": {
-    "appId": "com.happyplace.pos",
-    "productName": "Happy Place POS",
-    "copyright": "Copyright © 2025 Happy Place Boutique",
-    "directories": {
-      "buildResources": "assets",
-      "output": "dist"
-    },
-    "files": [
-      "build/**/*",
-      "electron/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
-    "mac": {
-      "category": "public.app-category.business",
-      "icon": "assets/icon.icns",
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    },
-    "win": {
-      "icon": "assets/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "linux": {
-      "icon": "assets/icon.png",
-      "category": "Office",
-      "target": [
-        "AppImage",
-        "deb"
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Happy Place POS"
-    }
+    "serve": "^14.2.5"
   },
   "eslintConfig": {
     "extends": [
