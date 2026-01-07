@@ -8,6 +8,7 @@ from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.fulfillment_routes import fulfillment_bp
 from routes.payment_routes import payment_bp
+from routes.health import health_bp
 import logging
 import uuid
 from datetime import datetime
@@ -48,6 +49,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(auth_bp)  # Already has /api/auth prefix
+    app.register_blueprint(health_bp, url_prefix='/api')  # Health check endpoints
     app.register_blueprint(admin_bp)  # Already has /api/admin prefix
     app.register_blueprint(fulfillment_bp)  # Already has /api/fulfillment prefix
     app.register_blueprint(payment_bp)  # Payment routes at /api/payments
