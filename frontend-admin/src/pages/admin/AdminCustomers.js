@@ -20,7 +20,7 @@ const AdminCustomers = () => {
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 

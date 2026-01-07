@@ -27,7 +27,7 @@ const AdminInventory = () => {
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 
@@ -233,7 +233,7 @@ const AdminInventory = () => {
     <div className="admin-inventory">
       <div className="page-header">
         <h1>Inventory Management</h1>
-        <button className="btn-primary" onClick={() => navigate('/inventory/add')}>
+        <button className="btn-primary" onClick={() => navigate('/admin/inventory/add')}>
           Add Product
         </button>
       </div>

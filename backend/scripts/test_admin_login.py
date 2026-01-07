@@ -4,7 +4,6 @@ Test admin login credentials
 """
 
 import requests
-import json
 
 BASE_URL = "http://127.0.0.1:5001/api"
 
@@ -28,7 +27,7 @@ def test_login(email, password, role_name):
         if response.status_code == 200:
             data = response.json()
             print("✅ LOGIN SUCCESSFUL!")
-            print(f"\nEmployee Info:")
+            print("\nEmployee Info:")
             if 'employee' in data:
                 emp = data['employee']
                 print(f"  ID: {emp.get('id')}")

@@ -12,7 +12,7 @@ Business Rules:
 from flask import request, jsonify
 from routes import api
 from models import ShippingMethod, Product
-from logging_utils import get_logger, safe_auth_context
+from logging_utils import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)

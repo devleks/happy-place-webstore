@@ -4,10 +4,9 @@ Handles customer accounts, GDPR compliance, and data management
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-from sqlalchemy import and_, or_, desc, func
+from typing import Dict, List
+from sqlalchemy import and_, or_, desc
 from models.database_models import db, Customer, Order, CustomerAddress
-import json
 
 
 class CustomerManagementService:
@@ -19,9 +18,9 @@ class CustomerManagementService:
         query = Customer.query
 
         if filters.get('status') == 'active':
-            query = query.filter(Customer.is_active == True)
+            query = query.filter(Customer.is_active.is_(True))
         elif filters.get('status') == 'inactive':
-            query = query.filter(Customer.is_active == False)
+            query = query.filter(Customer.is_active.is_(False))
 
         if filters.get('search'):
             search_term = f"%{filters['search']}%"
@@ -34,7 +33,7 @@ class CustomerManagementService:
             )
 
         if filters.get('email_verified'):
-            query = query.filter(Customer.email_verified == True)
+            query = query.filter(Customer.email_verified.is_(True))
 
         query = query.order_by(desc(Customer.created_at))
 

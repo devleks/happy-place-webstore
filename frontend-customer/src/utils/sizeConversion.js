@@ -272,7 +272,7 @@ export const formatSizeForRegion = (size, userRegion = null) => {
   return size;
 };
 
-export default {
+const sizeConversionUtils = {
   getSizeConversions,
   formatSizeWithConversions,
   getAllSizeEquivalents,
@@ -284,3 +284,5 @@ export default {
   SIZE_CONVERSION_TABLE,
   REGION_LABELS
 };
+
+export default sizeConversionUtils;

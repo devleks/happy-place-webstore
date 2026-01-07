@@ -3,10 +3,8 @@ Receipt Generation Service
 Handles thermal receipt and PDF receipt generation for POS transactions.
 """
 
-from typing import Dict, Optional
+from typing import Dict
 from datetime import datetime
-from io import BytesIO
-import base64
 
 
 class ReceiptService:

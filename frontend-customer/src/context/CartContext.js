@@ -27,6 +27,20 @@ export const CartProvider = ({ children }) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    if (typeof window === 'undefined') return;
+
+    const handleCartUpdated = () => {
+      fetchCart();
+    };
+
+    window.addEventListener('cart:updated', handleCartUpdated);
+    return () => {
+      window.removeEventListener('cart:updated', handleCartUpdated);
+    };
+  }, [user]);
+
   const fetchCart = async () => {
     try {
       setLoading(true);

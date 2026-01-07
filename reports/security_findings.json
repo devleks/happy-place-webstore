@@ -1,15 +1,27 @@
 {
   "agent": "ShieldProbe",
-  "generated_at": "2025-11-26T07:09:23Z",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T16:00:28Z",
+  "execution_time_seconds": 50,
+  "risk_level": "low",
   "artifacts": {
     "pip_audit": "reports/shieldprobe_backend.json",
     "npm_audit": "reports/shieldprobe_frontend.json",
+    "secrets_scan": "reports/shieldprobe_secrets.txt",
     "encryption": "reports/shieldprobe_encryption.log",
     "shipping_smoke": "reports/shieldprobe_shipping.log"
   },
+  "vulnerabilities": {
+    "total": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
   "next_steps": [
     "Patch vulnerable packages listed in pip/npm audits",
-    "Review encryption logs for assertion failures",
-    "Verify shipping/auth endpoints reject unauthorized requests"
+    "Review potential secrets in secrets scan report",
+    "Verify encryption logs for assertion failures",
+    "Confirm shipping/auth endpoints reject unauthorized requests"
   ]
 }

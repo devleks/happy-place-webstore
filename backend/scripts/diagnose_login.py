@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import create_app
-from models.database_models import db, Employee
+from models.database_models import Employee
 from werkzeug.security import check_password_hash, generate_password_hash
 
 def diagnose_login():
@@ -52,7 +52,7 @@ def diagnose_login():
 
             # Test password verification
             test_passwords = ['admin123', 'Admin123', 'admin', 'password']
-            print(f"\nTesting password verification:")
+            print("\nTesting password verification:")
             for pwd in test_passwords:
                 result = check_password_hash(admin.password_hash, pwd)
                 status = "✅ MATCH" if result else "❌ NO MATCH"
@@ -79,7 +79,7 @@ def diagnose_login():
 
             # Test password verification
             test_passwords = ['manager123', 'Manager123', 'manager', 'password']
-            print(f"\nTesting password verification:")
+            print("\nTesting password verification:")
             for pwd in test_passwords:
                 result = check_password_hash(manager.password_hash, pwd)
                 status = "✅ MATCH" if result else "❌ NO MATCH"

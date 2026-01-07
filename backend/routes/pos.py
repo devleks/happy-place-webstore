@@ -33,7 +33,7 @@ def employee_required(fn):
                 }), 403
 
             return fn(*args, **kwargs)
-        except Exception as e:
+        except Exception:
             logger.error(
                 "Employee authentication decorator failed",
                 extra={"context": safe_auth_context(
@@ -102,17 +102,17 @@ def create_transaction():
         employee_id = int(get_jwt_identity())
         data = request.get_json()
 
-        # Validate required fields
-        if not data.get('shift_id'):
-            return jsonify({
-                'success': False,
-                'error': 'shift_id is required'
-            }), 400
-
         if not data.get('payment_method'):
             return jsonify({
                 'success': False,
                 'error': 'payment_method is required'
+            }), 400
+
+        # If backend shifts are enabled, require shift_id
+        if POSService.is_shift_enabled() and not data.get('shift_id'):
+            return jsonify({
+                'success': False,
+                'error': 'shift_id is required'
             }), 400
 
         if not data.get('items') or len(data.get('items')) == 0:
@@ -128,18 +128,17 @@ def create_transaction():
                 'error': 'cash_tendered is required for cash payments'
             }), 400
 
-        # Get store location from shift (we'll get this from the shift)
-        # For now, use store_location_id from request or default to 1
+        # Use store_location_id from request or default to 1
         store_location_id = data.get('store_location_id', 1)
 
         result = POSService.create_transaction(
             employee_id=employee_id,
             store_location_id=store_location_id,
-            shift_id=data['shift_id'],
             payment_method=data['payment_method'],
             items=data['items'],
             customer_id=data.get('customer_id'),
-            cash_tendered=data.get('cash_tendered')
+            cash_tendered=data.get('cash_tendered'),
+            shift_id=data.get('shift_id')
         )
 
         if result.get('success'):
@@ -147,7 +146,7 @@ def create_transaction():
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -185,7 +184,7 @@ def get_transaction(transaction_id):
                 'error': 'Transaction not found'
             }), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -234,7 +233,7 @@ def void_transaction(transaction_id):
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -273,7 +272,7 @@ def get_todays_transactions():
             'count': len(transactions)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -305,7 +304,7 @@ def mark_receipt_printed(transaction_id):
             'message': 'Receipt marked as printed'
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -337,7 +336,7 @@ def mark_receipt_emailed(transaction_id):
             'message': 'Receipt marked as emailed'
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -399,7 +398,7 @@ def start_shift():
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Start POS shift failed",
             extra={"context": safe_auth_context(
@@ -432,6 +431,12 @@ def close_shift():
     try:
         data = request.get_json()
 
+        if not POSService.is_shifts_table_enabled():
+            return jsonify({
+                'success': False,
+                'error': 'POS shifts are not enabled in the database. Apply migration 005_pos_enhancements.sql.'
+            }), 400
+
         # Validate required fields
         if not data.get('shift_id'):
             return jsonify({
@@ -456,7 +461,7 @@ def close_shift():
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -484,6 +489,13 @@ def get_current_shift():
         employee_id = int(get_jwt_identity())
         logger.debug(f"Getting current shift for employee_id: {employee_id}")
 
+        if not POSService.is_shifts_table_enabled():
+            return jsonify({
+                'success': True,
+                'shift': None,
+                'message': 'POS shifts are not enabled in the database. Apply migration 005_pos_enhancements.sql.'
+            }), 200
+
         shift = POSService.get_current_shift(employee_id)
 
         if shift:
@@ -498,7 +510,7 @@ def get_current_shift():
                 'message': 'No open shift found'
             }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get current POS shift failed",
             extra={"context": safe_auth_context(
@@ -537,7 +549,7 @@ def get_shift(shift_id):
                 'error': 'Shift not found'
             }), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -571,7 +583,7 @@ def get_shift_transactions(shift_id):
             'count': len(transactions)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -620,7 +632,7 @@ def close_shift_by_id(shift_id):
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -652,7 +664,7 @@ def get_shift_summary(shift_id):
         else:
             return jsonify(summary), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -735,7 +747,7 @@ def record_cash_movement():
             'message': 'Cash movement recorded'
         }), 201
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -788,7 +800,7 @@ def get_thermal_receipt(transaction_id):
             'width': width_mm
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -827,7 +839,7 @@ def get_html_receipt(transaction_id):
 
         return receipt_html, 200, {'Content-Type': 'text/html'}
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -871,7 +883,7 @@ def get_all_receipt_formats(transaction_id):
             'formats': formats
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "POS operation failed",
             extra={"context": safe_auth_context(
@@ -970,7 +982,7 @@ def sync_employees():
             'employees': employee_data
         }), 200
         
-    except Exception as e:
+    except Exception:
         logger.error(
             "Employee sync failed",
             extra={"context": safe_auth_context(
@@ -1029,7 +1041,7 @@ def sync_employees_incremental():
             except ValueError:
                 # Invalid timestamp, do full sync
                 employees = Employee.query.all()
-                logger.warning(f"Invalid last_sync timestamp, performing full sync")
+                logger.warning("Invalid last_sync timestamp, performing full sync")
         else:
             # No last_sync provided, do full sync
             employees = Employee.query.all()
@@ -1057,7 +1069,7 @@ def sync_employees_incremental():
             'employees': employee_data
         }), 200
         
-    except Exception as e:
+    except Exception:
         logger.error(
             "Incremental employee sync failed",
             exc_info=True
@@ -1127,7 +1139,7 @@ def receive_activity_log():
             'stored': stored_count
         }), 200
         
-    except Exception as e:
+    except Exception:
         logger.error("Failed to receive activity logs", exc_info=True)
         return jsonify({
             'success': False,

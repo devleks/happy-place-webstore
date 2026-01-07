@@ -1,0 +1,49 @@
+ schemaname |       table_name       | live_rows | dead_rows | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+------------+------------------------+-----------+-----------+-------------+-----------------+--------------+------------------
+ public     | auth_audit_log         |        20 |         0 |             |                 |              | 
+ public     | refresh_tokens         |        18 |         0 |             |                 |              | 
+ public     | customers              |         7 |         0 |             |                 |              | 
+ public     | wishlists              |         4 |         0 |             |                 |              | 
+ public     | wishlist_items         |         4 |         0 |             |                 |              | 
+ public     | carts                  |         4 |         5 |             |                 |              | 
+ public     | order_audit_log        |         1 |         0 |             |                 |              | 
+ public     | payments               |         1 |         0 |             |                 |              | 
+ public     | orders                 |         1 |         0 |             |                 |              | 
+ public     | pos_shifts             |         1 |         0 |             |                 |              | 
+ public     | order_items            |         1 |         0 |             |                 |              | 
+ public     | system_settings        |         0 |         0 |             |                 |              | 
+ public     | inventory_movements    |         0 |         0 |             |                 |              | 
+ public     | data_access_log        |         0 |         0 |             |                 |              | 
+ public     | employee_sessions      |         0 |         0 |             |                 |              | 
+ public     | reviews                |         0 |         0 |             |                 |              | 
+ public     | customer_addresses     |         0 |         0 |             |                 |              | 
+ public     | payment_callback_log   |         0 |         0 |             |                 |              | 
+ public     | inventory              |         0 |         1 |             |                 |              | 
+ public     | order_promotions       |         0 |         0 |             |                 |              | 
+ public     | cart_items             |         0 |         1 |             |                 |              | 
+ public     | shipment_updates       |         0 |         0 |             |                 |              | 
+ public     | gdpr_consent_log       |         0 |         0 |             |                 |              | 
+ public     | category_closure       |         0 |         0 |             |                 |              | 
+ public     | categories             |         0 |         0 |             |                 |              | 
+ public     | role_permissions       |         0 |         0 |             |                 |              | 
+ public     | store_locations        |         0 |         0 |             |                 |              | 
+ public     | pos_transaction_items  |         0 |         0 |             |                 |              | 
+ public     | products               |         0 |         0 |             |                 |              | 
+ public     | product_images         |         0 |         0 |             |                 |              | 
+ public     | employees              |         0 |        10 |             |                 |              | 
+ public     | activity_logs          |         0 |         0 |             |                 |              | 
+ public     | gdpr_data_requests     |         0 |         0 |             |                 |              | 
+ public     | inventory_reservations |         0 |         0 |             |                 |              | 
+ public     | shipping_carriers      |         0 |         0 |             |                 |              | 
+ public     | pos_cash_movements     |         0 |         0 |             |                 |              | 
+ public     | order_assignments      |         0 |         0 |             |                 |              | 
+ public     | permissions            |         0 |         0 |             |                 |              | 
+ public     | token_blacklist        |         0 |         0 |             |                 |              | 
+ public     | return_items           |         0 |         0 |             |                 |              | 
+ public     | pos_transactions       |         0 |         0 |             |                 |              | 
+ public     | product_variants       |         0 |         0 |             |                 |              | 
+ public     | returns                |         0 |         0 |             |                 |              | 
+ public     | promotions             |         0 |         0 |             |                 |              | 
+ public     | shipping_methods       |         0 |         0 |             |                 |              | 
+(45 rows)
+

@@ -73,10 +73,8 @@ BEGIN
             RAISE EXCEPTION 'Invalid or inactive variant_id: %', v_variant_id;
         END IF;
 
-        -- Check inventory availability
-        SELECT (quantity - reserved_quantity) INTO v_available_qty
-        FROM inventory
-        WHERE variant_id = v_variant_id;
+        -- Check inventory availability (channel-aware: respects display units/reservations)
+        SELECT sp_get_available_inventory(v_variant_id, 'online') INTO v_available_qty;
 
         IF v_available_qty < v_quantity THEN
             RAISE EXCEPTION 'Insufficient inventory for variant_id: % (available: %, requested: %)',
@@ -112,7 +110,10 @@ BEGIN
     ) VALUES (
         p_customer_id,
         v_order_number,
-        'pending',
+        CASE
+            WHEN p_payment_method = 'cod' THEN 'processing'
+            ELSE 'pending'
+        END,
         v_subtotal,
         v_tax,
         p_shipping_cost,
@@ -231,6 +232,7 @@ DECLARE
     v_payment_status VARCHAR(20);
     v_order_status VARCHAR(20);
     v_item RECORD;
+    v_customer_id INTEGER;
 BEGIN
     -- Lock payment for update
     SELECT p.order_id, p.status INTO v_order_id, v_payment_status
@@ -265,6 +267,10 @@ BEGIN
         updated_at = NOW()
     WHERE id = v_order_id;
 
+    SELECT customer_id INTO v_customer_id
+    FROM orders
+    WHERE id = v_order_id;
+
     -- Convert reserved inventory to actual deduction
     FOR v_item IN
         SELECT oi.variant_id, oi.quantity
@@ -277,6 +283,21 @@ BEGIN
             reserved_quantity = reserved_quantity - v_item.quantity,
             updated_at = NOW()
         WHERE variant_id = v_item.variant_id;
+
+        -- Log inventory movement
+        PERFORM sp_log_inventory_movement(
+            v_item.variant_id,
+            'sale',
+            'online',
+            -v_item.quantity,
+            'order',
+            v_order_id,
+            NULL,
+            v_customer_id,
+            'inventory',
+            'customer',
+            'Online order payment completed'
+        );
     END LOOP;
 
     -- Log payment completion (fixed column names)

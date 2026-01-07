@@ -4,8 +4,38 @@
  */
 
 import { sync_queue, metadata } from './schema';
-import { getUnsyncedShifts, markShiftAsSynced } from './shifts';
+import { shifts, transactions } from './schema';
+import { getUnsyncedShifts, markShiftAsSynced, setShiftBackendId } from './shifts';
 import { getUnsyncedTransactions, markTransactionAsSynced } from './transactions';
+
+async function getCurrentBackendShiftId(apiBaseUrl, authToken) {
+  const res = await fetch(`${apiBaseUrl}/api/pos/shifts/current`, {
+    headers: { 'Authorization': `Bearer ${authToken}` }
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.shift?.shift_id ?? null;
+}
+
+async function isBackendShiftEnabled(apiBaseUrl, authToken) {
+  try {
+    const res = await fetch(`${apiBaseUrl}/api/pos/shifts/current`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    // If the backend is unreachable or errors, assume enabled and let normal logic handle retries.
+    if (!res.ok) return true;
+
+    const data = await res.json();
+    const message = (data?.message || data?.error || '').toLowerCase();
+    if (message.includes('not enabled') || message.includes('apply migration')) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
 
 /**
  * Add item to sync queue
@@ -42,12 +72,11 @@ export async function addToSyncQueue(item) {
  */
 export async function getPendingSyncItems(limit = 50) {
   try {
-    return await sync_queue
-      .where('synced')
-      .equals(false)
-      .and(item => item.retry_count < 5) // Max 5 retries
-      .limit(limit)
+    const items = await sync_queue
+      .toCollection()
+      .filter((item) => (item.synced === false || item.synced === 0 || !item.synced) && item.retry_count < 5)
       .toArray();
+    return items.slice(0, limit);
   } catch (error) {
     console.error('❌ Error getting pending sync items:', error);
     return [];
@@ -97,10 +126,16 @@ export async function markSyncItemFailed(queueId, error) {
  */
 export async function clearCompletedSyncItems() {
   try {
-    const count = await sync_queue
-      .where('synced')
-      .equals(true)
-      .delete();
+    const completed = await sync_queue
+      .toCollection()
+      .filter((item) => item.synced === true || item.synced === 1)
+      .toArray();
+
+    const ids = completed.map((i) => i.id);
+    const count = ids.length;
+    if (count > 0) {
+      await sync_queue.bulkDelete(ids);
+    }
 
     console.log(`✅ Cleared ${count} completed sync items`);
     return count;
@@ -116,14 +151,11 @@ export async function clearCompletedSyncItems() {
  */
 export async function getSyncQueueStats() {
   try {
-    const total = await sync_queue.count();
-    const pending = await sync_queue.where('synced').equals(false).count();
-    const failed = await sync_queue
-      .where('synced')
-      .equals(false)
-      .and(item => item.retry_count >= 5)
-      .count();
-    const completed = await sync_queue.where('synced').equals(true).count();
+    const all = await sync_queue.toArray();
+    const total = all.length;
+    const pending = all.filter((i) => (i.synced === false || i.synced === 0 || !i.synced)).length;
+    const failed = all.filter((i) => (i.synced === false || i.synced === 0 || !i.synced) && i.retry_count >= 5).length;
+    const completed = all.filter((i) => i.synced === true || i.synced === 1).length;
 
     return {
       total,
@@ -151,29 +183,66 @@ export async function syncWithBackend(apiBaseUrl, authToken) {
       errors: []
     };
 
-    // Sync shifts
+    const backendShiftsEnabled = await isBackendShiftEnabled(apiBaseUrl, authToken);
+
+    // Sync shifts (best-effort). If backend doesn't support shifts yet, we'll keep local-only.
     const unsyncedShifts = await getUnsyncedShifts();
     for (const shift of unsyncedShifts) {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/pos/shifts`, {
+        // If already mapped, nothing to do.
+        if (shift.backend_shift_id) {
+          await markShiftAsSynced(shift.id);
+          results.shifts.success++;
+          continue;
+        }
+
+        // If backend doesn't support shifts, don't block overall sync.
+        if (!backendShiftsEnabled) {
+          results.shifts.failed++;
+          results.errors.push(`Shift ${shift.id}: backend shifts not enabled`);
+          continue;
+        }
+
+        // Try to start a backend shift.
+        const startRes = await fetch(`${apiBaseUrl}/api/pos/shifts/start`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
-          body: JSON.stringify(shift)
+          body: JSON.stringify({
+            store_location_id: 1,
+            opening_float: shift.starting_cash || 0
+          })
         });
 
-        if (response.ok) {
-          await markShiftAsSynced(shift.id);
-          results.shifts.success++;
-        } else {
+        if (!startRes.ok) {
+          // If shift already exists, fetch current.
+          const currentId = await getCurrentBackendShiftId(apiBaseUrl, authToken);
+          if (currentId) {
+            await setShiftBackendId(shift.id, currentId);
+            await markShiftAsSynced(shift.id);
+            results.shifts.success++;
+            continue;
+          }
+
+          // Transient error: keep shift unsynced so we can retry later.
           results.shifts.failed++;
-          results.errors.push(`Shift ${shift.id}: ${response.statusText}`);
+          results.errors.push(`Shift ${shift.id}: backend shift sync failed (${startRes.status})`);
+          continue;
         }
-      } catch (error) {
+
+        const startData = await startRes.json();
+        const backendShiftId = startData?.shift?.shift_id;
+        if (backendShiftId) {
+          await setShiftBackendId(shift.id, backendShiftId);
+        }
+        await markShiftAsSynced(shift.id);
+        results.shifts.success++;
+      } catch (e) {
+        // Keep shift unsynced so we can retry later
         results.shifts.failed++;
-        results.errors.push(`Shift ${shift.id}: ${error.message}`);
+        results.errors.push(`Shift ${shift.id}: ${e.message}`);
       }
     }
 
@@ -181,16 +250,51 @@ export async function syncWithBackend(apiBaseUrl, authToken) {
     const unsyncedTransactions = await getUnsyncedTransactions();
     for (const transaction of unsyncedTransactions) {
       try {
+        // If a backend shift mapping exists, pass it through.
+        let backendShiftId;
+        if (transaction.shift_id) {
+          const localShift = await shifts.get(transaction.shift_id);
+          backendShiftId = localShift?.backend_shift_id;
+        }
+
+        // If backend shifts are enabled, don't attempt transaction sync without a mapped backend shift id.
+        if (backendShiftsEnabled && transaction.shift_id && !backendShiftId) {
+          results.transactions.failed++;
+          results.errors.push(`Transaction ${transaction.id}: missing backend_shift_id mapping for shift ${transaction.shift_id}`);
+          continue;
+        }
+
         const response = await fetch(`${apiBaseUrl}/api/pos/transactions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
           },
-          body: JSON.stringify(transaction)
+          body: JSON.stringify({
+            store_location_id: 1,
+            shift_id: backendShiftId,
+            payment_method: transaction.payment_method,
+            cash_tendered: transaction.payment_method === 'cash' ? (transaction.amount_paid || transaction.total || 0) : undefined,
+            items: (transaction.items || []).map((item) => ({
+              variant_id: item.variant_id,
+              quantity: item.quantity
+            }))
+          })
         });
 
         if (response.ok) {
+          try {
+            const data = await response.json();
+            const backendTransactionId = data?.transaction_id;
+            if (backendTransactionId) {
+              await transactions.update(transaction.id, {
+                backend_transaction_id: backendTransactionId,
+                updated_at: new Date().toISOString()
+              });
+            }
+          } catch (e) {
+            // ignore parse errors
+          }
           await markTransactionAsSynced(transaction.id);
           results.transactions.success++;
         } else {

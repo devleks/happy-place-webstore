@@ -309,7 +309,7 @@ def show_status():
         address_count = CustomerAddress.query.count()
         payment_count = Payment.query.count()
 
-        logger.info(f"\n=== Record Counts ===")
+        logger.info("\n=== Record Counts ===")
         logger.info(f"Customer records: {customer_count}")
         logger.info(f"Address records: {address_count}")
         logger.info(f"Payment records: {payment_count}")

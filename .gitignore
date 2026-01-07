@@ -36,5 +36,12 @@ Thumbs.db
 # Logs
 *.log
 
+# SSL Certificates (local development only - do not commit)
+backend/ssl_certs/
+ssl_certs/
+*.pem
+*.crt
+*.key
+
 # Discussion logs (tracked separately)
 # !DISCUSSION_LOG.md

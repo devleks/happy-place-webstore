@@ -71,6 +71,14 @@ const Checkout = () => {
         .matches(/^(\+254|0)[17]\d{8}$/, 'Invalid Kenyan phone number'),
     }),
 
+    // M-Pesa phone (only if M-Pesa selected)
+    mpesa_phone: Yup.string().when('payment_method', {
+      is: 'mpesa',
+      then: (schema) => schema
+        .required('M-Pesa phone number is required')
+        .matches(/^(\+?254|0)[17]\d{8}$/, 'Invalid Kenyan phone number (e.g., 254712345678)'),
+    }),
+
     // Policy acceptance
     accept_terms: Yup.boolean()
       .oneOf([true], 'You must accept the Terms of Service to continue'),
@@ -93,6 +101,7 @@ const Checkout = () => {
       billing_phone: '',
       sameAsBilling: true,
       payment_method: 'cod', // Default to Cash on Delivery
+      mpesa_phone: '', // M-Pesa phone number
       accept_terms: false,
       accept_privacy: false,
     },
@@ -157,6 +166,18 @@ const Checkout = () => {
         phone: values.billing_phone,
       };
 
+      // Prepare order payload
+      const orderPayload = {
+        shipping_address: shippingAddress,
+        billing_address: billingAddress,
+        payment_method: values.payment_method || 'cod',
+      };
+
+      // Add M-Pesa phone if M-Pesa payment selected
+      if (values.payment_method === 'mpesa' && values.mpesa_phone) {
+        orderPayload.mpesa_phone = values.mpesa_phone;
+      }
+
       // Create order
       const response = await fetch('http://localhost:5001/api/orders', {
         method: 'POST',
@@ -164,23 +185,32 @@ const Checkout = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          shipping_address: shippingAddress,
-          billing_address: billingAddress,
-          payment_method: values.payment_method || 'cod',
-        }),
+        body: JSON.stringify(orderPayload),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Order placed successfully!');
+        // Check if M-Pesa STK Push was initiated
+        if (data.mpesa && data.mpesa.success) {
+          toast.success('Order created! Please check your phone for M-Pesa payment prompt.');
+        } else if (values.payment_method === 'cod') {
+          toast.success('Order placed successfully!');
+        } else {
+          toast.success('Order created!');
+        }
 
         // Clear cart
         await clearCart();
 
-        // Navigate to order confirmation
-        navigate(`/order-confirmation/${data.order.id}`);
+        // Navigate to order confirmation (pass M-Pesa data if available)
+        navigate(`/order-confirmation/${data.order.id}`, {
+          state: {
+            order: data.order,
+            mpesa: data.mpesa,
+            paymentMethod: values.payment_method
+          }
+        });
       } else {
         console.error('Order creation failed:', data);
         const errorMsg = data.error || data.message || 'Failed to create order';
@@ -459,21 +489,43 @@ const Checkout = () => {
                     </div>
                   </label>
 
-                  <label className="payment-method-option disabled">
+                  <label className="payment-method-option">
                     <input
                       type="radio"
                       name="payment_method"
                       value="mpesa"
-                      disabled
                       checked={formik.values.payment_method === 'mpesa'}
                       onChange={formik.handleChange}
                     />
                     <div className="payment-method-content">
                       <span className="payment-method-title">M-Pesa</span>
-                      <span className="payment-method-description">Coming soon - Pay via M-Pesa mobile money</span>
+                      <span className="payment-method-description">Pay via M-Pesa mobile money (instant STK Push)</span>
                     </div>
                   </label>
                 </div>
+
+                {/* M-Pesa Phone Number (conditional) */}
+                {formik.values.payment_method === 'mpesa' && (
+                  <div className="mpesa-phone-section">
+                    <div className="form-group">
+                      <label htmlFor="mpesa_phone">M-Pesa Phone Number *</label>
+                      <input
+                        type="tel"
+                        id="mpesa_phone"
+                        name="mpesa_phone"
+                        placeholder="254712345678 or 0712345678"
+                        value={formik.values.mpesa_phone}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={formik.touched.mpesa_phone && formik.errors.mpesa_phone ? 'error' : ''}
+                      />
+                      {formik.touched.mpesa_phone && formik.errors.mpesa_phone && (
+                        <span className="error-message">{formik.errors.mpesa_phone}</span>
+                      )}
+                      <span className="help-text">Enter the phone number registered with M-Pesa (Safaricom)</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Policy Acceptance */}

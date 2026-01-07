@@ -5,11 +5,35 @@ Handles all Point of Sale operations including transactions, shifts, and cash ma
 
 from typing import Dict, List, Optional
 from extensions import db
-from datetime import datetime, timedelta
 
 
 class POSService:
     """Service for POS operations"""
+
+    @staticmethod
+    def is_shifts_table_enabled() -> bool:
+        """Return True if required POS shifts tables exist in the database."""
+        try:
+            row = db.session.execute(
+                db.text(
+                    """
+                    SELECT EXISTS(
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = 'public'
+                          AND table_name = 'pos_shifts'
+                    )
+                    """
+                )
+            ).fetchone()
+            return bool(row[0]) if row else False
+        except Exception:
+            return False
+
+    @staticmethod
+    def is_shift_enabled() -> bool:
+        """Compatibility alias used by routes; shifts are enabled when shifts tables exist."""
+        return POSService.is_shifts_table_enabled()
 
     @staticmethod
     def create_transaction(

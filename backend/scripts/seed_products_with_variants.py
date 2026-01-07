@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app import create_app
 from models import db, Product, ProductVariant, ProductImage, Inventory, Category
-from datetime import datetime, timedelta
 
 def seed_products_with_variants():
     app = create_app()

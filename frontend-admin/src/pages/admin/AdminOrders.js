@@ -44,7 +44,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 
@@ -67,6 +67,30 @@ const AdminOrders = () => {
       console.error('Orders error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConfirmCod = async (orderId) => {
+    if (!window.confirm('Confirm this COD order?')) return;
+
+    try {
+      await adminAPI.confirmCodOrder(orderId);
+      fetchOrders();
+      alert('COD order confirmed successfully');
+    } catch (err) {
+      alert(err.message || 'Failed to confirm COD order');
+    }
+  };
+
+  const handleMarkCodPaid = async (orderId) => {
+    if (!window.confirm('Mark this COD order as paid (cash received)?')) return;
+
+    try {
+      await adminAPI.markCodPaid(orderId);
+      fetchOrders();
+      alert('COD payment marked as paid successfully');
+    } catch (err) {
+      alert(err.message || 'Failed to mark COD payment as paid');
     }
   };
 
@@ -312,6 +336,24 @@ const AdminOrders = () => {
               title={order.tracking_number ? "Update Tracking" : "Add Tracking"}
             >
               📦
+            </button>
+          )}
+          {order.payment_method === 'cod' && !order.cod_confirmed_at && order.status !== 'cancelled' && (
+            <button
+              className="btn-icon"
+              onClick={() => handleConfirmCod(order.id)}
+              title="Confirm COD"
+            >
+              ✅
+            </button>
+          )}
+          {order.payment_method === 'cod' && order.payment_status === 'pending' && ['delivered', 'completed'].includes(order.status) && (
+            <button
+              className="btn-icon"
+              onClick={() => handleMarkCodPaid(order.id)}
+              title="Mark COD Paid"
+            >
+              💰
             </button>
           )}
           {order.status !== 'cancelled' && (

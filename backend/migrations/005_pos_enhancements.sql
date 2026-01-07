@@ -32,10 +32,10 @@ CREATE TABLE IF NOT EXISTS pos_shifts (
 );
 
 -- Indexes for pos_shifts
-CREATE INDEX idx_pos_shifts_employee ON pos_shifts(employee_id);
-CREATE INDEX idx_pos_shifts_store ON pos_shifts(store_location_id);
-CREATE INDEX idx_pos_shifts_status ON pos_shifts(status);
-CREATE INDEX idx_pos_shifts_start_time ON pos_shifts(start_time);
+CREATE INDEX IF NOT EXISTS idx_pos_shifts_employee ON pos_shifts(employee_id);
+CREATE INDEX IF NOT EXISTS idx_pos_shifts_store ON pos_shifts(store_location_id);
+CREATE INDEX IF NOT EXISTS idx_pos_shifts_status ON pos_shifts(status);
+CREATE INDEX IF NOT EXISTS idx_pos_shifts_start_time ON pos_shifts(start_time);
 
 -- Table: pos_cash_movements
 -- Purpose: Track all cash in/out activities during shifts
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS pos_cash_movements (
 );
 
 -- Indexes for pos_cash_movements
-CREATE INDEX idx_pos_cash_movements_shift ON pos_cash_movements(shift_id);
-CREATE INDEX idx_pos_cash_movements_type ON pos_cash_movements(movement_type);
+CREATE INDEX IF NOT EXISTS idx_pos_cash_movements_shift ON pos_cash_movements(shift_id);
+CREATE INDEX IF NOT EXISTS idx_pos_cash_movements_type ON pos_cash_movements(movement_type);
 
 -- ====================================================================
 -- 2. MODIFY EXISTING TABLES
@@ -679,7 +679,7 @@ CREATE OR REPLACE VIEW v_pos_shift_summary AS
 SELECT
     ps.id AS shift_id,
     ps.shift_number,
-    e.first_name || ' ' || e.last_name AS employee_name,
+    e.full_name AS employee_name,
     e.email AS employee_email,
     sl.name AS store_name,
     ps.start_time,
@@ -700,7 +700,7 @@ FROM pos_shifts ps
 JOIN employees e ON e.id = ps.employee_id
 JOIN store_locations sl ON sl.id = ps.store_location_id
 LEFT JOIN pos_transactions pt ON pt.shift_id = ps.id
-GROUP BY ps.id, e.first_name, e.last_name, e.email, sl.name;
+GROUP BY ps.id, e.full_name, e.email, sl.name;
 
 -- ====================================================================
 -- MIGRATION COMPLETE

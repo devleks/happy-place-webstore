@@ -3,7 +3,6 @@ Kiosk Service
 Handles cashier kiosk operations including hold/recall, quick access, barcodes, and metrics
 """
 
-from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from models import db
 from sqlalchemy import text

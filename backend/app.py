@@ -7,6 +7,7 @@ from routes import api
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.fulfillment_routes import fulfillment_bp
+from routes.payment_routes import payment_bp
 import logging
 import uuid
 from datetime import datetime
@@ -33,21 +34,23 @@ def create_app():
     
     JWTManager(app)
 
-    # Initialize monitoring
-    try:
-        from middleware.monitoring import init_monitoring, log_slow_queries
-        init_monitoring(app)
-        log_slow_queries(app)
-    except ImportError:
-        app.logger.warning("Monitoring middleware not found (optional feature)")
-    except Exception as e:
-        app.logger.warning(f"Monitoring initialization failed: {e}")
+    # Initialize monitoring - TEMPORARILY DISABLED FOR DEBUGGING (Day 1)
+    # try:
+    #     from middleware.monitoring import init_monitoring, log_slow_queries
+    #     init_monitoring(app)
+    #     log_slow_queries(app)
+    # except ImportError:
+    #     app.logger.warning("Monitoring middleware not found (optional feature)")
+    # except Exception as e:
+    #     app.logger.warning(f"Monitoring initialization failed: {e}")
+    app.logger.info("Monitoring middleware disabled for debugging")
 
     # Register blueprints
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(auth_bp)  # Already has /api/auth prefix
     app.register_blueprint(admin_bp)  # Already has /api/admin prefix
     app.register_blueprint(fulfillment_bp)  # Already has /api/fulfillment prefix
+    app.register_blueprint(payment_bp)  # Payment routes at /api/payments
 
     # Register middleware
     register_middleware(app)
@@ -198,4 +201,27 @@ def register_health_check(app):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5001)
+
+    # SSL/HTTPS Configuration
+    ssl_context = None
+    if app.config.get('SSL_ENABLED', False):
+        import os
+        cert_path = app.config.get('SSL_CERT_PATH')
+        key_path = app.config.get('SSL_KEY_PATH')
+
+        # Verify SSL files exist
+        if os.path.exists(cert_path) and os.path.exists(key_path):
+            ssl_context = (cert_path, key_path)
+            app.logger.info(f'HTTPS enabled with cert: {cert_path}')
+            print(f'🔒 Running with HTTPS on https://127.0.0.1:5001')
+        else:
+            app.logger.warning(f'SSL files not found. Falling back to HTTP.')
+            print(f'⚠️  SSL_ENABLED=True but cert/key not found. Running HTTP.')
+    else:
+        print(f'🌐 Running with HTTP on http://127.0.0.1:5001')
+
+    app.run(
+        debug=bool(app.config.get('DEBUG', False)),
+        port=5001,
+        ssl_context=ssl_context
+    )

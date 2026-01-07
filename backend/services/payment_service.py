@@ -5,7 +5,7 @@ Handles payment processing using stored procedures for security and atomicity.
 
 from typing import Dict, Optional
 from extensions import db
-from models.database_models import Payment, Order
+from models.database_models import Payment
 
 
 class PaymentService:

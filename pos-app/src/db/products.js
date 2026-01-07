@@ -181,6 +181,11 @@ export async function addProduct(productData) {
       throw new Error(`Product with SKU ${productData.sku} already exists`);
     }
 
+    const variants = productData.variants;
+    const derivedQty = Array.isArray(variants)
+      ? variants.reduce((sum, v) => sum + (parseInt(v.pos_stock ?? 0, 10) || 0), 0)
+      : 0;
+
     const product = {
       sku: productData.sku,
       barcode: productData.barcode || null,
@@ -189,10 +194,11 @@ export async function addProduct(productData) {
       category: productData.category,
       price: productData.price,
       cost: productData.cost || 0,
-      quantity: productData.quantity || 0,
+      quantity: (productData.quantity ?? derivedQty) || 0,
       reorder_level: productData.reorder_level || 10,
       active: productData.active !== undefined ? productData.active : true,
       image_url: productData.image_url || null,
+      variants: Array.isArray(variants) ? variants : [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };

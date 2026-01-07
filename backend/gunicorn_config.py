@@ -2,7 +2,6 @@
 # Happy Place Boutique - Production WSGI Server
 
 import multiprocessing
-import os
 
 # Server Socket
 bind = "0.0.0.0:5001"

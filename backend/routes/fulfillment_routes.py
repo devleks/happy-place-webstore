@@ -12,11 +12,14 @@ All endpoints require employee authentication with appropriate roles.
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+from sqlalchemy import or_
 
 from models import db
 from models.database_models import Order, OrderAssignment, Employee
 from middleware import manager_required, packer_required, shipper_required
 from logging_utils import get_logger, safe_auth_context
+from services.email_service import email_service
+from services.encryption import decrypt_customer
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -130,7 +133,7 @@ def assign_order(current_employee):
     except Exception as e:
         db.session.rollback()
         logger.error(
-            f"Failed to assign order",
+            "Failed to assign order",
             extra={"context": safe_auth_context(
                 user_type='employee',
                 ip=request.remote_addr,
@@ -165,7 +168,11 @@ def get_packing_queue(current_employee):
         # NOTE: 'pending' orders are excluded - they appear only after payment is completed
         # and status changes to 'processing' via sp_process_payment_secure
         orders = Order.query.filter(
-            Order.status.in_(['processing', 'packing', 'packed'])
+            Order.status.in_(['processing', 'packing', 'packed']),
+            or_(
+                Order.cod_confirmation_expires_at.is_(None),
+                Order.cod_confirmed_at.isnot(None)
+            )
         ).order_by(Order.created_at.asc()).all()
         
         result = []
@@ -420,7 +427,7 @@ def get_shipping_queue(current_employee):
                 try:
                     import json
                     shipping_address = json.loads(order.shipping_address_encrypted)
-                except:
+                except Exception:
                     shipping_address = None
             
             result.append({
@@ -572,7 +579,7 @@ def complete_shipping(current_employee, assignment_id):
             order.shipped_at = datetime.utcnow()
         
         db.session.commit()
-        
+
         logger.info(
             f"Shipping completed for order {order.order_number}",
             extra={"context": safe_auth_context(
@@ -582,7 +589,60 @@ def complete_shipping(current_employee, assignment_id):
                 extra={"employee_id": int(get_jwt_identity()), "order_id": order.id}
             )}
         )
-        
+
+        # Send shipping notification email (non-blocking - don't fail shipping if email fails)
+        try:
+            if order.customer:
+                # Decrypt customer details for email
+                customer_email = decrypt_customer(order.customer.email_encrypted)
+                customer_name = f"{decrypt_customer(order.customer.first_name_encrypted)} {decrypt_customer(order.customer.last_name_encrypted)}"
+
+                # Calculate estimated delivery date (3-5 days from now)
+                from datetime import timedelta
+                estimated_delivery = (datetime.utcnow() + timedelta(days=4)).strftime('%B %d, %Y')
+
+                # Send shipping notification email
+                email_result = email_service.send_shipping_notification(
+                    email=customer_email,
+                    customer_name=customer_name,
+                    order_number=order.order_number,
+                    tracking_number=order.tracking_number or 'Pending',
+                    carrier=order.carrier or 'Standard Delivery',
+                    estimated_delivery=estimated_delivery
+                )
+
+                if email_result.get('success'):
+                    logger.info(
+                        f"Shipping notification email sent - Order: {order.order_number}",
+                        extra={"context": safe_auth_context(
+                            user_type='employee',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            extra={"order_id": order.id, "order_number": order.order_number}
+                        )}
+                    )
+                else:
+                    logger.warning(
+                        f"Shipping notification email failed - Order: {order.order_number}, Error: {email_result.get('error')}",
+                        extra={"context": safe_auth_context(
+                            user_type='employee',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            extra={"order_id": order.id, "order_number": order.order_number}
+                        )}
+                    )
+        except Exception as e:
+            # Log email error but don't fail the shipping completion
+            logger.error(
+                f"Shipping notification email exception - Order: {order.order_number if order else 'unknown'}",
+                extra={"context": safe_auth_context(
+                    user_type='employee',
+                    ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent')
+                )},
+                exc_info=True
+            )
+
         return jsonify({
             'message': 'Shipping completed - order marked as shipped',
             'assignment_id': assignment.id,

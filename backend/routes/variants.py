@@ -8,7 +8,7 @@ from routes import api
 from models import db, Product, ProductVariant, Inventory
 from middleware import manager_required
 from logging_utils import get_logger, safe_auth_context
-from flask_jwt_extended import get_jwt_identity
+from services.inventory_service import InventoryService
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -109,7 +109,7 @@ def create_product_variant(current_employee, product_id):
             }
         }), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Create product variant failed",
@@ -190,7 +190,7 @@ def update_variant_inventory(current_employee, variant_id):
             'updated_at': inventory.updated_at.isoformat() if inventory.updated_at else None
         }), 200
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Update variant inventory failed",
@@ -230,7 +230,11 @@ def check_variant_availability(variant_id):
             'code': 'RESOURCE_NOT_FOUND'
         }), 404
 
-    available_quantity = inventory.quantity - inventory.reserved_quantity
+    channel = request.args.get('channel', 'online')
+    if channel not in ['online', 'store', 'pos']:
+        channel = 'online'
+
+    available_quantity = InventoryService.get_available_inventory(variant_id, channel)
 
     return jsonify({
         'variant_id': variant.id,

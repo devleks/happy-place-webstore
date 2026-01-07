@@ -3,15 +3,14 @@ Report Service
 Generates business reports for sales, inventory, customers, and employees
 """
 
-from datetime import datetime, timedelta, date
-from typing import Dict, List, Optional
-from sqlalchemy import func, and_, or_, desc, case
+from datetime import datetime, timedelta
+from typing import Dict
+from sqlalchemy import func, and_, desc
 from models.database_models import (
     db, Order, OrderItem, POSTransaction, POSTransactionItem,
     Customer, Employee, Product, Category, Payment, Inventory
 )
-from models.extended_models import ProductVariant, Promotion, OrderPromotion
-from decimal import Decimal
+from models.extended_models import ProductVariant
 
 
 class ReportService:
@@ -125,7 +124,7 @@ class ReportService:
         ).join(Product, ProductVariant.product_id == Product.id)\
          .outerjoin(Category, Product.category_id == Category.id)\
          .outerjoin(Inventory, ProductVariant.id == Inventory.variant_id)\
-         .filter(Product.is_active == True)
+         .filter(Product.is_active.is_(True))
 
         # Apply filters
         if filters.get('category_id'):
@@ -193,7 +192,7 @@ class ReportService:
         ).join(Product, ProductVariant.product_id == Product.id)\
          .outerjoin(Category, Product.category_id == Category.id)\
          .outerjoin(Inventory, ProductVariant.id == Inventory.variant_id)\
-         .filter(Product.is_active == True)\
+         .filter(Product.is_active.is_(True))\
          .group_by(Category.name)\
          .all()
 
@@ -242,13 +241,13 @@ class ReportService:
             start_date = end_date - timedelta(days=365)
 
         # Total customers
-        total_customers = Customer.query.filter(Customer.anonymized == False).count()
+        total_customers = Customer.query.filter(Customer.anonymized.is_(False)).count()
 
         # New customers in period
         new_customers = Customer.query.filter(
             and_(
                 Customer.created_at >= start_date,
-                Customer.anonymized == False
+                Customer.anonymized.is_(False)
             )
         ).count()
 
@@ -273,7 +272,7 @@ class ReportService:
         ).join(Order, Customer.id == Order.customer_id)\
          .filter(
              and_(
-                 Customer.anonymized == False,
+                 Customer.anonymized.is_(False),
                  Order.status != 'cancelled'
              )
          )\
@@ -301,7 +300,7 @@ class ReportService:
         ).filter(
             and_(
                 Customer.created_at >= six_months_ago,
-                Customer.anonymized == False
+                Customer.anonymized.is_(False)
             )
         ).group_by(func.date_trunc('month', Customer.created_at))\
          .order_by(func.date_trunc('month', Customer.created_at))\

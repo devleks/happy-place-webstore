@@ -94,6 +94,10 @@ export const WishlistProvider = ({ children }) => {
 
       await api.post(`/wishlist/move-to-cart/${itemId}`, body);
 
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('cart:updated'));
+      }
+
       // Refresh wishlist
       await fetchWishlist();
 

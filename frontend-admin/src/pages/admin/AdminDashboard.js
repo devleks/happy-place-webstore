@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     // Check if user has admin/manager role
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
   const handleQuickAction = (action) => {
     switch (action) {
       case 'addProduct':
-        navigate('/admin/inventory');
+        navigate('/admin/inventory/add');
         break;
       case 'viewOrders':
         navigate('/admin/orders');

@@ -4,10 +4,8 @@ Manages system-wide settings and configuration
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
-from sqlalchemy import and_, or_
+from typing import Dict, Optional
 from models.database_models import db
-from decimal import Decimal
 import json
 
 

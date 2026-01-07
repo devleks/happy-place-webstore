@@ -1,184 +1,19 @@
 [
   {
     "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 26,
-      "row": 6
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/diagnose_order.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 7
-          },
-          "location": {
-            "column": 1,
-            "row": 6
-          }
-        }
-      ],
-      "message": "Remove unused import: `extensions.db`"
-    },
-    "location": {
-      "column": 24,
-      "row": 6
-    },
-    "message": "`extensions.db` imported but unused",
-    "noqa_row": 6,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F541",
-    "end_location": {
-      "column": 96,
-      "row": 54
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/diagnose_order.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "\"      ❌ Variant doesn't have product relationship!\"",
-          "end_location": {
-            "column": 96,
-            "row": 54
-          },
-          "location": {
-            "column": 43,
-            "row": 54
-          }
-        }
-      ],
-      "message": "Remove extraneous `f` prefix"
-    },
-    "location": {
-      "column": 43,
-      "row": 54
-    },
-    "message": "f-string without any placeholders",
-    "noqa_row": 54,
-    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
-  },
-  {
-    "cell": null,
-    "code": "F541",
-    "end_location": {
-      "column": 87,
-      "row": 56
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/diagnose_order.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "\"    ❌ CartItem doesn't have variant relationship!\"",
-          "end_location": {
-            "column": 87,
-            "row": 56
-          },
-          "location": {
-            "column": 35,
-            "row": 56
-          }
-        }
-      ],
-      "message": "Remove extraneous `f` prefix"
-    },
-    "location": {
-      "column": 35,
-      "row": 56
-    },
-    "message": "f-string without any placeholders",
-    "noqa_row": 56,
-    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 10,
-      "row": 5
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/gunicorn_config.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 6
-          },
-          "location": {
-            "column": 1,
-            "row": 5
-          }
-        }
-      ],
-      "message": "Remove unused import: `os`"
-    },
-    "location": {
-      "column": 8,
-      "row": 5
-    },
-    "message": "`os` imported but unused",
-    "noqa_row": 5,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 35,
-      "row": 7
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/middleware/auth.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from flask import jsonify",
-          "end_location": {
-            "column": 35,
-            "row": 7
-          },
-          "location": {
-            "column": 1,
-            "row": 7
-          }
-        }
-      ],
-      "message": "Remove unused import: `flask.request`"
-    },
-    "location": {
-      "column": 28,
-      "row": 7
-    },
-    "message": "`flask.request` imported but unused",
-    "noqa_row": 7,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
     "code": "E722",
     "end_location": {
       "column": 19,
-      "row": 611
+      "row": 660
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/models/database_models.py",
     "fix": null,
     "location": {
       "column": 13,
-      "row": 611
+      "row": 660
     },
     "message": "Do not use bare `except`",
-    "noqa_row": 611,
+    "noqa_row": 660,
     "url": "https://docs.astral.sh/ruff/rules/bare-except"
   },
   {
@@ -217,464 +52,24 @@
   },
   {
     "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 19,
-      "row": 12
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 12
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 12,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 19,
-      "row": 12
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 12
-    },
-    "message": "`.auth` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 12,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 23,
-      "row": 13
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 13
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 13,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 23,
-      "row": 13
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 13
-    },
-    "message": "`.products` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 13,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 23,
-      "row": 14
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 14
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 14,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 23,
-      "row": 14
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 14
-    },
-    "message": "`.variants` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 14,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 25,
-      "row": 15
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 15
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 15,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 25,
-      "row": 15
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 15
-    },
-    "message": "`.promotions` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 15,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 26,
-      "row": 16
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 16
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 16,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 26,
-      "row": 16
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 16
-    },
-    "message": "`.returns_api` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 16,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 23,
-      "row": 17
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 17
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 17,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 23,
-      "row": 17
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 17
-    },
-    "message": "`.shipping` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 17,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 25,
-      "row": 18
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 18
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 18,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 25,
-      "row": 18
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 18
-    },
-    "message": "`.categories` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 18,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 20,
-      "row": 19
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 19
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 19,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 20,
-      "row": 19
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 19
-    },
-    "message": "`.admin` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 19,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 19,
-      "row": 20
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 20
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 20,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 19,
-      "row": 20
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 20
-    },
-    "message": "`.cart` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 20,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 23,
-      "row": 21
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 21
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 21,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 23,
-      "row": 21
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 21
-    },
-    "message": "`.wishlist` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 21,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "E402",
-    "end_location": {
-      "column": 21,
-      "row": 22
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 1,
-      "row": 22
-    },
-    "message": "Module level import not at top of file",
-    "noqa_row": 22,
-    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 21,
-      "row": 22
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/__init__.py",
-    "fix": null,
-    "location": {
-      "column": 15,
-      "row": 22
-    },
-    "message": "`.orders` imported but unused; consider removing, adding to `__all__`, or using a redundant alias",
-    "noqa_row": 22,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 41,
-      "row": 7
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from datetime import datetime",
-          "end_location": {
-            "column": 41,
-            "row": 7
-          },
-          "location": {
-            "column": 1,
-            "row": 7
-          }
-        }
-      ],
-      "message": "Remove unused import: `datetime.timedelta`"
-    },
-    "location": {
-      "column": 32,
-      "row": 7
-    },
-    "message": "`datetime.timedelta` imported but unused",
-    "noqa_row": 7,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 38,
-      "row": 11
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from middleware import manager_required",
-          "end_location": {
-            "column": 56,
-            "row": 11
-          },
-          "location": {
-            "column": 1,
-            "row": 11
-          }
-        }
-      ],
-      "message": "Remove unused import: `middleware.admin_required`"
-    },
-    "location": {
-      "column": 24,
-      "row": 11
-    },
-    "message": "`middleware.admin_required` imported but unused",
-    "noqa_row": 11,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
     "code": "E712",
     "end_location": {
       "column": 41,
-      "row": 44
+      "row": 49
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "ProductVariant.is_active is True",
+          "content": "ProductVariant.is_active",
           "end_location": {
             "column": 41,
-            "row": 44
+            "row": 49
           },
           "location": {
             "column": 9,
-            "row": 44
+            "row": 49
           }
         }
       ],
@@ -682,10 +77,10 @@
     },
     "location": {
       "column": 9,
-      "row": 44
+      "row": 49
     },
-    "message": "Avoid equality comparisons to `True`; use `if ProductVariant.is_active:` for truth checks",
-    "noqa_row": 44,
+    "message": "Avoid equality comparisons to `True`; use `ProductVariant.is_active:` for truth checks",
+    "noqa_row": 49,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
@@ -693,21 +88,21 @@
     "code": "E712",
     "end_location": {
       "column": 41,
-      "row": 109
+      "row": 139
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "ProductVariant.is_active is True",
+          "content": "ProductVariant.is_active",
           "end_location": {
             "column": 41,
-            "row": 109
+            "row": 139
           },
           "location": {
             "column": 9,
-            "row": 109
+            "row": 139
           }
         }
       ],
@@ -715,65 +110,395 @@
     },
     "location": {
       "column": 9,
-      "row": 109
+      "row": 139
     },
-    "message": "Avoid equality comparisons to `True`; use `if ProductVariant.is_active:` for truth checks",
-    "noqa_row": 109,
+    "message": "Avoid equality comparisons to `True`; use `ProductVariant.is_active:` for truth checks",
+    "noqa_row": 139,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
     "cell": null,
-    "code": "F401",
+    "code": "E712",
     "end_location": {
-      "column": 48,
-      "row": 14
+      "column": 41,
+      "row": 194
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/cart.py",
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
     "fix": {
-      "applicability": "safe",
+      "applicability": "unsafe",
       "edits": [
         {
-          "content": "from models import db, Cart, CartItem, ProductVariant, Inventory",
+          "content": "ProductVariant.is_active",
+          "end_location": {
+            "column": 41,
+            "row": 194
+          },
+          "location": {
+            "column": 9,
+            "row": 194
+          }
+        }
+      ],
+      "message": "Replace with `ProductVariant.is_active`"
+    },
+    "location": {
+      "column": 9,
+      "row": 194
+    },
+    "message": "Avoid equality comparisons to `True`; use `ProductVariant.is_active:` for truth checks",
+    "noqa_row": 194,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 41,
+      "row": 275
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "ProductVariant.is_active",
+          "end_location": {
+            "column": 41,
+            "row": 275
+          },
+          "location": {
+            "column": 9,
+            "row": 275
+          }
+        }
+      ],
+      "message": "Replace with `ProductVariant.is_active`"
+    },
+    "location": {
+      "column": 9,
+      "row": 275
+    },
+    "message": "Avoid equality comparisons to `True`; use `ProductVariant.is_active:` for truth checks",
+    "noqa_row": 275,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 73
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 73
+          },
+          "location": {
+            "column": 9,
+            "row": 73
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 73
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 73,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 356
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 356
+          },
+          "location": {
+            "column": 9,
+            "row": 356
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 356
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 356,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 388
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 388
+          },
+          "location": {
+            "column": 9,
+            "row": 388
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 388
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 388,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 421
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 421
+          },
+          "location": {
+            "column": 9,
+            "row": 421
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 421
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 421,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 865
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 865
+          },
+          "location": {
+            "column": 9,
+            "row": 865
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 865
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 865,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 20,
+      "row": 979
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 23,
+            "row": 979
+          },
+          "location": {
+            "column": 9,
+            "row": 979
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `employee_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 979
+    },
+    "message": "Local variable `employee_id` is assigned to but never used",
+    "noqa_row": 979,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 17,
+      "row": 2085
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 20,
+            "row": 2085
+          },
+          "location": {
+            "column": 9,
+            "row": 2085
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `admin_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 2085
+    },
+    "message": "Local variable `admin_id` is assigned to but never used",
+    "noqa_row": 2085,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 17,
+      "row": 2132
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 20,
+            "row": 2132
+          },
+          "location": {
+            "column": 9,
+            "row": 2132
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `admin_id`"
+    },
+    "location": {
+      "column": 9,
+      "row": 2132
+    },
+    "message": "Local variable `admin_id` is assigned to but never used",
+    "noqa_row": 2132,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 75,
+      "row": 3061
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/admin_routes.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Employee.is_active",
           "end_location": {
             "column": 75,
-            "row": 14
+            "row": 3061
           },
           "location": {
-            "column": 1,
-            "row": 14
+            "column": 49,
+            "row": 3061
           }
         }
       ],
-      "message": "Remove unused import: `models.Customer`"
+      "message": "Replace with `Employee.is_active`"
     },
     "location": {
-      "column": 40,
-      "row": 14
+      "column": 49,
+      "row": 3061
     },
-    "message": "`models.Customer` imported but unused",
-    "noqa_row": 14,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "message": "Avoid equality comparisons to `True`; use `Employee.is_active:` for truth checks",
+    "noqa_row": 3061,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
     "cell": null,
     "code": "E712",
     "end_location": {
       "column": 44,
-      "row": 31
+      "row": 35
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/categories.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "Category.is_active is True",
+          "content": "Category.is_active",
           "end_location": {
             "column": 44,
-            "row": 31
+            "row": 35
           },
           "location": {
             "column": 18,
-            "row": 31
+            "row": 35
           }
         }
       ],
@@ -781,10 +506,10 @@
     },
     "location": {
       "column": 18,
-      "row": 31
+      "row": 35
     },
-    "message": "Avoid equality comparisons to `True`; use `if Category.is_active:` for truth checks",
-    "noqa_row": 31,
+    "message": "Avoid equality comparisons to `True`; use `Category.is_active:` for truth checks",
+    "noqa_row": 35,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
@@ -792,21 +517,21 @@
     "code": "E712",
     "end_location": {
       "column": 40,
-      "row": 71
+      "row": 75
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/categories.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "Category.is_active is True",
+          "content": "Category.is_active",
           "end_location": {
             "column": 40,
-            "row": 71
+            "row": 75
           },
           "location": {
             "column": 14,
-            "row": 71
+            "row": 75
           }
         }
       ],
@@ -814,10 +539,10 @@
     },
     "location": {
       "column": 14,
-      "row": 71
+      "row": 75
     },
-    "message": "Avoid equality comparisons to `True`; use `if Category.is_active:` for truth checks",
-    "noqa_row": 71,
+    "message": "Avoid equality comparisons to `True`; use `Category.is_active:` for truth checks",
+    "noqa_row": 75,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
@@ -825,21 +550,21 @@
     "code": "E712",
     "end_location": {
       "column": 38,
-      "row": 133
+      "row": 137
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/categories.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "Product.is_active is True",
+          "content": "Product.is_active",
           "end_location": {
             "column": 38,
-            "row": 133
+            "row": 137
           },
           "location": {
             "column": 13,
-            "row": 133
+            "row": 137
           }
         }
       ],
@@ -847,131 +572,49 @@
     },
     "location": {
       "column": 13,
-      "row": 133
+      "row": 137
     },
-    "message": "Avoid equality comparisons to `True`; use `if Product.is_active:` for truth checks",
-    "noqa_row": 133,
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 137,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
     "cell": null,
-    "code": "F401",
+    "code": "E722",
     "end_location": {
-      "column": 54,
-      "row": 12
+      "column": 23,
+      "row": 428
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/orders.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 13
-          },
-          "location": {
-            "column": 1,
-            "row": 12
-          }
-        }
-      ],
-      "message": "Remove unused import: `services.shipping_service.ShippingService`"
-    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/fulfillment_routes.py",
+    "fix": null,
     "location": {
-      "column": 39,
-      "row": 12
+      "column": 17,
+      "row": 428
     },
-    "message": "`services.shipping_service.ShippingService` imported but unused",
-    "noqa_row": 12,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 45,
-      "row": 7
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/products.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from models import db, Product, ProductVariant, Inventory, Category, CategoryClosure",
-          "end_location": {
-            "column": 99,
-            "row": 7
-          },
-          "location": {
-            "column": 1,
-            "row": 7
-          }
-        }
-      ],
-      "message": "Remove unused import: `models.ProductImage`"
-    },
-    "location": {
-      "column": 33,
-      "row": 7
-    },
-    "message": "`models.ProductImage` imported but unused",
-    "noqa_row": 7,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 28,
-      "row": 9
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/products.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 10
-          },
-          "location": {
-            "column": 1,
-            "row": 9
-          }
-        }
-      ],
-      "message": "Remove unused import: `sqlalchemy.and_`"
-    },
-    "location": {
-      "column": 24,
-      "row": 9
-    },
-    "message": "`sqlalchemy.and_` imported but unused",
-    "noqa_row": 9,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "message": "Do not use bare `except`",
+    "noqa_row": 428,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
   },
   {
     "cell": null,
     "code": "E712",
     "end_location": {
       "column": 36,
-      "row": 226
+      "row": 239
     },
     "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/promotions.py",
     "fix": {
       "applicability": "unsafe",
       "edits": [
         {
-          "content": "Promotion.is_active is True",
+          "content": "Promotion.is_active",
           "end_location": {
             "column": 36,
-            "row": 226
+            "row": 239
           },
           "location": {
             "column": 9,
-            "row": 226
+            "row": 239
           }
         }
       ],
@@ -979,1198 +622,935 @@
     },
     "location": {
       "column": 9,
-      "row": 226
+      "row": 239
     },
-    "message": "Avoid equality comparisons to `True`; use `if Promotion.is_active:` for truth checks",
-    "noqa_row": 226,
+    "message": "Avoid equality comparisons to `True`; use `Promotion.is_active:` for truth checks",
+    "noqa_row": 239,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 32,
+      "row": 202
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/test_priority3_procedures.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 35,
+            "row": 202
+          },
+          "location": {
+            "column": 17,
+            "row": 202
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `test_product_id`"
+    },
+    "location": {
+      "column": 17,
+      "row": 202
+    },
+    "message": "Local variable `test_product_id` is assigned to but never used",
+    "noqa_row": 202,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 43,
+      "row": 191
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/admin_dashboard_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 43,
+            "row": 191
+          },
+          "location": {
+            "column": 18,
+            "row": 191
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 18,
+      "row": 191
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 191,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 43,
+      "row": 219
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/admin_dashboard_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 43,
+            "row": 219
+          },
+          "location": {
+            "column": 18,
+            "row": 219
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 18,
+      "row": 219
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 219,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 46,
+      "row": 496
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/admin_dashboard_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 46,
+            "row": 496
+          },
+          "location": {
+            "column": 21,
+            "row": 496
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 21,
+      "row": 496
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 496,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 46,
+      "row": 508
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/admin_dashboard_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 46,
+            "row": 508
+          },
+          "location": {
+            "column": 21,
+            "row": 508
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 21,
+      "row": 508
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 508,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 46,
+      "row": 514
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/admin_dashboard_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 46,
+            "row": 514
+          },
+          "location": {
+            "column": 21,
+            "row": 514
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 21,
+      "row": 514
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 515,
     "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
     "cell": null,
     "code": "F401",
     "end_location": {
-      "column": 69,
-      "row": 15
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/returns_api.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from models import db, Order, OrderItem, Return, ReturnItem",
-          "end_location": {
-            "column": 85,
-            "row": 15
-          },
-          "location": {
-            "column": 1,
-            "row": 15
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 62,
-      "row": 15
-    },
-    "message": "`models.Product` imported but unused",
-    "noqa_row": 15,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 85,
-      "row": 15
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/returns_api.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from models import db, Order, OrderItem, Return, ReturnItem",
-          "end_location": {
-            "column": 85,
-            "row": 15
-          },
-          "location": {
-            "column": 1,
-            "row": 15
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 71,
-      "row": 15
-    },
-    "message": "`models.ProductVariant` imported but unused",
-    "noqa_row": 15,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
       "column": 56,
-      "row": 13
+      "row": 33
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/wishlist.py",
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/auth_service.py",
     "fix": {
       "applicability": "safe",
       "edits": [
         {
-          "content": "from models import db, Wishlist, WishlistItem, Product, Cart, CartItem, ProductVariant",
+          "content": "from logging_utils import get_logger",
           "end_location": {
-            "column": 97,
-            "row": 13
+            "column": 56,
+            "row": 33
           },
           "location": {
             "column": 1,
-            "row": 13
+            "row": 33
           }
         }
       ],
-      "message": "Remove unused import: `models.Customer`"
-    },
-    "location": {
-      "column": 48,
-      "row": 13
-    },
-    "message": "`models.Customer` imported but unused",
-    "noqa_row": 13,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 12,
-      "row": 44
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 45
-          },
-          "location": {
-            "column": 1,
-            "row": 44
-          }
-        }
-      ],
-      "message": "Remove unused import: `json`"
-    },
-    "location": {
-      "column": 8,
-      "row": 44
-    },
-    "message": "`json` imported but unused",
-    "noqa_row": 44,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 51,
-      "row": 52
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from services.encryption import hash_email",
-          "end_location": {
-            "column": 63,
-            "row": 52
-          },
-          "location": {
-            "column": 1,
-            "row": 52
-          }
-        }
-      ],
-      "message": "Remove unused import: `services.encryption.encryption_service`"
-    },
-    "location": {
-      "column": 33,
-      "row": 52
-    },
-    "message": "`services.encryption.encryption_service` imported but unused",
-    "noqa_row": 52,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 26,
-      "row": 87
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 88
-          },
-          "location": {
-            "column": 1,
-            "row": 87
-          }
-        }
-      ],
-      "message": "Remove unused import: `subprocess`"
-    },
-    "location": {
-      "column": 16,
-      "row": 87
-    },
-    "message": "`subprocess` imported but unused",
-    "noqa_row": 87,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 21,
-      "row": 116
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 13,
-      "row": 116
-    },
-    "message": "`models.database_models.Customer` imported but unused",
-    "noqa_row": 116,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 38,
-      "row": 116
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 23,
-      "row": 116
-    },
-    "message": "`models.database_models.CustomerAddress` imported but unused",
-    "noqa_row": 116,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 48,
-      "row": 116
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 40,
-      "row": 116
-    },
-    "message": "`models.database_models.Employee` imported but unused",
-    "noqa_row": 116,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 21,
-      "row": 117
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 13,
-      "row": 117
-    },
-    "message": "`models.database_models.Category` imported but unused",
-    "noqa_row": 117,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 30,
-      "row": 117
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 23,
-      "row": 117
-    },
-    "message": "`models.database_models.Product` imported but unused",
-    "noqa_row": 117,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 44,
-      "row": 117
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 32,
-      "row": 117
-    },
-    "message": "`models.database_models.ProductImage` imported but unused",
-    "noqa_row": 117,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 55,
-      "row": 117
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 46,
-      "row": 117
-    },
-    "message": "`models.database_models.Inventory` imported but unused",
-    "noqa_row": 117,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 17,
-      "row": 118
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 13,
-      "row": 118
-    },
-    "message": "`models.database_models.Cart` imported but unused",
-    "noqa_row": 118,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 27,
-      "row": 118
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 19,
-      "row": 118
-    },
-    "message": "`models.database_models.CartItem` imported but unused",
-    "noqa_row": 118,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 37,
-      "row": 118
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 29,
-      "row": 118
-    },
-    "message": "`models.database_models.Wishlist` imported but unused",
-    "noqa_row": 118,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 51,
-      "row": 118
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
+      "message": "Remove unused import: `logging_utils.safe_auth_context`"
     },
     "location": {
       "column": 39,
-      "row": 118
+      "row": 33
     },
-    "message": "`models.database_models.WishlistItem` imported but unused",
-    "noqa_row": 118,
+    "message": "`logging_utils.safe_auth_context` imported but unused",
+    "noqa_row": 33,
     "url": "https://docs.astral.sh/ruff/rules/unused-import"
   },
   {
     "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 18,
-      "row": 119
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 13,
-      "row": 119
-    },
-    "message": "`models.database_models.Order` imported but unused",
-    "noqa_row": 119,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 29,
-      "row": 119
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 20,
-      "row": 119
-    },
-    "message": "`models.database_models.OrderItem` imported but unused",
-    "noqa_row": 119,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 38,
-      "row": 119
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 31,
-      "row": 119
-    },
-    "message": "`models.database_models.Payment` imported but unused",
-    "noqa_row": 119,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 46,
-      "row": 119
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 40,
-      "row": 119
-    },
-    "message": "`models.database_models.Review` imported but unused",
-    "noqa_row": 119,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
+    "code": "F841",
     "end_location": {
       "column": 27,
-      "row": 120
+      "row": 303
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/auth_service.py",
     "fix": {
-      "applicability": "safe",
+      "applicability": "unsafe",
       "edits": [
         {
           "content": "",
           "end_location": {
-            "column": 1,
-            "row": 123
+            "column": 30,
+            "row": 303
           },
           "location": {
-            "column": 1,
-            "row": 115
+            "column": 13,
+            "row": 303
           }
         }
       ],
-      "message": "Remove unused import"
+      "message": "Remove assignment to unused variable `email_verified`"
     },
     "location": {
       "column": 13,
-      "row": 120
+      "row": 303
     },
-    "message": "`models.database_models.POSTransaction` imported but unused",
-    "noqa_row": 120,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "message": "Local variable `email_verified` is assigned to but never used",
+    "noqa_row": 303,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
   },
   {
     "cell": null,
-    "code": "F401",
+    "code": "E712",
     "end_location": {
-      "column": 47,
-      "row": 120
+      "column": 45,
+      "row": 966
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/auth_service.py",
     "fix": {
-      "applicability": "safe",
+      "applicability": "unsafe",
       "edits": [
         {
-          "content": "",
+          "content": "Permission.is_active",
           "end_location": {
-            "column": 1,
-            "row": 123
+            "column": 45,
+            "row": 966
           },
           "location": {
-            "column": 1,
-            "row": 115
+            "column": 17,
+            "row": 966
           }
         }
       ],
-      "message": "Remove unused import"
+      "message": "Replace with `Permission.is_active`"
     },
     "location": {
-      "column": 29,
-      "row": 120
+      "column": 17,
+      "row": 966
     },
-    "message": "`models.database_models.POSTransactionItem` imported but unused",
-    "noqa_row": 120,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "message": "Avoid equality comparisons to `True`; use `Permission.is_active:` for truth checks",
+    "noqa_row": 966,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   },
   {
     "cell": null,
-    "code": "F401",
+    "code": "E722",
     "end_location": {
-      "column": 62,
-      "row": 120
+      "column": 15,
+      "row": 1100
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/auth_service.py",
+    "fix": null,
     "location": {
-      "column": 49,
-      "row": 120
+      "column": 9,
+      "row": 1100
     },
-    "message": "`models.database_models.StoreLocation` imported but unused",
-    "noqa_row": 120,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "message": "Do not use bare `except`",
+    "noqa_row": 1100,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
   },
   {
     "cell": null,
-    "code": "F401",
+    "code": "E712",
     "end_location": {
-      "column": 28,
-      "row": 121
+      "column": 60,
+      "row": 21
     },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/customer_management_service.py",
     "fix": {
-      "applicability": "safe",
+      "applicability": "unsafe",
       "edits": [
         {
-          "content": "",
+          "content": "Customer.is_active",
           "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 13,
-      "row": 121
-    },
-    "message": "`models.database_models.GDPRDataRequest` imported but unused",
-    "noqa_row": 121,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 44,
-      "row": 121
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 30,
-      "row": 121
-    },
-    "message": "`models.database_models.GDPRConsentLog` imported but unused",
-    "noqa_row": 121,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 59,
-      "row": 121
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 46,
-      "row": 121
-    },
-    "message": "`models.database_models.DataAccessLog` imported but unused",
-    "noqa_row": 121,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 72,
-      "row": 121
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 123
-          },
-          "location": {
-            "column": 1,
-            "row": 115
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 61,
-      "row": 121
-    },
-    "message": "`models.database_models.ActivityLog` imported but unused",
-    "noqa_row": 121,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 65,
-      "row": 244
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from models.database_models import Product",
-          "end_location": {
-            "column": 65,
-            "row": 244
-          },
-          "location": {
-            "column": 9,
-            "row": 244
-          }
-        }
-      ],
-      "message": "Remove unused import: `models.database_models.ProductImage`"
-    },
-    "location": {
-      "column": 53,
-      "row": 244
-    },
-    "message": "`models.database_models.ProductImage` imported but unused",
-    "noqa_row": 244,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F541",
-    "end_location": {
-      "column": 134,
-      "row": 256
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/migrate_database.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "\"DRY RUN: Products already in new schema. Would create ProductImage records from product.image_url if available\"",
-          "end_location": {
-            "column": 134,
-            "row": 256
-          },
-          "location": {
-            "column": 21,
-            "row": 256
-          }
-        }
-      ],
-      "message": "Remove extraneous `f` prefix"
-    },
-    "location": {
-      "column": 21,
-      "row": 256
-    },
-    "message": "f-string without any placeholders",
-    "noqa_row": 256,
-    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
-  },
-  {
-    "cell": null,
-    "code": "F541",
-    "end_location": {
-      "column": 47,
-      "row": 312
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/rotate_encryption_keys.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "\"\\n=== Record Counts ===\"",
-          "end_location": {
-            "column": 47,
-            "row": 312
-          },
-          "location": {
-            "column": 21,
-            "row": 312
-          }
-        }
-      ],
-      "message": "Remove extraneous `f` prefix"
-    },
-    "location": {
-      "column": 21,
-      "row": 312
-    },
-    "message": "f-string without any placeholders",
-    "noqa_row": 312,
-    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 30,
-      "row": 12
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/seed_products_with_variants.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 13
-          },
-          "location": {
-            "column": 1,
-            "row": 12
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 22,
-      "row": 12
-    },
-    "message": "`datetime.datetime` imported but unused",
-    "noqa_row": 12,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 41,
-      "row": 12
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/seed_products_with_variants.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 13
-          },
-          "location": {
-            "column": 1,
-            "row": 12
-          }
-        }
-      ],
-      "message": "Remove unused import"
-    },
-    "location": {
-      "column": 32,
-      "row": 12
-    },
-    "message": "`datetime.timedelta` imported but unused",
-    "noqa_row": 12,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 12,
-      "row": 14
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "from models.database_models import (\n    Order, OrderItem, Customer,\n    CartItem, Cart, Payment\n)",
-          "end_location": {
-            "column": 2,
-            "row": 15
-          },
-          "location": {
-            "column": 1,
-            "row": 12
-          }
-        }
-      ],
-      "message": "Remove unused import: `models.database_models.Product`"
-    },
-    "location": {
-      "column": 5,
-      "row": 14
-    },
-    "message": "`models.database_models.Product` imported but unused",
-    "noqa_row": 14,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F401",
-    "end_location": {
-      "column": 50,
-      "row": 16
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "",
-          "end_location": {
-            "column": 1,
-            "row": 17
-          },
-          "location": {
-            "column": 1,
-            "row": 16
-          }
-        }
-      ],
-      "message": "Remove unused import: `models.extended_models.ProductVariant`"
-    },
-    "location": {
-      "column": 36,
-      "row": 16
-    },
-    "message": "`models.extended_models.ProductVariant` imported but unused",
-    "noqa_row": 16,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
-  },
-  {
-    "cell": null,
-    "code": "F541",
-    "end_location": {
-      "column": 73,
-      "row": 83
-    },
-    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py",
-    "fix": {
-      "applicability": "safe",
-      "edits": [
-        {
-          "content": "'Invalid cart item: variant not found'",
-          "end_location": {
-            "column": 73,
-            "row": 83
+            "column": 60,
+            "row": 21
           },
           "location": {
             "column": 34,
-            "row": 83
+            "row": 21
           }
         }
       ],
-      "message": "Remove extraneous `f` prefix"
+      "message": "Replace with `Customer.is_active`"
     },
     "location": {
       "column": 34,
-      "row": 83
+      "row": 21
     },
-    "message": "f-string without any placeholders",
-    "noqa_row": 83,
-    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
+    "message": "Avoid equality comparisons to `True`; use `Customer.is_active:` for truth checks",
+    "noqa_row": 21,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 61,
+      "row": 23
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/customer_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Customer.is_active",
+          "end_location": {
+            "column": 61,
+            "row": 23
+          },
+          "location": {
+            "column": 34,
+            "row": 23
+          }
+        }
+      ],
+      "message": "Replace with `not Customer.is_active`"
+    },
+    "location": {
+      "column": 34,
+      "row": 23
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Customer.is_active:` for false checks",
+    "noqa_row": 23,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 65,
+      "row": 36
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/customer_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Customer.email_verified",
+          "end_location": {
+            "column": 65,
+            "row": 36
+          },
+          "location": {
+            "column": 34,
+            "row": 36
+          }
+        }
+      ],
+      "message": "Replace with `Customer.email_verified`"
+    },
+    "location": {
+      "column": 34,
+      "row": 36
+    },
+    "message": "Avoid equality comparisons to `True`; use `Customer.email_verified:` for truth checks",
+    "noqa_row": 36,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 60,
+      "row": 29
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/employee_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Employee.is_active",
+          "end_location": {
+            "column": 60,
+            "row": 29
+          },
+          "location": {
+            "column": 34,
+            "row": 29
+          }
+        }
+      ],
+      "message": "Replace with `Employee.is_active`"
+    },
+    "location": {
+      "column": 34,
+      "row": 29
+    },
+    "message": "Avoid equality comparisons to `True`; use `Employee.is_active:` for truth checks",
+    "noqa_row": 29,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 61,
+      "row": 31
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/employee_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Employee.is_active",
+          "end_location": {
+            "column": 61,
+            "row": 31
+          },
+          "location": {
+            "column": 34,
+            "row": 31
+          }
+        }
+      ],
+      "message": "Replace with `not Employee.is_active`"
+    },
+    "location": {
+      "column": 34,
+      "row": 31
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Employee.is_active:` for false checks",
+    "noqa_row": 31,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 63,
+      "row": 55
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/inventory_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 63,
+            "row": 55
+          },
+          "location": {
+            "column": 38,
+            "row": 55
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 38,
+      "row": 55
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 55,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 64,
+      "row": 57
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/inventory_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Product.is_active",
+          "end_location": {
+            "column": 64,
+            "row": 57
+          },
+          "location": {
+            "column": 38,
+            "row": 57
+          }
+        }
+      ],
+      "message": "Replace with `not Product.is_active`"
+    },
+    "location": {
+      "column": 38,
+      "row": 57
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Product.is_active:` for false checks",
+    "noqa_row": 57,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 21,
+      "row": 344
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/inventory_management_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 24,
+            "row": 344
+          },
+          "location": {
+            "column": 13,
+            "row": 344
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `quantity`"
+    },
+    "location": {
+      "column": 13,
+      "row": 344
+    },
+    "message": "Local variable `quantity` is assigned to but never used",
+    "noqa_row": 344,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 27,
+      "row": 403
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/inventory_management_service.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 403
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 403,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 14,
+      "row": 103
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 17,
+            "row": 103
+          },
+          "location": {
+            "column": 9,
+            "row": 103
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `total`"
+    },
+    "location": {
+      "column": 9,
+      "row": 103
+    },
+    "message": "Local variable `total` is assigned to but never used",
+    "noqa_row": 103,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 23,
+      "row": 164
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 26,
+            "row": 164
+          },
+          "location": {
+            "column": 13,
+            "row": 164
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `payment_id`"
+    },
+    "location": {
+      "column": 13,
+      "row": 164
+    },
+    "message": "Local variable `payment_id` is assigned to but never used",
+    "noqa_row": 164,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 52,
+      "row": 39
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/promotion_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Promotion.is_active",
+          "end_location": {
+            "column": 52,
+            "row": 39
+          },
+          "location": {
+            "column": 25,
+            "row": 39
+          }
+        }
+      ],
+      "message": "Replace with `Promotion.is_active`"
+    },
+    "location": {
+      "column": 25,
+      "row": 39
+    },
+    "message": "Avoid equality comparisons to `True`; use `Promotion.is_active:` for truth checks",
+    "noqa_row": 39,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 66,
+      "row": 49
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/promotion_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Promotion.is_active",
+          "end_location": {
+            "column": 66,
+            "row": 49
+          },
+          "location": {
+            "column": 38,
+            "row": 49
+          }
+        }
+      ],
+      "message": "Replace with `not Promotion.is_active`"
+    },
+    "location": {
+      "column": 38,
+      "row": 49
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Promotion.is_active:` for false checks",
+    "noqa_row": 49,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 43,
+      "row": 127
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 43,
+            "row": 127
+          },
+          "location": {
+            "column": 18,
+            "row": 127
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 18,
+      "row": 127
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 127,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 43,
+      "row": 195
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "Product.is_active",
+          "end_location": {
+            "column": 43,
+            "row": 195
+          },
+          "location": {
+            "column": 18,
+            "row": 195
+          }
+        }
+      ],
+      "message": "Replace with `Product.is_active`"
+    },
+    "location": {
+      "column": 18,
+      "row": 195
+    },
+    "message": "Avoid equality comparisons to `True`; use `Product.is_active:` for truth checks",
+    "noqa_row": 197,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 77,
+      "row": 244
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Customer.anonymized",
+          "end_location": {
+            "column": 77,
+            "row": 244
+          },
+          "location": {
+            "column": 49,
+            "row": 244
+          }
+        }
+      ],
+      "message": "Replace with `not Customer.anonymized`"
+    },
+    "location": {
+      "column": 49,
+      "row": 244
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Customer.anonymized:` for false checks",
+    "noqa_row": 244,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 45,
+      "row": 250
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Customer.anonymized",
+          "end_location": {
+            "column": 45,
+            "row": 250
+          },
+          "location": {
+            "column": 17,
+            "row": 250
+          }
+        }
+      ],
+      "message": "Replace with `not Customer.anonymized`"
+    },
+    "location": {
+      "column": 17,
+      "row": 250
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Customer.anonymized:` for false checks",
+    "noqa_row": 250,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 46,
+      "row": 275
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Customer.anonymized",
+          "end_location": {
+            "column": 46,
+            "row": 275
+          },
+          "location": {
+            "column": 18,
+            "row": 275
+          }
+        }
+      ],
+      "message": "Replace with `not Customer.anonymized`"
+    },
+    "location": {
+      "column": 18,
+      "row": 275
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Customer.anonymized:` for false checks",
+    "noqa_row": 275,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
+  },
+  {
+    "cell": null,
+    "code": "E712",
+    "end_location": {
+      "column": 45,
+      "row": 303
+    },
+    "filename": "/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/report_service.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "not Customer.anonymized",
+          "end_location": {
+            "column": 45,
+            "row": 303
+          },
+          "location": {
+            "column": 17,
+            "row": 303
+          }
+        }
+      ],
+      "message": "Replace with `not Customer.anonymized`"
+    },
+    "location": {
+      "column": 17,
+      "row": 303
+    },
+    "message": "Avoid equality comparisons to `False`; use `not Customer.anonymized:` for false checks",
+    "noqa_row": 303,
+    "url": "https://docs.astral.sh/ruff/rules/true-false-comparison"
   }
 ]

@@ -10,7 +10,7 @@ Endpoints:
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Wishlist, WishlistItem, Customer, Product, Cart, CartItem, ProductVariant
+from models import db, Wishlist, WishlistItem, Product, Cart, CartItem, ProductVariant
 from . import api
 from logging_utils import get_logger, safe_auth_context
 
@@ -34,7 +34,7 @@ def get_wishlist():
 
         return jsonify(wishlist.to_dict()), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Wishlist operation failed",
             extra={"context": safe_auth_context(

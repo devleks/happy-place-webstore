@@ -4,7 +4,6 @@ Handles GDPR compliance operations using stored procedures.
 Implements EU General Data Protection Regulation requirements.
 """
 
-import json
 from typing import Dict, Optional
 from extensions import db
 from models.database_models import Customer

@@ -73,10 +73,12 @@ export const showPromise = (promise, messages) => {
 };
 
 // Export default object with all methods
-export default {
+const toastUtils = {
   success: showSuccess,
   error: showError,
   info: showInfo,
   warning: showWarning,
   promise: showPromise,
 };
+
+export default toastUtils;

@@ -41,7 +41,6 @@ import os
 import argparse
 import logging
 from datetime import datetime, timedelta
-import json
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -49,7 +48,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from flask import Flask
 from config import Config
 from extensions import db
-from services.encryption import encryption_service, hash_email
+from services.encryption import hash_email
 
 # Configure logging
 logging.basicConfig(
@@ -84,7 +83,6 @@ def backup_database(dry_run=False):
 
     if not dry_run:
         # PostgreSQL backup command
-        import subprocess
         try:
             # Extract database info from DATABASE_URL
             db_url = os.environ.get('DATABASE_URL', '')
@@ -112,14 +110,6 @@ def create_tables(dry_run=False):
 
     if not dry_run:
         # Import all models to ensure they're registered
-        from models.database_models import (
-            Customer, CustomerAddress, Employee,
-            Category, Product, ProductImage, Inventory,
-            Cart, CartItem, Wishlist, WishlistItem,
-            Order, OrderItem, Payment, Review,
-            POSTransaction, POSTransactionItem, StoreLocation,
-            GDPRDataRequest, GDPRConsentLog, DataAccessLog, ActivityLog
-        )
 
         # Create all tables
         db.create_all()
@@ -241,7 +231,7 @@ def migrate_products(dry_run=False):
 
     try:
         # Old products already in new schema, but need to create ProductImage records
-        from models.database_models import Product, ProductImage
+        from models.database_models import Product
 
         products = Product.query.all()
         total = len(products)
@@ -253,7 +243,7 @@ def migrate_products(dry_run=False):
         # New schema uses ProductImage table
         # This migration would need the old Product model with image_url field
 
-        logger.info(f"DRY RUN: Products already in new schema. Would create ProductImage records from product.image_url if available")
+        logger.info("DRY RUN: Products already in new schema. Would create ProductImage records from product.image_url if available")
 
         return migrated
 

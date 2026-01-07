@@ -3,7 +3,6 @@
 Diagnostic script to check order creation issues
 """
 
-from extensions import db
 from models import Cart, CartItem, Customer, ProductVariant, Product
 from app import create_app
 
@@ -51,9 +50,9 @@ def diagnose():
                                         print(f"        - Product active: {product.is_active}")
                                         print(f"        - Product price: ${product.price}")
                                 else:
-                                    print(f"      ❌ Variant doesn't have product relationship!")
+                                    print("      ❌ Variant doesn't have product relationship!")
                         else:
-                            print(f"    ❌ CartItem doesn't have variant relationship!")
+                            print("    ❌ CartItem doesn't have variant relationship!")
                         print()
                 else:
                     print("  ❌ Cart is empty\n")

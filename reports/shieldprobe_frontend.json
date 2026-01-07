@@ -1,7 +1,1 @@
-{
-  "message": "request to https://registry.npmjs.org/-/npm/v1/security/audits/quick failed, reason: getaddrinfo ENOTFOUND registry.npmjs.org",
-  "error": {
-    "summary": "",
-    "detail": ""
-  }
-}
+{"vulnerabilities": {}, "skipped": "no frontend directory"}

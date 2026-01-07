@@ -1,1 +1,49 @@
-Schema snapshot unavailable: unable to connect to database at postgresql://localhost:5432/happy_place_db (psql reported "Operation not permitted").
+ schemaname |       tablename        |    size    
+------------+------------------------+------------
+ public     | inventory_movements    | 160 kB
+ public     | pos_shifts             | 112 kB
+ public     | pos_transactions       | 88 kB
+ public     | refresh_tokens         | 80 kB
+ public     | order_audit_log        | 80 kB
+ public     | orders                 | 64 kB
+ public     | categories             | 64 kB
+ public     | auth_audit_log         | 64 kB
+ public     | products               | 64 kB
+ public     | product_variants       | 56 kB
+ public     | inventory_reservations | 56 kB
+ public     | customers              | 48 kB
+ public     | employees              | 48 kB
+ public     | payments               | 48 kB
+ public     | promotions             | 48 kB
+ public     | wishlists              | 40 kB
+ public     | carts                  | 40 kB
+ public     | inventory              | 40 kB
+ public     | payment_callback_log   | 32 kB
+ public     | pos_cash_movements     | 32 kB
+ public     | store_locations        | 32 kB
+ public     | order_assignments      | 32 kB
+ public     | wishlist_items         | 24 kB
+ public     | pos_transaction_items  | 24 kB
+ public     | employee_sessions      | 24 kB
+ public     | order_items            | 24 kB
+ public     | system_settings        | 24 kB
+ public     | permissions            | 24 kB
+ public     | shipping_carriers      | 24 kB
+ public     | returns                | 24 kB
+ public     | cart_items             | 24 kB
+ public     | gdpr_consent_log       | 16 kB
+ public     | gdpr_data_requests     | 16 kB
+ public     | activity_logs          | 16 kB
+ public     | product_images         | 16 kB
+ public     | shipping_methods       | 16 kB
+ public     | reviews                | 16 kB
+ public     | token_blacklist        | 16 kB
+ public     | shipment_updates       | 16 kB
+ public     | customer_addresses     | 16 kB
+ public     | order_promotions       | 16 kB
+ public     | data_access_log        | 16 kB
+ public     | role_permissions       | 8192 bytes
+ public     | category_closure       | 8192 bytes
+ public     | return_items           | 8192 bytes
+(45 rows)
+

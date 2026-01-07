@@ -1,0 +1,13 @@
+{
+  "agent": "PerfSmith",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T15:59:38Z",
+  "execution_time_seconds": 31,
+  "artifacts": {
+    "hotspots": "reports/perfsmith_hotspots.md",
+    "bundle": "reports/perfsmith_bundle.json"
+  },
+  "recommendations": [
+    "Consider refactoring 20 large files"
+  ]
+}

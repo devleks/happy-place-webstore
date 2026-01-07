@@ -1,0 +1,79 @@
+{
+  "mcpServers": {
+    "github-mcp-server": {
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "command": "docker",
+      "disabled": false,
+      "disabledTools": [
+        "get_me",
+        "get_release_by_tag",
+        "get_team_members",
+        "get_teams",
+        "request_copilot_review"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+      }
+    },
+    "mcp-playwright": {
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "command": "npx",
+      "disabled": false,
+      "disabledTools": [],
+      "env": {}
+    },
+    "memory": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "command": "npx",
+      "disabled": false,
+      "env": {
+        "MEMORY_FILE_PATH": ""
+      }
+    },
+    "postgresql": {
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/postgresql",
+        "postgresql://postgres:Alway%24%20B3l13ving@localhost:5432/postgres"
+      ],
+      "command": "docker",
+      "disabled": false,
+      "env": {}
+    },
+    "puppeteer": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "command": "npx"
+    },
+    "sequential-thinking": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "command": "npx"
+    }
+  },
+  "workspaces": [
+    {
+      "corpusName": "/Volumes/PortableSSD/CascadeProjects",
+      "uri": "/Volumes/PortableSSD/CascadeProjects"
+    }
+  ]
+}

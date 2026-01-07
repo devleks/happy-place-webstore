@@ -1,0 +1,24 @@
+# Windsurf Black Box .gitignore
+
+# Temp working directory
+.temp/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.sublime-workspace
+.idea/
+.vscode/settings.json
+
+# Keep these directories but not their contents if empty
+!sessions/.gitkeep
+!catalog/.gitkeep
+!archive/.gitkeep

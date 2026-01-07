@@ -4,12 +4,11 @@ Handles order processing, status updates, cancellations, and refunds
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
-from sqlalchemy import and_, or_, desc
+from typing import Dict, List
+from sqlalchemy import or_, desc
 from models.database_models import (
-    db, Order, OrderItem, Customer, Product, Inventory
+    db, Order, Customer, Inventory
 )
-from models.extended_models import ProductVariant
 from decimal import Decimal
 import json
 

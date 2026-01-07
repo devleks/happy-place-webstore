@@ -10,7 +10,7 @@ from datetime import timedelta
 import hashlib
 
 from routes import api
-from models import db, Customer, Employee, GDPRConsentLog
+from models import db, Customer, Employee
 from middleware import customer_required, employee_required
 from logging_utils import get_logger, safe_auth_context
 from services.encryption import encrypt_customer
@@ -142,7 +142,7 @@ def customer_register():
             }
         }), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Customer registration failed",

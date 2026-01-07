@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { productsAPI, helpers } from '../services/api';
 import { useCart } from '../context/CartContext';
@@ -26,22 +26,7 @@ const ProductDetail = () => {
   const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [slug]);
-
-  useEffect(() => {
-    if (product && selectedSize && selectedColor) {
-      findVariant();
-    }
-  }, [selectedSize, selectedColor, product]);
-
-  // Reset quantity to 1 when variant changes
-  useEffect(() => {
-    setQuantity(1);
-  }, [selectedVariant]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -63,9 +48,9 @@ const ProductDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
-  const findVariant = () => {
+  const findVariant = useCallback(() => {
     if (!product || !product.variants) return;
 
     const variant = product.variants.find(
@@ -73,7 +58,24 @@ const ProductDetail = () => {
     );
 
     setSelectedVariant(variant || null);
-  };
+  }, [product, selectedSize, selectedColor]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  useEffect(() => {
+    if (product && selectedSize && selectedColor) {
+      findVariant();
+    }
+  }, [selectedSize, selectedColor, product, findVariant]);
+
+  // Reset quantity to 1 when variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
+
+  
 
   const getAvailabilityStatus = () => {
     if (!selectedVariant || !selectedVariant.inventory) {

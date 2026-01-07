@@ -3,7 +3,7 @@
  * Ported from electron/database.js shift functions
  */
 
-import { shifts, transactions } from './schema';
+import { db, shifts, transactions } from './schema';
 
 /**
  * Create a new shift
@@ -12,11 +12,15 @@ import { shifts, transactions } from './schema';
  */
 export async function createShift(shiftData) {
   try {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const shiftNumber = `${today}-EMP${shiftData.employee_id}-${Date.now().toString().slice(-4)}`;
+
     const shift = {
       employee_id: shiftData.employee_id,
       employee_name: shiftData.employee_name,
+      shift_number: shiftData.shift_number || shiftNumber,
       start_time: shiftData.start_time || new Date().toISOString(),
-      starting_cash: shiftData.starting_cash || 0,
+      starting_cash: shiftData.starting_cash ?? shiftData.opening_float ?? 0,
       notes: shiftData.notes || null,
       status: 'open',
       // Initialize to zero
@@ -50,15 +54,36 @@ export async function createShift(shiftData) {
  * Get currently open shift
  * @returns {Promise<Object|null>} Current shift or null
  */
-export async function getCurrentShift() {
+export async function getCurrentShift(employeeId) {
   try {
-    const shift = await shifts
-      .where('status')
-      .equals('open')
-      .reverse()
-      .first();
+    const ensureShiftNumber = async (shift) => {
+      if (!shift) return null;
+      if (shift.shift_number) return shift;
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const shiftNumber = `${today}-EMP${shift.employee_id}-${Date.now().toString().slice(-4)}`;
+      await shifts.update(shift.id, {
+        shift_number: shiftNumber,
+        updated_at: new Date().toISOString()
+      });
+      return { ...shift, shift_number: shiftNumber };
+    };
 
-    return shift || null;
+    if (employeeId) {
+      const list = await shifts
+        .where('employee_id')
+        .equals(employeeId)
+        .toArray();
+      const open = list
+        .filter((s) => s.status === 'open')
+        .sort((a, b) => (b.start_time || '').localeCompare(a.start_time || ''));
+      return await ensureShiftNumber(open[0] || null);
+    }
+
+    const list = await shifts.toArray();
+    const open = list
+      .filter((s) => s.status === 'open')
+      .sort((a, b) => (b.start_time || '').localeCompare(a.start_time || ''));
+    return await ensureShiftNumber(open[0] || null);
   } catch (error) {
     console.error('❌ Error getting current shift:', error);
     return null;
@@ -114,6 +139,19 @@ export async function getShifts(filters = {}) {
   } catch (error) {
     console.error('❌ Error getting shifts:', error);
     return [];
+  }
+}
+
+export async function updateShift(shiftId, updateData) {
+  try {
+    await shifts.update(shiftId, {
+      ...updateData,
+      updated_at: new Date().toISOString()
+    });
+    return await shifts.get(shiftId);
+  } catch (error) {
+    console.error('❌ Error updating shift:', error);
+    return null;
   }
 }
 
@@ -214,9 +252,12 @@ export async function calculateShiftTotals(shiftId) {
  */
 export async function getUnsyncedShifts() {
   try {
+    if (!db.isOpen()) {
+      await db.open();
+    }
     return await shifts
-      .where('synced')
-      .equals(false)
+      .toCollection()
+      .filter((s) => s.synced === false || s.synced === 0 || !s.synced)
       .toArray();
   } catch (error) {
     console.error('❌ Error getting unsynced shifts:', error);
@@ -237,5 +278,16 @@ export async function markShiftAsSynced(shiftId) {
     console.log(`✅ Shift ${shiftId} marked as synced`);
   } catch (error) {
     console.error('❌ Error marking shift as synced:', error);
+  }
+}
+
+export async function setShiftBackendId(shiftId, backendShiftId) {
+  try {
+    await shifts.update(shiftId, {
+      backend_shift_id: backendShiftId,
+      updated_at: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error setting backend_shift_id:', error);
   }
 }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -108,14 +108,16 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         isRefreshing = false;
 
+        const userType = localStorage.getItem('user_type');
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_type');
 
-        // Redirect to appropriate login page
-        const userType = localStorage.getItem('user_type');
-        if (userType === 'employee') {
-          window.location.href = '/employee/login';
+        // Redirect based on user type or current path
+        if (userType === 'employee' || window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        } else if (window.location.pathname.startsWith('/pos')) {
+          window.location.href = '/pos/login';
         } else {
           window.location.href = '/customer/login';
         }

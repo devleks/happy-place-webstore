@@ -10,7 +10,7 @@ const AdminHeader = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   return (
@@ -37,7 +37,7 @@ const AdminHeader = () => {
 
           {showDropdown && (
             <div className="user-dropdown">
-              <button onClick={() => navigate('/admin/profile')} className="dropdown-item">
+              <button onClick={() => navigate('/admin/settings')} className="dropdown-item">
                 Profile
               </button>
               <button onClick={() => navigate('/admin/settings')} className="dropdown-item">

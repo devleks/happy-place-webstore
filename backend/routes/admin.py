@@ -8,10 +8,9 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from routes import api
 from models import db, Order, Customer, Inventory, ProductVariant, Return
-from middleware import admin_required, manager_required
+from middleware import manager_required
 from services.settings_service import SettingsService
 from logging_utils import get_logger, safe_auth_context
-from flask_jwt_extended import get_jwt_identity
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -47,7 +46,7 @@ def get_admin_dashboard(current_employee):
         ProductVariant.id == Inventory.variant_id
     ).filter(
         Inventory.quantity < 10,
-        ProductVariant.is_active == True
+        ProductVariant.is_active.is_(True)
     ).all()
 
     low_stock_items = len(low_stock_query)
@@ -137,7 +136,7 @@ def get_dashboard_metrics(current_employee):
         ProductVariant.id == Inventory.variant_id
     ).filter(
         Inventory.quantity < 10,
-        ProductVariant.is_active == True
+        ProductVariant.is_active.is_(True)
     ).count()
 
     return jsonify({
@@ -192,7 +191,7 @@ def get_dashboard_alerts(current_employee):
         ProductVariant.id == Inventory.variant_id
     ).filter(
         Inventory.quantity < 10,
-        ProductVariant.is_active == True
+        ProductVariant.is_active.is_(True)
     ).all()
 
     for variant, inventory in low_stock_query[:5]:  # Limit to 5 most critical
@@ -244,7 +243,7 @@ def get_public_settings():
         else:
             return jsonify({'error': 'Failed to fetch settings'}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Public settings operation failed",
             extra={"context": safe_auth_context(
@@ -273,7 +272,7 @@ def get_inventory_alerts(current_employee):
         ProductVariant.id == Inventory.variant_id
     ).filter(
         Inventory.quantity < 10,
-        ProductVariant.is_active == True
+        ProductVariant.is_active.is_(True)
     ).all()
 
     alerts = []

@@ -216,7 +216,7 @@ class Promotion(db.Model):
             return False, f"Minimum order amount is KSh {self.minimum_order_amount}"
 
         # Check customer usage limit
-        from models.database_models import OrderPromotion
+        from models.database_models import OrderPromotion, Order
         customer_usage = OrderPromotion.query.join(Order).filter(
             OrderPromotion.promotion_id == self.id,
             Order.customer_id == customer_id

@@ -1,0 +1,76 @@
+# Windsurf Black Box - Cascade Integration Rules
+
+This project uses the **Windsurf Black Box** session documentation system. Follow these rules to maintain continuity and documentation quality.
+
+## Core Principle
+
+> Every development session should be documented for perfect continuity.
+
+## Quick Reference
+
+```bash
+# Session lifecycle
+./blackbox.sh start "topic"    # Start session
+./blackbox.sh end              # End session
+./blackbox.sh status           # Check status
+
+# During session
+./blackbox.sh action "did X" "result"
+./blackbox.sh decision "chose X" "because Y"
+./blackbox.sh issue "problem X" "status"
+./blackbox.sh checkpoint "before X"
+./blackbox.sh milestone "achieved X"
+```
+
+## Session Awareness
+
+1. **Check for active session** at conversation start
+2. **Log significant events** during development
+3. **Generate summaries** at session end
+4. **Create continuation prompts** for future work
+
+## Cascade Behavior
+
+### Proactive Actions
+- Suggest logging decisions when alternatives are discussed
+- Offer checkpoints before risky operations
+- Remind about session closure after extended work
+- Generate continuation prompts automatically
+
+### Response Format
+When referencing Black Box operations, format as:
+```
+📍 [SESSION-ID] TYPE: description
+```
+
+### Natural Commands
+Respond to:
+- "start session [X]" → Execute session start
+- "end session" → Generate summary + close
+- "log [action/decision/issue]: [X]" → Log entry
+- "checkpoint" → Create state snapshot
+- "status" → Show current session info
+
+## File Structure
+
+```
+.windsurf-blackbox/
+├── sessions/      ← Session records
+├── catalog/       ← Searchable indexes  
+├── templates/     ← Document templates
+├── scripts/       ← CLI (blackbox.sh)
+└── .temp/         ← Active session data
+```
+
+## Integration Points
+
+- **Git commits**: Include session ID when relevant
+- **Code reviews**: Log decisions and findings
+- **Debugging**: Create debug sessions
+- **Incidents**: Auto-generate incident sessions
+
+## See Also
+
+- Full rules: `.windsurf/rules/blackbox-rules.md`
+- Documentation: `.windsurf-blackbox/README.md`
+- Workflows: `.windsurf-blackbox/workflows/`

@@ -19,7 +19,7 @@ const AdminLogin = () => {
   useEffect(() => {
     // If already authenticated as admin/manager, redirect to dashboard
     if (isAuthenticated && userType === 'employee') {
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
     }
   }, [isAuthenticated, userType, navigate]);
 
@@ -48,7 +48,7 @@ const AdminLogin = () => {
       await loginAdmin(loginData); // Use dedicated admin login endpoint
 
       // Successful login - redirect to admin dashboard
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
     } catch (err) {
       const errorMessage = err.response?.data?.error || 'Failed to login. Please check your credentials.';
 

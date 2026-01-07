@@ -9,12 +9,13 @@ Endpoints for customer and employee authentication:
 
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from functools import wraps
 
 from services.auth_service import AuthService
-from middleware import employee_required, manager_required
+from services.email_service import email_service
+from middleware import customer_required, employee_required, manager_required
 from middleware.rate_limiter import auth_rate_limit, strict_auth_rate_limit
 from logging_utils import get_logger, safe_auth_context
+import secrets
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -22,6 +23,38 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 # Initialize service and logger
 auth_service = AuthService()
 logger = get_logger(__name__)
+
+
+@auth_bp.route('/customer/me', methods=['GET'])
+@customer_required
+def get_customer_profile(current_customer):
+    """Get current customer profile."""
+    return jsonify({
+        'id': current_customer.id,
+        'email': current_customer.email,
+        'first_name': current_customer.first_name,
+        'last_name': current_customer.last_name,
+        'phone': current_customer.phone,
+        'gdpr_consent': current_customer.gdpr_consent,
+        'marketing_consent': current_customer.marketing_consent,
+        'is_active': current_customer.is_active,
+        'email_verified': getattr(current_customer, 'email_verified', None),
+        'created_at': current_customer.created_at.isoformat() if current_customer.created_at else None
+    }), 200
+
+
+@auth_bp.route('/employee/me', methods=['GET'])
+@employee_required
+def get_employee_profile(current_employee):
+    """Get current employee profile."""
+    return jsonify({
+        'id': current_employee.id,
+        'email': current_employee.email,
+        'full_name': current_employee.full_name,
+        'role': current_employee.role,
+        'is_active': current_employee.is_active,
+        'created_at': current_employee.created_at.isoformat() if current_employee.created_at else None
+    }), 200
 
 
 # =====================================================
@@ -50,13 +83,20 @@ def customer_register():
         400: Validation error or email already exists
     """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid request body (expected JSON object)'}), 400
 
         # Validate required fields
         required = ['email', 'password', 'first_name', 'last_name', 'gdpr_consent']
         for field in required:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        # GDPR consent must be explicitly true
+        if data.get('gdpr_consent') is not True:
+            return jsonify({'error': 'GDPR consent is required'}), 400
 
         result = auth_service.register_customer(
             email=data['email'],
@@ -69,6 +109,54 @@ def customer_register():
         )
 
         if result['success']:
+            # Send verification email (non-blocking - don't fail registration if email fails)
+            try:
+                # Generate verification token
+                verification_token = secrets.token_urlsafe(32)
+
+                # Get customer info from result
+                customer_name = f"{data['first_name']} {data['last_name']}"
+                customer_email = data['email']
+
+                # Send verification email
+                email_result = email_service.send_verification_email(
+                    email=customer_email,
+                    customer_name=customer_name,
+                    verification_token=verification_token
+                )
+
+                if email_result.get('success'):
+                    logger.info(
+                        f"Verification email sent to {customer_email}",
+                        extra={"context": safe_auth_context(
+                            email=customer_email,
+                            user_type='customer',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent')
+                        )}
+                    )
+                else:
+                    logger.warning(
+                        f"Verification email failed for {customer_email}: {email_result.get('error')}",
+                        extra={"context": safe_auth_context(
+                            email=customer_email,
+                            user_type='customer',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent')
+                        )}
+                    )
+            except Exception as e:
+                # Log email error but don't fail registration
+                logger.error(
+                    f"Verification email exception for {data.get('email', 'unknown')}",
+                    extra={"context": safe_auth_context(
+                        user_type='customer',
+                        ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent')
+                    )},
+                    exc_info=True
+                )
+
             # Debug: print to stderr
             import sys
             print(f"DEBUG: Registration result keys: {list(result.keys())}", file=sys.stderr)
@@ -76,12 +164,12 @@ def customer_register():
             if 'refresh_token' in result:
                 print(f"DEBUG: refresh_token value type: {type(result['refresh_token'])}", file=sys.stderr)
                 print(f"DEBUG: refresh_token length: {len(result['refresh_token']) if result['refresh_token'] else 0}", file=sys.stderr)
-            
+
             response_data = {
                 'success': True,
                 'message': result['message']
             }
-            
+
             # Add tokens if present
             if 'access_token' in result and result['access_token']:
                 response_data['access_token'] = result['access_token']
@@ -90,13 +178,13 @@ def customer_register():
                 print("DEBUG: Added refresh_token to response", file=sys.stderr)
             if 'customer' in result and result['customer']:
                 response_data['customer'] = result['customer']
-            
+
             print(f"DEBUG: Response data keys: {list(response_data.keys())}", file=sys.stderr)
             return jsonify(response_data), 201
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Customer registration failed",
             extra={"context": safe_auth_context(email=data.get('email') if 'data' in locals() and data else None,
@@ -145,7 +233,7 @@ def customer_login():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Customer login failed (unexpected error)",
             extra={"context": safe_auth_context(email=data.get('email') if 'data' in locals() and data else None,
@@ -192,7 +280,7 @@ def customer_google_oauth():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Google OAuth operation failed",
             extra={"context": safe_auth_context(
@@ -308,7 +396,7 @@ def employee_login():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Employee login failed",
             extra={"context": safe_auth_context(
@@ -354,11 +442,11 @@ def admin_login():
         )
 
         if result['success']:
-            # Verify that the user has admin or manager role
-            employee_role = result['employee'].get('role')
-            if employee_role not in ['admin', 'manager']:
+            # Verify that the user has admin role
+            employee_role = (result['employee'].get('role') or '').lower()
+            if employee_role != 'admin':
                 return jsonify({
-                    'error': 'Access denied. Admin or Manager role required.'
+                    'error': 'Access denied. Admin role required.'
                 }), 403
 
             # Log admin login for security audit (without full email)
@@ -385,7 +473,7 @@ def admin_login():
         else:
             return jsonify({'error': result['error']}), 403
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Admin login failed",
             extra={"context": safe_auth_context(
@@ -432,7 +520,7 @@ def employee_pin_login():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Employee PIN login failed",
             extra={"context": safe_auth_context(
@@ -475,7 +563,7 @@ def employee_enable_2fa():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Enable 2FA operation failed",
             extra={"context": safe_auth_context(
@@ -525,7 +613,7 @@ def employee_verify_2fa():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Verify 2FA operation failed",
             extra={"context": safe_auth_context(
@@ -575,7 +663,7 @@ def employee_disable_2fa():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Disable 2FA operation failed",
             extra={"context": safe_auth_context(
@@ -624,7 +712,7 @@ def refresh_access_token():
         else:
             return jsonify({'error': result['error']}), 401
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Refresh token operation failed",
             extra={"context": safe_auth_context(
@@ -681,7 +769,7 @@ def logout():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Logout operation failed",
             extra={"context": safe_auth_context(
@@ -726,7 +814,7 @@ def logout_all_devices():
         else:
             return jsonify({'error': result['error']}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Logout all devices operation failed",
             extra={"context": safe_auth_context(
@@ -770,7 +858,7 @@ def get_user_sessions():
             'sessions': [session.to_dict() for session in sessions]
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get user sessions operation failed",
             extra={"context": safe_auth_context(
@@ -824,7 +912,7 @@ def revoke_session(session_id):
             'message': 'Session revoked successfully'
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Revoke session operation failed",
             extra={"context": safe_auth_context(
@@ -873,7 +961,7 @@ def get_all_permissions(current_employee):
             'grouped': grouped
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get permissions operation failed",
             extra={"context": safe_auth_context(
@@ -932,7 +1020,7 @@ def get_audit_log(current_employee):
             'offset': offset
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get audit log operation failed",
             extra={"context": safe_auth_context(
@@ -999,7 +1087,7 @@ def get_current_user():
         else:
             return jsonify({'error': 'Invalid user type'}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get current user operation failed",
             extra={"context": safe_auth_context(

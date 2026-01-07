@@ -9,7 +9,6 @@ from routes import api
 from models import db, Promotion, OrderPromotion, Order
 from middleware import customer_required
 from logging_utils import get_logger, safe_auth_context
-from flask_jwt_extended import get_jwt_identity
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -210,7 +209,7 @@ def apply_promotion_to_order(current_customer, order_id):
             }
         }), 200
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Apply promotion operation failed",
@@ -237,7 +236,7 @@ def get_active_promotions():
     now = datetime.utcnow()
 
     promotions = Promotion.query.filter(
-        Promotion.is_active == True,
+        Promotion.is_active.is_(True),
         Promotion.start_date <= now,
         (Promotion.end_date.is_(None)) | (Promotion.end_date >= now)
     ).all()

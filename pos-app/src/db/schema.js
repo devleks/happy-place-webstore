@@ -103,7 +103,7 @@ export async function seedInitialData() {
         },
         body: JSON.stringify({
           email: 'admin@happyplace.com',
-          password: 'admin123'
+          password: 'Admin123!'
         })
       });
 

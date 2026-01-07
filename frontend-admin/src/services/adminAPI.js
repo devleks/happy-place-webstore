@@ -1,37 +1,15 @@
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+import api from './api';
 
 // Handle errors
 const handleError = (error) => {
   if (error.response) {
-    // Backend can return error in 'error', 'message', or 'msg' field
-    const errorMsg = error.response.data.error || 
-                     error.response.data.message || 
-                     error.response.data.msg ||
-                     'An error occurred';
+    const data = error.response.data;
+    const errorMsg = (typeof data === 'string' && data.trim())
+      ? data
+      : data?.error ||
+        data?.message ||
+        data?.msg ||
+        `Request failed with status ${error.response.status}`;
     throw new Error(errorMsg);
   } else if (error.request) {
     throw new Error('No response from server. Please check your connection.');
@@ -91,6 +69,7 @@ export const adminAPI = {
   updateStock: async (productId, data) => {
     try {
       const response = await api.post('/admin/inventory/adjust', {
+        variant_id: productId,
         product_id: productId,
         quantity: data.quantity,
         reason: data.reason || 'Stock adjustment',
@@ -184,6 +163,33 @@ export const adminAPI = {
   refundOrder: async (orderId) => {
     try {
       const response = await api.post(`/admin/orders/${orderId}/refund`);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  confirmCodOrder: async (orderId) => {
+    try {
+      const response = await api.post(`/admin/orders/${orderId}/confirm-cod`);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  markCodPaid: async (orderId) => {
+    try {
+      const response = await api.post(`/admin/orders/${orderId}/mark-cod-paid`);
+      return response.data;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  expireUnconfirmedCodOrders: async (maxOrders = 1000) => {
+    try {
+      const response = await api.post('/admin/orders/cod/expire', { max_orders: maxOrders });
       return response.data;
     } catch (error) {
       handleError(error);

@@ -4,11 +4,11 @@ Products API routes with variant support.
 
 from flask import request, jsonify
 from routes import api
-from models import db, Product, ProductImage, ProductVariant, Inventory, Category, CategoryClosure
+from models import db, Product, ProductVariant, Inventory, Category, CategoryClosure
 from middleware import manager_required
-from sqlalchemy import and_
 from logging_utils import get_logger, safe_auth_context
 from flask_jwt_extended import get_jwt_identity
+from services.inventory_service import InventoryService
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -140,7 +140,7 @@ def get_product_by_slug(slug):
 
             inventory_data = {}
             if variant.inventory:
-                available_qty = variant.inventory.quantity - variant.inventory.reserved_quantity
+                available_qty = InventoryService.get_available_inventory(variant.id, 'online')
                 inventory_data = {
                     'quantity': variant.inventory.quantity,
                     'available_quantity': available_qty,
@@ -213,7 +213,7 @@ def get_products_with_variants():
                     }
 
                     if variant.inventory:
-                        available = variant.inventory.quantity - variant.inventory.reserved_quantity
+                        available = InventoryService.get_available_inventory(variant.id, 'pos')
                         inventory_data = {
                             'quantity': variant.inventory.quantity,
                             'available': available
@@ -255,7 +255,7 @@ def get_products_with_variants():
             'count': len(products_list)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Products with variants operation failed",
             extra={"context": safe_auth_context(
@@ -377,7 +377,7 @@ def create_product(current_employee):
             'message': 'Product and variants created successfully'
         }), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Create product operation failed",

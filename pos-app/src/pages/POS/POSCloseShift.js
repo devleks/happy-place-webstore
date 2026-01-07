@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { shiftAPI } from '../../services/electronAPI';
+import { shiftAPI } from '../../services/pwaAPI';
 import '../../styles/POSCloseShift.css';
 
 const POSCloseShift = () => {
@@ -33,14 +33,15 @@ const POSCloseShift = () => {
       return;
     }
 
-    setEmployee(JSON.parse(employeeInfo));
-    loadShiftData();
+    const emp = JSON.parse(employeeInfo);
+    setEmployee(emp);
+    loadShiftData(emp.id);
   }, [navigate]);
 
-  const loadShiftData = async () => {
+  const loadShiftData = async (employeeId) => {
     try {
       // Use PWA API - works offline with IndexedDB
-      const shift = await shiftAPI.getCurrent();
+      const shift = await shiftAPI.getCurrent(employeeId);
 
       if (shift) {
         setCurrentShift(shift);
@@ -149,7 +150,7 @@ const POSCloseShift = () => {
     <div className="pos-close-shift">
       {/* Header */}
       <header className="close-shift-header">
-        <button className="back-btn" onClick={() => navigate('/pos/dashboard')}>
+        <button className="back-btn" onClick={() => navigate('/dashboard')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M19 12H5M5 12l7 7m-7-7l7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -207,7 +208,7 @@ const POSCloseShift = () => {
                   </div>
                   <div className="summary-item">
                     <span className="label">Opening Float:</span>
-                    <span className="value">{formatCurrency(currentShift.opening_float)}</span>
+                    <span className="value">{formatCurrency(currentShift.starting_cash ?? currentShift.opening_float ?? 0)}</span>
                   </div>
                 </div>
               </div>
@@ -262,7 +263,7 @@ const POSCloseShift = () => {
             </div>
 
             <div className="step-actions">
-              <button className="btn-cancel" onClick={() => navigate('/pos/dashboard')}>
+              <button className="btn-cancel" onClick={() => navigate('/dashboard')}>
                 Cancel
               </button>
               <button className="btn-next" onClick={() => setStep(2)}>

@@ -15,8 +15,9 @@ All endpoints require JWT authentication and appropriate role permissions.
 """
 
 from flask import request, jsonify, Blueprint
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from functools import wraps
+from flask_jwt_extended import jwt_required, get_jwt_identity
+import re
+import uuid
 
 from services.admin_dashboard_service import AdminDashboardService
 from services.inventory_management_service import InventoryManagementService
@@ -69,13 +70,263 @@ def get_dashboard_metrics(current_employee):
     """
     try:
         period = request.args.get('period', 'today')
-        employee_id = int(get_jwt_identity())
+        _employee_id = int(get_jwt_identity())
 
         result = get_services()['dashboard'].get_dashboard_metrics(period=period)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None}
+            )},
+            exc_info=True,
+        )
+        return jsonify({'error': 'Internal server error'}), 400
+
+
+@admin_bp.route('/orders/<int:order_id>/confirm-cod', methods=['POST'])
+@jwt_required()
+@manager_required
+def confirm_cod_order_admin(current_employee, order_id):
+    """Confirm a COD order on behalf of the customer."""
+    try:
+        _employee_id = int(get_jwt_identity())
+        result = get_services()['order'].confirm_cod_order(order_id=order_id, employee_id=employee_id)
+        return jsonify(result), 200
+    except Exception:
+        logger.error(
+            "Confirm COD (admin) operation failed",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None, "order_id": order_id}
+            )},
+            exc_info=True,
+        )
+        return jsonify({'error': 'Internal server error'}), 400
+
+
+@admin_bp.route('/orders/<int:order_id>/mark-cod-paid', methods=['POST'])
+@jwt_required()
+@manager_required
+def mark_cod_paid_admin(current_employee, order_id):
+    """Mark COD payment as received and complete payment (deduct inventory)."""
+    try:
+        result = get_services()['order'].mark_cod_paid(order_id=order_id)
+        return jsonify(result), 200
+    except Exception:
+        logger.error(
+            "Mark COD paid operation failed",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None, "order_id": order_id}
+            )},
+            exc_info=True,
+        )
+        return jsonify({'error': 'Internal server error'}), 400
+
+
+@admin_bp.route('/orders/cod/expire', methods=['POST'])
+@jwt_required()
+@manager_required
+def expire_unconfirmed_cod_orders(current_employee):
+    """Expire unconfirmed COD orders and release reserved inventory."""
+    try:
+        data = request.get_json() or {}
+        max_orders = data.get('max_orders', 1000)
+        result = get_services()['order'].expire_unconfirmed_cod_orders(max_orders=max_orders)
+        return jsonify(result), 200
+    except Exception:
+        logger.error(
+            "Expire unconfirmed COD orders operation failed",
+            extra={"context": safe_auth_context(
+                user_type='employee',
+                ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                extra={"employee_id": int(get_jwt_identity()) if get_jwt_identity() else None}
+            )},
+            exc_info=True,
+        )
+        return jsonify({'error': 'Internal server error'}), 400
+
+
+@admin_bp.route('/reports/products', methods=['GET'])
+@jwt_required()
+@manager_required
+def get_products_report(current_employee):
+    """
+    Get products performance report.
+
+    GET /api/admin/reports/products?start_date=2025-01-01&end_date=2025-01-31
+
+    Returns:
+        200: Products report
+        400: Error
+    """
+    try:
+        from datetime import datetime, timedelta
+        from sqlalchemy import func, desc
+        from models.database_models import db, Order, OrderItem, Product, Category, POSTransaction, POSTransactionItem
+
+        def _parse_date(value, default_dt, is_end=False):
+            if not value:
+                return default_dt
+            raw = str(value).strip()
+            is_date_only = ('T' not in raw and ':' not in raw)
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y'):
+                try:
+                    dt = datetime.strptime(raw, fmt)
+                    return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+                except ValueError:
+                    continue
+            try:
+                dt = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+                return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+            except ValueError:
+                return default_dt
+
+        now = datetime.utcnow()
+        default_start = now - timedelta(days=30)
+        default_end = now + timedelta(days=1)
+
+        start_dt = _parse_date(request.args.get('start_date'), default_start, is_end=False)
+        end_dt = _parse_date(request.args.get('end_date'), default_end, is_end=True)
+
+        base_filter = [
+            Order.created_at >= start_dt,
+            Order.created_at < end_dt,
+            Order.status != 'cancelled'
+        ]
+
+        online_orders = db.session.query(func.count(func.distinct(Order.id)))\
+            .select_from(Order)\
+            .filter(*base_filter)\
+            .scalar() or 0
+
+        pos_orders = db.session.query(func.count(func.distinct(POSTransaction.id)))\
+            .select_from(POSTransaction)\
+            .filter(
+                POSTransaction.created_at >= start_dt,
+                POSTransaction.created_at < end_dt,
+                POSTransaction.status == 'completed'
+            )\
+            .scalar() or 0
+
+        total_orders = int(online_orders or 0) + int(pos_orders or 0)
+
+        online_units = db.session.query(func.coalesce(func.sum(OrderItem.quantity), 0))\
+            .select_from(Order)\
+            .join(OrderItem, Order.id == OrderItem.order_id)\
+            .filter(*base_filter)\
+            .scalar() or 0
+
+        pos_units = db.session.query(func.coalesce(func.sum(POSTransactionItem.quantity), 0))\
+            .select_from(POSTransaction)\
+            .join(POSTransactionItem, POSTransaction.id == POSTransactionItem.transaction_id)\
+            .filter(
+                POSTransaction.created_at >= start_dt,
+                POSTransaction.created_at < end_dt,
+                POSTransaction.status == 'completed'
+            )\
+            .scalar() or 0
+
+        total_units = int(online_units or 0) + int(pos_units or 0)
+
+        unique_products = db.session.execute(
+            db.text(
+                """
+                SELECT COUNT(DISTINCT t.product_id) AS unique_products
+                FROM (
+                    SELECT oi.product_id AS product_id
+                    FROM orders o
+                    JOIN order_items oi ON o.id = oi.order_id
+                    WHERE o.created_at >= :start_dt
+                      AND o.created_at < :end_dt
+                      AND o.status != 'cancelled'
+                    UNION
+                    SELECT pti.product_id AS product_id
+                    FROM pos_transactions pt
+                    JOIN pos_transaction_items pti ON pt.id = pti.transaction_id
+                    WHERE pt.created_at >= :start_dt
+                      AND pt.created_at < :end_dt
+                      AND pt.status = 'completed'
+                ) t
+                """
+            ),
+            {'start_dt': start_dt, 'end_dt': end_dt}
+        ).scalar() or 0
+
+        online_category_rows = db.session.query(
+            Category.name.label('category'),
+            func.coalesce(func.sum(OrderItem.quantity), 0).label('units_sold'),
+            func.coalesce(func.sum(OrderItem.total_price), 0).label('revenue')
+        ).select_from(Order)\
+         .join(OrderItem, Order.id == OrderItem.order_id)\
+         .join(Product, OrderItem.product_id == Product.id)\
+         .outerjoin(Category, Product.category_id == Category.id)\
+         .filter(*base_filter)\
+         .group_by(Category.name)\
+         .order_by(desc('revenue'))\
+         .all()
+
+        pos_category_rows = db.session.query(
+            Category.name.label('category'),
+            func.coalesce(func.sum(POSTransactionItem.quantity), 0).label('units_sold'),
+            func.coalesce(func.sum(POSTransactionItem.total_price), 0).label('revenue')
+        ).select_from(POSTransaction)\
+         .join(POSTransactionItem, POSTransaction.id == POSTransactionItem.transaction_id)\
+         .join(Product, POSTransactionItem.product_id == Product.id)\
+         .outerjoin(Category, Product.category_id == Category.id)\
+         .filter(
+            POSTransaction.created_at >= start_dt,
+            POSTransaction.created_at < end_dt,
+            POSTransaction.status == 'completed'
+         )\
+         .group_by(Category.name)\
+         .order_by(desc('revenue'))\
+         .all()
+
+        category_totals = {}
+        for row in online_category_rows:
+            cat = row.category or 'Uncategorized'
+            category_totals[cat] = {
+                'unitsSold': int(row.units_sold or 0),
+                'revenue': float(row.revenue or 0)
+            }
+        for row in pos_category_rows:
+            cat = row.category or 'Uncategorized'
+            if cat not in category_totals:
+                category_totals[cat] = {'unitsSold': 0, 'revenue': 0.0}
+            category_totals[cat]['unitsSold'] += int(row.units_sold or 0)
+            category_totals[cat]['revenue'] += float(row.revenue or 0)
+
+        total_revenue = float(sum(v['revenue'] for v in category_totals.values()) or 0)
+        category_breakdown = []
+        for cat, totals in sorted(category_totals.items(), key=lambda kv: kv[1]['revenue'], reverse=True):
+            revenue = float(totals['revenue'] or 0)
+            category_breakdown.append({
+                'category': cat,
+                'unitsSold': int(totals['unitsSold'] or 0),
+                'revenue': revenue,
+                'percentage': (revenue / total_revenue * 100) if total_revenue > 0 else 0
+            })
+
+        return jsonify({
+            'totalProductsSold': int(total_units or 0),
+            'uniqueProducts': int(unique_products or 0),
+            'avgUnitsPerOrder': float(total_units / total_orders) if total_orders else 0,
+            'categoryBreakdown': category_breakdown,
+        }), 200
+    except Exception:
+        logger.error(
+            "Products report failed",
             extra={"context": safe_auth_context(
                 user_type='employee',
                 ip=request.remote_addr,
@@ -102,11 +353,11 @@ def get_dashboard_activity(current_employee):
     """
     try:
         limit = request.args.get('limit', 20, type=int)
-        employee_id = int(get_jwt_identity())
+        _employee_id = int(get_jwt_identity())
 
         result = get_services()['dashboard'].get_recent_activity(limit=limit)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -138,7 +389,7 @@ def get_dashboard_alerts(current_employee):
 
         result = get_services()['dashboard'].get_alerts()
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -167,11 +418,11 @@ def get_dashboard_trends(current_employee):
     """
     try:
         period = request.args.get('period', 'month')
-        employee_id = int(get_jwt_identity())
+        _employee_id = int(get_jwt_identity())
 
         result = get_services()['dashboard'].get_trends(period=period)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -223,7 +474,7 @@ def get_inventory(current_employee):
             per_page=limit
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -254,7 +505,7 @@ def get_inventory_details(current_employee, product_id):
     try:
         result = get_services()['inventory'].get_inventory_details(product_id=product_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -288,7 +539,7 @@ def update_inventory(current_employee, product_id):
         400: Error
     """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         employee_id = int(get_jwt_identity())
 
         result = get_services()['inventory'].update_inventory(
@@ -297,7 +548,7 @@ def update_inventory(current_employee, product_id):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -331,7 +582,7 @@ def bulk_update_inventory(current_employee):
         400: Error
     """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         employee_id = int(get_jwt_identity())
 
         if 'updates' not in data:
@@ -342,7 +593,7 @@ def bulk_update_inventory(current_employee):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -376,23 +627,46 @@ def adjust_inventory(current_employee):
         400: Error
     """
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         employee_id = int(get_jwt_identity())
 
-        required = ['product_id', 'quantity', 'reason']
-        for field in required:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+        variant_id = data.get('variant_id')
+        if variant_id is None:
+            variant_id = data.get('product_id')
 
-        result = get_services()['inventory'].adjust_inventory(
-            product_id=data['product_id'],
-            quantity=data['quantity'],
-            reason=data['reason'],
-            notes=data.get('notes'),
+        if variant_id is None:
+            return jsonify({'success': False, 'error': 'Missing required field: variant_id'}), 400
+        if 'quantity' not in data:
+            return jsonify({'success': False, 'error': 'Missing required field: quantity'}), 400
+        if 'reason' not in data:
+            return jsonify({'success': False, 'error': 'Missing required field: reason'}), 400
+
+        try:
+            variant_id = int(variant_id)
+            quantity_delta = int(data['quantity'])
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Invalid variant_id or quantity'}), 400
+
+        if quantity_delta == 0:
+            return jsonify({'success': False, 'error': 'Quantity must be non-zero'}), 400
+
+        adjustment = {
+            'type': 'remove' if quantity_delta < 0 else 'add',
+            'quantity': abs(quantity_delta),
+            'reason': data.get('reason') or 'Stock adjustment',
+        }
+
+        success = get_services()['inventory'].adjust_stock(
+            variant_id=variant_id,
+            adjustment=adjustment,
             employee_id=employee_id
         )
-        return jsonify(result), 200
-    except Exception as e:
+
+        if not success:
+            return jsonify({'success': False, 'error': 'Inventory not found'}), 400
+
+        return jsonify({'success': True}), 200
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -428,7 +702,7 @@ def transfer_inventory(current_employee):
     """
     try:
         data = request.get_json()
-        employee_id = int(get_jwt_identity())
+        _employee_id = int(get_jwt_identity())
 
         required = ['product_id', 'quantity', 'from_location', 'to_location']
         for field in required:
@@ -444,7 +718,7 @@ def transfer_inventory(current_employee):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -481,7 +755,7 @@ def get_inventory_history(current_employee, product_id):
             offset=offset
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -516,7 +790,7 @@ def delete_inventory_item(current_employee, product_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -546,7 +820,7 @@ def get_inventory_alerts(current_employee):
     try:
         result = get_services()['inventory'].get_inventory_alerts()
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -583,10 +857,18 @@ def create_product(current_employee):
         400: Error
     """
     try:
-        from models.database_models import db, Product, ProductVariant, Inventory
+        from extensions import db
+        from models.database_models import Product, Inventory
+        from models.extended_models import ProductVariant
 
         data = request.get_json()
         employee_id = int(get_jwt_identity())
+
+        def _slugify(value: str) -> str:
+            value = (value or '').strip().lower()
+            value = re.sub(r'[^a-z0-9]+', '-', value)
+            value = value.strip('-')
+            return value or str(uuid.uuid4())
 
         # Required fields
         required = ['name', 'category_id', 'price']
@@ -595,11 +877,14 @@ def create_product(current_employee):
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         # Create product
+        product_sku = data.get('sku') or f"SKU-{uuid.uuid4().hex[:8].upper()}"
         product = Product(
             name=data['name'],
+            slug=_slugify(data['name']),
             description=data.get('description', ''),
             category_id=data['category_id'],
             price=data['price'],
+            sku=product_sku,
             is_active=True
         )
         db.session.add(product)
@@ -613,7 +898,7 @@ def create_product(current_employee):
             # Create single default variant
             variant = ProductVariant(
                 product_id=product.id,
-                sku=data.get('sku', f'SKU-{product.id}'),
+                sku=product_sku,
                 size=data.get('size', 'One Size'),
                 color=data.get('color', 'Default')
             )
@@ -889,7 +1174,7 @@ def get_order_details(current_employee, order_id):
     try:
         result = get_services()['order'].get_order_details(order_id=order_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -934,7 +1219,7 @@ def update_order_status(current_employee, order_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -966,7 +1251,7 @@ def cancel_order(current_employee, order_id):
         400: Error
     """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         employee_id = int(get_jwt_identity())
 
         if 'reason' not in data:
@@ -979,7 +1264,7 @@ def cancel_order(current_employee, order_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1028,7 +1313,7 @@ def refund_order(current_employee, order_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1073,7 +1358,7 @@ def add_order_note(current_employee, order_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1103,7 +1388,7 @@ def get_order_timeline(current_employee, order_id):
     try:
         result = get_services()['order'].get_order_timeline(order_id=order_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1150,7 +1435,7 @@ def send_order_notification(current_employee, order_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1422,7 +1707,7 @@ def get_customer_details(current_employee, customer_id):
     try:
         result = get_services()['customer'].get_customer_details(customer_id=customer_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1465,7 +1750,7 @@ def update_customer(current_employee, customer_id):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1500,7 +1785,7 @@ def delete_customer(current_employee, customer_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1535,7 +1820,7 @@ def get_customer_orders(current_employee, customer_id):
             limit=limit
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1570,7 +1855,7 @@ def get_customer_activity(current_employee, customer_id):
             limit=limit
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1605,7 +1890,7 @@ def export_customer_data(current_employee, customer_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1653,7 +1938,7 @@ def anonymize_customer(current_employee, customer_id):
             return jsonify({'success': True, 'message': 'Customer anonymized successfully'}), 200
         else:
             return jsonify({'error': 'Failed to anonymize customer'}), 400
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1683,7 +1968,7 @@ def get_customer_consent_history(current_employee, customer_id):
     try:
         result = get_services()['customer'].get_consent_history(customer_id=customer_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1731,7 +2016,7 @@ def get_employees(current_employee):
             filters=filters
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1762,7 +2047,7 @@ def get_employee_details(current_employee, employee_id):
     try:
         result = get_services()['employee'].get_employee_details(employee_id=employee_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1796,8 +2081,8 @@ def create_employee(current_employee):
         400: Error
     """
     try:
-        data = request.get_json()
-        admin_id = int(get_jwt_identity())
+        data = request.get_json(silent=True) or {}
+        _admin_id = int(get_jwt_identity())
 
         required = ['email', 'full_name', 'role']
         for field in required:
@@ -1810,7 +2095,7 @@ def create_employee(current_employee):
             return jsonify(result), 201
         else:
             return jsonify(result), 400
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1844,14 +2129,14 @@ def update_employee(current_employee, employee_id):
     """
     try:
         data = request.get_json()
-        admin_id = int(get_jwt_identity())
+        _admin_id = int(get_jwt_identity())
 
         result = get_services()['employee'].update_employee(
             employee_id=employee_id,
             data=data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1886,7 +2171,7 @@ def deactivate_employee(current_employee, employee_id):
             admin_id=admin_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1929,7 +2214,7 @@ def reset_employee_password(current_employee, employee_id):
             admin_id=admin_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1964,7 +2249,7 @@ def disable_employee_2fa(current_employee, employee_id):
             admin_id=admin_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -1999,7 +2284,7 @@ def get_employee_activity(current_employee, employee_id):
             limit=limit
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2034,7 +2319,7 @@ def get_employee_performance(current_employee, employee_id):
             period=period
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2074,7 +2359,7 @@ def get_promotions(current_employee):
 
         result = get_services()['promotion'].get_promotion_list(filters=filters)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2105,7 +2390,7 @@ def get_promotion_details(current_employee, promotion_id):
     try:
         result = get_services()['promotion'].get_promotion_details(promotion_id=promotion_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2168,7 +2453,7 @@ def create_promotion(current_employee):
             return jsonify(result), 201
         else:
             return jsonify(result), 400
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2200,16 +2485,48 @@ def update_promotion(current_employee, promotion_id):
         400: Error
     """
     try:
-        data = request.get_json()
-        employee_id = int(get_jwt_identity())
+        data = request.get_json(silent=True) or {}
+
+        # Backwards compatible field mappings
+        if 'type' in data and 'discount_type' not in data:
+            data['discount_type'] = data.pop('type')
+        if 'value' in data and 'discount_value' not in data:
+            data['discount_value'] = data.pop('value')
+
+        # Frontend-admin uses different field names
+        if 'min_purchase_amount' in data and 'minimum_order_amount' not in data:
+            data['minimum_order_amount'] = data.pop('min_purchase_amount')
+        if 'max_uses' in data and 'usage_limit' not in data:
+            data['usage_limit'] = data.pop('max_uses')
+
+        # Normalize numeric inputs coming from HTML forms
+        if 'usage_limit' in data:
+            if data['usage_limit'] == '' or data['usage_limit'] is None:
+                data['usage_limit'] = None
+            else:
+                try:
+                    data['usage_limit'] = int(data['usage_limit'])
+                except (TypeError, ValueError):
+                    return jsonify({'success': False, 'error': 'Invalid usage_limit'}), 400
+
+        if 'usage_per_customer' in data:
+            if data['usage_per_customer'] == '' or data['usage_per_customer'] is None:
+                data['usage_per_customer'] = None
+            else:
+                try:
+                    data['usage_per_customer'] = int(data['usage_per_customer'])
+                except (TypeError, ValueError):
+                    return jsonify({'success': False, 'error': 'Invalid usage_per_customer'}), 400
 
         result = get_services()['promotion'].update_promotion(
             promotion_id=promotion_id,
-            employee_id=employee_id,
-            **data
+            data=data
         )
-        return jsonify(result), 200
-    except Exception as e:
+
+        if result.get('success'):
+            return jsonify(result), 200
+        return jsonify(result), 400
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2243,8 +2560,10 @@ def delete_promotion(current_employee, promotion_id):
             promotion_id=promotion_id,
             employee_id=employee_id
         )
-        return jsonify(result), 200
-    except Exception as e:
+        if isinstance(result, dict) and result.get('success'):
+            return jsonify(result), 200
+        return jsonify(result if isinstance(result, dict) else {'success': False, 'error': 'Failed to delete promotion'}), 400
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2273,8 +2592,26 @@ def toggle_promotion(current_employee, promotion_id):
         400: Error
     """
     try:
-        data = request.get_json()
-        is_active = data.get('isActive', True)
+        from models.database_models import db
+        from models.extended_models import Promotion
+
+        data = request.get_json(silent=True) or {}
+
+        if 'isActive' in data:
+            is_active = data.get('isActive')
+        elif 'is_active' in data:
+            is_active = data.get('is_active')
+        else:
+            return jsonify({'error': 'Missing required field: isActive'}), 400
+
+        if isinstance(is_active, str):
+            is_active = is_active.strip().lower() in ('true', '1', 'yes', 'y', 'on')
+        elif isinstance(is_active, (int, float)):
+            is_active = bool(is_active)
+        elif isinstance(is_active, bool):
+            pass
+        else:
+            is_active = bool(is_active)
         
         promotion = Promotion.query.get(promotion_id)
         if not promotion:
@@ -2315,7 +2652,7 @@ def enable_promotion(current_employee, promotion_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2350,7 +2687,7 @@ def disable_promotion(current_employee, promotion_id):
             employee_id=employee_id
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2380,7 +2717,7 @@ def get_promotion_analytics(current_employee, promotion_id):
     try:
         result = get_services()['promotion'].get_promotion_analytics(promotion_id=promotion_id)
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2419,7 +2756,7 @@ def duplicate_promotion(current_employee, promotion_id):
             return jsonify(result), 201
         else:
             return jsonify(result), 400
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2451,8 +2788,34 @@ def get_sales_report(current_employee):
         400: Error
     """
     try:
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
+        from datetime import datetime, timedelta
+
+        def _parse_date(value, default_dt, is_end=False):
+            if not value:
+                return default_dt
+            raw = str(value).strip()
+            is_date_only = ('T' not in raw and ':' not in raw)
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y'):
+                try:
+                    dt = datetime.strptime(raw, fmt)
+                    return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+                except ValueError:
+                    continue
+            try:
+                dt = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+                return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+            except ValueError:
+                return default_dt
+
+        now = datetime.utcnow()
+        default_start = now - timedelta(days=30)
+        default_end = now + timedelta(days=1)
+
+        start_date_raw = request.args.get('start_date')
+        end_date_raw = request.args.get('end_date')
+        start_dt = _parse_date(start_date_raw, default_start, is_end=False)
+        end_dt = _parse_date(end_date_raw, default_end, is_end=True)
+
         group_by = request.args.get('group_by', 'day')
         channel = request.args.get('channel', 'all')
 
@@ -2463,11 +2826,37 @@ def get_sales_report(current_employee):
             filters['channel'] = channel
 
         result = get_services()['report'].get_sales_report(
-            start_date=start_date,
-            end_date=end_date,
+            start_date=start_dt.isoformat(),
+            end_date=end_dt.isoformat(),
             filters=filters
         )
-        return jsonify(result), 200
+
+        summary = (result.get('summary') or {}).get('combined') or {}
+        daily_sales = []
+        for day in result.get('by_day') or []:
+            daily_sales.append({
+                'date': day.get('date'),
+                'sales': float(day.get('revenue') or 0)
+            })
+
+        top_products = []
+        for idx, prod in enumerate(result.get('by_product') or []):
+            name = prod.get('product')
+            top_products.append({
+                'id': name or idx,
+                'name': name,
+                'unitsSold': int(prod.get('units_sold') or 0),
+                'revenue': float(prod.get('revenue') or 0)
+            })
+
+        return jsonify({
+            'totalRevenue': float(summary.get('total_revenue') or 0),
+            'totalOrders': int(summary.get('total_orders') or 0),
+            'avgOrderValue': float(summary.get('average_order_value') or 0),
+            'totalProfit': 0,
+            'dailySales': daily_sales,
+            'topProducts': top_products,
+        }), 200
     except Exception as e:
         print(f"ERROR in get_sales_report: {str(e)}")
         import traceback
@@ -2499,8 +2888,28 @@ def get_inventory_report(current_employee):
             filters['sort_by'] = request.args.get('sort_by')
 
         result = get_services()['report'].get_inventory_report(filters=filters)
-        return jsonify(result), 200
-    except Exception as e:
+
+        summary = result.get('summary') or {}
+        items = result.get('items') or []
+        low_stock_products = []
+        for item in items:
+            stock_qty = int(item.get('stock_quantity') or 0)
+            if 0 < stock_qty < 10:
+                low_stock_products.append({
+                    'id': item.get('variant_id'),
+                    'name': item.get('product_name'),
+                    'stock': stock_qty,
+                    'threshold': 10
+                })
+
+        return jsonify({
+            'totalProducts': int(summary.get('total_variants') or 0),
+            'lowStockItems': int(summary.get('low_stock_count') or 0),
+            'outOfStockItems': int(summary.get('out_of_stock_count') or 0),
+            'totalInventoryValue': float(summary.get('total_stock_value') or 0),
+            'lowStockProducts': low_stock_products,
+        }), 200
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2528,11 +2937,69 @@ def get_customers_report(current_employee):
         400: Error
     """
     try:
+        from datetime import datetime, timedelta
+        from sqlalchemy import func
+        from models.database_models import db, Order
+
+        start_date_raw = request.args.get('start_date')
+        end_date_raw = request.args.get('end_date')
         period = request.args.get('period', 'month')
 
-        result = get_services()['report'].get_customers_report(period=period)
-        return jsonify(result), 200
-    except Exception as e:
+        now = datetime.utcnow()
+        default_start = now - timedelta(days=30)
+        default_end = now
+
+        def _parse_date(value, default_dt):
+            if not value:
+                return default_dt
+            raw = str(value).strip()
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y'):
+                try:
+                    return datetime.strptime(raw, fmt)
+                except ValueError:
+                    continue
+            try:
+                return datetime.fromisoformat(raw.replace('Z', '+00:00'))
+            except ValueError:
+                return default_dt
+
+        if start_date_raw and end_date_raw:
+            start_dt = _parse_date(start_date_raw, default_start)
+            end_dt = _parse_date(end_date_raw, default_end)
+            days = max(1, (end_dt - start_dt).days)
+            if days <= 7:
+                period = 'week'
+            elif days <= 31:
+                period = 'month'
+            elif days <= 93:
+                period = 'quarter'
+            else:
+                period = 'year'
+
+        result = get_services()['report'].get_customer_report(period=period)
+
+        summary = result.get('summary') or {}
+        top_customers = []
+        for c in result.get('top_customers') or []:
+            top_customers.append({
+                'id': c.get('customer_id'),
+                'name': c.get('name'),
+                'totalOrders': int(c.get('order_count') or 0),
+                'totalSpent': float(c.get('total_spent') or 0),
+            })
+
+        total_spent = db.session.query(func.coalesce(func.sum(Order.total), 0)).filter(Order.status != 'cancelled').scalar() or 0
+        distinct_customers = db.session.query(func.count(func.distinct(Order.customer_id))).filter(Order.status != 'cancelled').scalar() or 0
+        avg_lifetime_value = float(total_spent / distinct_customers) if distinct_customers else 0
+
+        return jsonify({
+            'totalCustomers': int(summary.get('total_customers') or 0),
+            'newCustomers': int(summary.get('new_customers') or 0),
+            'activeCustomers': int(summary.get('active_customers') or 0),
+            'avgLifetimeValue': avg_lifetime_value,
+            'topCustomers': top_customers,
+        }), 200
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2560,11 +3027,132 @@ def get_employees_report(current_employee):
         400: Error
     """
     try:
-        period = request.args.get('period', 'month')
+        from datetime import datetime, timedelta
+        from sqlalchemy import func, desc
+        from models.database_models import db, Employee, POSTransaction
 
-        result = get_services()['report'].get_employees_report(period=period)
-        return jsonify(result), 200
-    except Exception as e:
+        start_date_raw = request.args.get('start_date')
+        end_date_raw = request.args.get('end_date')
+
+        now = datetime.utcnow()
+        default_start = now - timedelta(days=30)
+        default_end = now
+
+        def _parse_date(value, default_dt, is_end=False):
+            if not value:
+                return default_dt
+            raw = str(value).strip()
+            is_date_only = ('T' not in raw and ':' not in raw)
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y'):
+                try:
+                    dt = datetime.strptime(raw, fmt)
+                    return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+                except ValueError:
+                    continue
+            try:
+                dt = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+                return dt + timedelta(days=1) if (is_end and is_date_only) else dt
+            except ValueError:
+                return default_dt
+
+        start_dt = _parse_date(start_date_raw, default_start, is_end=False)
+        end_dt = _parse_date(end_date_raw, default_end, is_end=True)
+
+        total_employees = Employee.query.filter(Employee.is_active.is_(True)).count()
+
+        txn_rows = db.session.query(
+            Employee.id.label('employee_id'),
+            Employee.full_name.label('name'),
+            func.count(POSTransaction.id).label('transaction_count'),
+            func.coalesce(func.sum(POSTransaction.total), 0).label('total_sales')
+        ).join(POSTransaction, Employee.id == POSTransaction.employee_id)\
+         .filter(
+            POSTransaction.created_at >= start_dt,
+            POSTransaction.created_at < end_dt,
+            POSTransaction.status == 'completed'
+         )\
+         .group_by(Employee.id, Employee.full_name)\
+         .order_by(desc('total_sales'))\
+         .all()
+
+        hours_by_employee = {}
+        try:
+            table_exists = db.session.execute(
+                db.text(
+                    """
+                    SELECT 1
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = 'pos_shifts'
+                    LIMIT 1
+                    """
+                )
+            ).fetchone()
+
+            if table_exists:
+                shift_rows = db.session.execute(
+                    db.text(
+                        """
+                        SELECT
+                            employee_id,
+                            SUM(
+                                GREATEST(
+                                    0,
+                                    EXTRACT(EPOCH FROM (
+                                        LEAST(COALESCE(end_time, :range_end), :range_end)
+                                        - GREATEST(start_time, :range_start)
+                                    ))
+                                )
+                            ) AS seconds
+                        FROM pos_shifts
+                        WHERE start_time < :range_end
+                          AND COALESCE(end_time, :range_end) > :range_start
+                        GROUP BY employee_id
+                        """
+                    ),
+                    {'range_start': start_dt, 'range_end': end_dt}
+                ).fetchall()
+
+                for row in shift_rows:
+                    emp_id = int(row[0])
+                    seconds = float(row[1] or 0)
+                    hours_by_employee[emp_id] = seconds / 3600.0
+        except Exception:
+            hours_by_employee = {}
+
+        settings_service = get_services().get('settings')
+        hourly_rate = 0
+        if settings_service:
+            rate = settings_service.get_setting('employee_hourly_rate')
+            if rate is None:
+                rate = settings_service.get_setting('hourly_rate')
+            try:
+                hourly_rate = float(rate) if rate is not None else 0
+            except Exception:
+                hourly_rate = 0
+
+        employee_performance = []
+        for row in txn_rows:
+            emp_id = int(row.employee_id)
+            hours = float(hours_by_employee.get(emp_id, 0))
+            revenue = float(row.total_sales or 0)
+            employee_performance.append({
+                'id': emp_id,
+                'name': row.name,
+                'hours': hours,
+                'salesProcessed': int(row.transaction_count or 0),
+                'revenue': revenue
+            })
+
+        total_hours = float(sum(hours_by_employee.values()) or 0)
+        total_labor_cost = float(total_hours * hourly_rate)
+
+        return jsonify({
+            'totalEmployees': int(total_employees or 0),
+            'totalHours': total_hours,
+            'totalLaborCost': total_labor_cost,
+            'employeePerformance': employee_performance,
+        }), 200
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2598,7 +3186,7 @@ def get_settings(current_employee):
     try:
         result = get_services()['settings'].get_all_settings()
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2640,7 +3228,7 @@ def update_store_settings(current_employee):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2690,7 +3278,7 @@ def business_settings(current_employee):
                 hours=data
             )
             return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2741,7 +3329,7 @@ def notification_settings(current_employee):
                 **data
             )
             return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2781,7 +3369,7 @@ def update_hours_settings(current_employee):
             hours=data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2823,7 +3411,7 @@ def update_email_settings(current_employee):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2864,7 +3452,7 @@ def update_payment_settings(current_employee):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2905,7 +3493,7 @@ def update_tax_settings(current_employee):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -2946,7 +3534,7 @@ def update_return_settings(current_employee):
             **data
         )
         return jsonify(result), 200
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -3023,7 +3611,7 @@ def update_currency_settings(current_employee):
             error_msg = result1.get('error') or result2.get('error') or 'Failed to update currency'
             return jsonify({'error': error_msg}), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(
@@ -3062,7 +3650,7 @@ def get_currency_settings(current_employee):
             'currency_code': currency_code or 'KES'
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Dashboard metrics operation failed",
             extra={"context": safe_auth_context(

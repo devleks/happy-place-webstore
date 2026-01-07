@@ -7,7 +7,6 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from extensions import db
 from app import create_app
 from services.shipping_service import ShippingService
 from services.product_service import ProductService
@@ -129,7 +128,7 @@ def test_shipping_calculation():
         try:
             result = ShippingService.calculate_shipping_sp('', 5.0)
             print_result("Empty city validation", False, "Should have raised error")
-        except ValueError as e:
+        except ValueError:
             print_result("Empty city validation", True, "Correctly raised ValueError")
             tests_passed += 1
         except Exception as e:
@@ -200,7 +199,7 @@ def test_product_creation():
             if passed:
                 tests_passed += 1
                 # Store product_id for cleanup
-                test_product_id = result['product_id']
+                _test_product_id = result['product_id']
         except Exception as e:
             print_result("Create product with variants", False, str(e))
 

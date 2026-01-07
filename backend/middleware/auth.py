@@ -4,7 +4,7 @@ Provides decorators for protecting routes based on user type and role.
 """
 
 from functools import wraps
-from flask import jsonify, request
+from flask import jsonify
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
 from models import Customer, Employee
 

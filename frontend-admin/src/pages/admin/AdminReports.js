@@ -15,13 +15,32 @@ const AdminReports = () => {
     end: new Date().toISOString().split('T')[0],
   });
   const [reportData, setReportData] = useState(null);
+  const [currencySymbol, setCurrencySymbol] = useState('KSh');
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
+    loadCurrency();
   }, [user, navigate]);
+
+  const loadCurrency = async () => {
+    try {
+      const response = await fetch('/api/settings/public');
+      if (!response.ok) return;
+      const data = await response.json();
+      const symbol = data?.settings?.currency || data?.currency || 'KSh';
+      if (symbol) setCurrencySymbol(symbol);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const formatMoney = (value) => {
+    const num = Number(value || 0);
+    return `${currencySymbol}${num.toFixed(2)}`;
+  };
 
   const generateReport = async () => {
     try {
@@ -75,7 +94,7 @@ const AdminReports = () => {
         <div className="report-summary">
           <div className="summary-card">
             <h3>Total Revenue</h3>
-            <p className="metric-large">${reportData.totalRevenue?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.totalRevenue)}</p>
           </div>
           <div className="summary-card">
             <h3>Total Orders</h3>
@@ -83,11 +102,11 @@ const AdminReports = () => {
           </div>
           <div className="summary-card">
             <h3>Average Order Value</h3>
-            <p className="metric-large">${reportData.avgOrderValue?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.avgOrderValue)}</p>
           </div>
           <div className="summary-card">
             <h3>Total Profit</h3>
-            <p className="metric-large">${reportData.totalProfit?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.totalProfit)}</p>
           </div>
         </div>
 
@@ -104,7 +123,7 @@ const AdminReports = () => {
                       width: `${(day.sales / Math.max(...reportData.dailySales.map((d) => d.sales))) * 100}%`,
                     }}
                   >
-                    ${day.sales.toFixed(2)}
+                    {formatMoney(day.sales)}
                   </div>
                 </div>
               ))}
@@ -128,7 +147,7 @@ const AdminReports = () => {
                   <tr key={product.id}>
                     <td>{product.name}</td>
                     <td>{product.unitsSold}</td>
-                    <td>${product.revenue.toFixed(2)}</td>
+                    <td>{formatMoney(product.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -159,7 +178,7 @@ const AdminReports = () => {
           </div>
           <div className="summary-card">
             <h3>Total Value</h3>
-            <p className="metric-large">${reportData.totalInventoryValue?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.totalInventoryValue)}</p>
           </div>
         </div>
 
@@ -214,7 +233,7 @@ const AdminReports = () => {
           </div>
           <div className="summary-card">
             <h3>Customer Lifetime Value</h3>
-            <p className="metric-large">${reportData.avgLifetimeValue?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.avgLifetimeValue)}</p>
           </div>
         </div>
 
@@ -234,7 +253,7 @@ const AdminReports = () => {
                   <tr key={customer.id}>
                     <td>{customer.name}</td>
                     <td>{customer.totalOrders}</td>
-                    <td>${customer.totalSpent.toFixed(2)}</td>
+                    <td>{formatMoney(customer.totalSpent)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -282,7 +301,7 @@ const AdminReports = () => {
                   <tr key={cat.category}>
                     <td>{cat.category}</td>
                     <td>{cat.unitsSold}</td>
-                    <td>${cat.revenue.toFixed(2)}</td>
+                    <td>{formatMoney(cat.revenue)}</td>
                     <td>{cat.percentage.toFixed(1)}%</td>
                   </tr>
                 ))}
@@ -310,7 +329,7 @@ const AdminReports = () => {
           </div>
           <div className="summary-card">
             <h3>Labor Cost</h3>
-            <p className="metric-large">${reportData.totalLaborCost?.toFixed(2) || '0.00'}</p>
+            <p className="metric-large">{formatMoney(reportData.totalLaborCost)}</p>
           </div>
         </div>
 
@@ -332,7 +351,7 @@ const AdminReports = () => {
                     <td>{emp.name}</td>
                     <td>{emp.hours.toFixed(2)}</td>
                     <td>{emp.salesProcessed}</td>
-                    <td>${emp.revenue.toFixed(2)}</td>
+                    <td>{formatMoney(emp.revenue)}</td>
                   </tr>
                 ))}
               </tbody>

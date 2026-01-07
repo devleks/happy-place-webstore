@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to load user:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user_type');
       setUserType(null);
     } finally {
@@ -66,7 +67,11 @@ export const AuthProvider = ({ children }) => {
   const loginCustomer = async (credentials) => {
     const response = await authAPI.customerLogin(credentials);
     localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('refresh_token', response.data.refresh_token);
+
+    if (response.data.refresh_token) {
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
+
     localStorage.setItem('user_type', 'customer');
     setUserType('customer');
     setUser(response.data.customer);
@@ -76,7 +81,11 @@ export const AuthProvider = ({ children }) => {
   const loginCustomerWithGoogle = async (idToken) => {
     const response = await authAPI.customerGoogleOAuth({ id_token: idToken });
     localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('refresh_token', response.data.refresh_token);
+
+    if (response.data.refresh_token) {
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
+
     localStorage.setItem('user_type', 'customer');
     setUserType('customer');
     setUser(response.data.customer);
@@ -86,7 +95,11 @@ export const AuthProvider = ({ children }) => {
   const loginEmployee = async (credentials) => {
     const response = await authAPI.employeeLogin(credentials);
     localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('refresh_token', response.data.refresh_token);
+
+    if (response.data.refresh_token) {
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
+
     localStorage.setItem('user_type', 'employee');
     setUserType('employee');
     setUser(response.data.employee);
@@ -96,7 +109,11 @@ export const AuthProvider = ({ children }) => {
   const loginAdmin = async (credentials) => {
     const response = await authAPI.adminLogin(credentials);
     localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('refresh_token', response.data.refresh_token);
+
+    if (response.data.refresh_token) {
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
+
     localStorage.setItem('user_type', 'employee'); // Admin is also an employee type
     setUserType('employee');
     setUser(response.data.employee);
@@ -105,10 +122,23 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     const response = await authAPI.customerRegister(userData);
-    localStorage.setItem('token', response.data.access_token);
-    localStorage.setItem('user_type', 'customer');
-    setUserType('customer');
-    setUser(response.data.customer);
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token);
+
+      if (response.data.refresh_token) {
+        localStorage.setItem('refresh_token', response.data.refresh_token);
+      }
+
+      localStorage.setItem('user_type', 'customer');
+      setUserType('customer');
+      setUser(response.data.customer);
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_type');
+      setUserType(null);
+      setUser(null);
+    }
     return response.data;
   };
 

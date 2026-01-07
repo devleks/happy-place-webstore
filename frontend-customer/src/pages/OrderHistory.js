@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { helpers } from '../services/api';
@@ -18,21 +18,12 @@ const OrderHistory = () => {
   });
   const [filterStatus, setFilterStatus] = useState('all');
 
-  useEffect(() => {
-    if (!user) {
-      toast.warning('Please log in to view order history');
-      navigate('/login');
-      return;
-    }
-
-    fetchOrders();
-  }, [user, pagination.page, filterStatus, navigate]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
 
-      let url = `http://localhost:5001/api/orders?page=${pagination.page}&per_page=${pagination.per_page}`;
+      const { page, per_page } = pagination;
+      let url = `http://localhost:5001/api/orders?page=${page}&per_page=${per_page}`;
 
       if (filterStatus !== 'all') {
         url += `&status=${filterStatus}`;
@@ -64,7 +55,17 @@ const OrderHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination, filterStatus]);
+
+  useEffect(() => {
+    if (!user) {
+      toast.warning('Please log in to view order history');
+      navigate('/login');
+      return;
+    }
+
+    fetchOrders();
+  }, [user, navigate, fetchOrders]);
 
   const handleViewOrder = (orderId) => {
     navigate(`/order-confirmation/${orderId}`);

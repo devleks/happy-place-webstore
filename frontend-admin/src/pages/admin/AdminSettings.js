@@ -62,7 +62,7 @@ const AdminSettings = () => {
   useEffect(() => {
     // Only admins can access settings
     if (!user || user.role !== 'admin') {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 

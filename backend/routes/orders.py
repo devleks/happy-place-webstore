@@ -7,9 +7,12 @@ from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from routes import api
-from models import db, Order, Cart, CartItem, Customer
+from models import db, Order, Cart, CartItem, Customer, Payment
 from services.order_service import OrderService
-from services.shipping_service import ShippingService
+from services.email_service import email_service
+from services.mpesa_service import MPesaService
+from services.payment_service import PaymentService
+from services.encryption import decrypt_customer, encrypt_payment
 from logging_utils import get_logger, safe_auth_context
 
 
@@ -56,8 +59,7 @@ def get_customer_cart(customer_id: int) -> Cart:
 @jwt_required()
 def create_order():
     """
-    Create new order from cart.
-    NOTE: M-Pesa payment is not yet implemented (Phase 2).
+    Create new order from cart with payment processing.
 
     POST /api/orders
     Body: {
@@ -69,13 +71,13 @@ def create_order():
             "phone": "+254712345678"
         },
         "billing_address": {...},  // Optional
-        "payment_method": "cod" | "mpesa"  // Default: cod
+        "payment_method": "cod" | "mpesa",  // Default: cod
+        "mpesa_phone": "254712345678"  // Required for M-Pesa
     }
 
     Returns:
-        201: Order created successfully
+        201: Order created successfully (with M-Pesa STK Push if applicable)
         400: Validation error
-        501: M-Pesa not implemented
         500: Server error
     """
     try:
@@ -96,26 +98,11 @@ def create_order():
         # Validate payment method
         if payment_method not in ['cod', 'mpesa']:
             return jsonify({'error': 'Invalid payment method. Must be "cod" or "mpesa"'}), 400
-        
-        # TEMPORARY: Reject M-Pesa until Phase 2 implementation
-        if payment_method == 'mpesa':
-            logger.info(
-                f"M-Pesa payment attempt blocked - Customer: {customer_id}, "
-                f"IP: {request.remote_addr}",
-                extra={"context": safe_auth_context(
-                    user_type='customer',
-                    ip=request.remote_addr,
-                    user_agent=request.headers.get('User-Agent'),
-                    extra={"customer_id": customer_id, "payment_method": "mpesa"}
-                )}
-            )
-            return jsonify({
-                'error': 'M-Pesa payment coming soon',
-                'message': 'M-Pesa integration will be available in the next release. Please use Cash on Delivery (cod) for now.',
-                'status': 'not_implemented',
-                'available_methods': ['cod'],
-                'documentation': '/api/docs#payment-methods'
-            }), 501  # 501 Not Implemented
+
+        # For M-Pesa, validate phone number
+        mpesa_phone = data.get('mpesa_phone', '')
+        if payment_method == 'mpesa' and not mpesa_phone:
+            return jsonify({'error': 'mpesa_phone required for M-Pesa payment'}), 400
 
         # Validate shipping address
         shipping_address = data.get('shipping_address')
@@ -141,7 +128,7 @@ def create_order():
             return jsonify({'error': 'Cart is empty'}), 400
 
         # Get client info for audit
-        ip_address = request.remote_addr or '0.0.0.0'
+        ip_address = request.headers.get('X-Forwarded-For') or request.remote_addr or 'unknown'
         user_agent = request.headers.get('User-Agent', 'Unknown')
 
         # Create order using service
@@ -161,10 +148,125 @@ def create_order():
             if not order:
                 return jsonify({'error': 'Order created but not found'}), 500
 
-            return jsonify({
+            # Initialize response data
+            response_data = {
                 'message': 'Order created successfully',
                 'order': order.to_dict(include_items=True)
-            }), 201
+            }
+
+            # For M-Pesa orders, initiate STK Push
+            if payment_method == 'mpesa':
+                try:
+                    # Get payment record
+                    payment = PaymentService.get_payment_by_order(order.id)
+                    if not payment:
+                        logger.error(f"Payment not found for order {order.id}")
+                        return jsonify({'error': 'Payment record not created'}), 500
+
+                    # Format phone number
+                    phone_number = mpesa_phone.strip()
+                    if phone_number.startswith('0'):
+                        phone_number = '254' + phone_number[1:]
+                    elif phone_number.startswith('+254'):
+                        phone_number = phone_number[1:]
+                    elif phone_number.startswith('7') or phone_number.startswith('1'):
+                        phone_number = '254' + phone_number
+
+                    if not phone_number.startswith('254') or len(phone_number) != 12:
+                        return jsonify({'error': 'Invalid M-Pesa phone number format. Use: 254712345678'}), 400
+
+                    # Encrypt and save phone number
+                    payment.mpesa_phone_encrypted = encrypt_payment(phone_number)
+                    db.session.commit()
+
+                    # Initiate M-Pesa STK Push
+                    mpesa_service = MPesaService()
+                    mpesa_result = mpesa_service.initiate_stk_push(
+                        phone_number=phone_number,
+                        amount=float(order.total),
+                        account_reference=order.order_number[:12],  # Max 12 chars
+                        transaction_desc="Happy Place"  # Max 13 chars
+                    )
+
+                    if mpesa_result.get('success'):
+                        logger.info(f"M-Pesa STK Push initiated for order {order.order_number}")
+                        response_data['mpesa'] = {
+                            'success': True,
+                            'message': 'Payment request sent to your phone',
+                            'CheckoutRequestID': mpesa_result.get('CheckoutRequestID'),
+                            'CustomerMessage': mpesa_result.get('CustomerMessage')
+                        }
+                    else:
+                        # M-Pesa initiation failed, but order is created
+                        logger.error(f"M-Pesa STK Push failed for order {order.order_number}: {mpesa_result.get('error')}")
+                        payment.status = 'failed'
+                        db.session.commit()
+                        response_data['mpesa'] = {
+                            'success': False,
+                            'error': mpesa_result.get('error', 'M-Pesa initiation failed'),
+                            'message': 'Order created but payment failed. Please retry payment or use COD.'
+                        }
+                except Exception as e:
+                    logger.error(f"M-Pesa initiation exception for order {order.order_number}: {e}", exc_info=True)
+                    response_data['mpesa'] = {
+                        'success': False,
+                        'error': str(e),
+                        'message': 'Order created but payment initiation failed'
+                    }
+
+            # Send order confirmation email (non-blocking - don't fail order if email fails)
+            try:
+                # Decrypt customer details for email
+                customer_email = decrypt_customer(customer.email_encrypted)
+                customer_name = f"{decrypt_customer(customer.first_name_encrypted)} {decrypt_customer(customer.last_name_encrypted)}"
+
+                # Send order confirmation email
+                email_result = email_service.send_order_confirmation(
+                    email=customer_email,
+                    customer_name=customer_name,
+                    order_number=order.order_number,
+                    order_date=order.created_at.strftime('%B %d, %Y'),
+                    items=order.to_dict(include_items=True).get('items', []),
+                    subtotal=float(order.subtotal),
+                    shipping_cost=float(order.shipping_cost),
+                    total=float(order.total),
+                    shipping_address=shipping_address,
+                    payment_method=payment_method.upper()
+                )
+
+                if email_result.get('success'):
+                    logger.info(
+                        f"Order confirmation email sent - Order: {order.order_number}, Customer: {customer_id}",
+                        extra={"context": safe_auth_context(
+                            user_type='customer',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            extra={"order_id": order.id, "order_number": order.order_number}
+                        )}
+                    )
+                else:
+                    logger.warning(
+                        f"Order confirmation email failed - Order: {order.order_number}, Error: {email_result.get('error')}",
+                        extra={"context": safe_auth_context(
+                            user_type='customer',
+                            ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            extra={"order_id": order.id, "order_number": order.order_number}
+                        )}
+                    )
+            except Exception as e:
+                # Log email error but don't fail the order
+                logger.error(
+                    f"Order confirmation email exception - Order: {order.order_number if order else 'unknown'}",
+                    extra={"context": safe_auth_context(
+                        user_type='customer',
+                        ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent')
+                    )},
+                    exc_info=True
+                )
+
+            return jsonify(response_data), 201
         else:
             return jsonify({
                 'error': result.get('error', 'Order creation failed')
@@ -173,9 +275,91 @@ def create_order():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except RuntimeError as e:
+        logger.error(
+            "Create order failed",
+            extra={
+                "context": safe_auth_context(
+                    user_type='customer',
+                    ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    extra={"customer_id": int(get_jwt_identity()) if get_jwt_identity() else None},
+                )
+            },
+            exc_info=True,
+        )
         return jsonify({'error': str(e)}), 500
     except Exception:
         db.session.rollback()
+        logger.error(
+            "Create order failed (unhandled exception)",
+            extra={
+                "context": safe_auth_context(
+                    user_type='customer',
+                    ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                )
+            },
+            exc_info=True,
+        )
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@api.route('/orders/<int:order_id>/confirm-cod', methods=['POST'])
+@jwt_required()
+def confirm_cod_order(order_id):
+    """Confirm a COD order within the 24-hour confirmation window."""
+    try:
+        customer_id = int(get_jwt_identity())
+        customer = Customer.query.get(customer_id)
+        if not customer:
+            return jsonify({'error': 'Customer not found'}), 404
+
+        result = db.session.execute(
+            db.text(
+                """
+                SELECT * FROM sp_confirm_cod_order(
+                    CAST(:order_id AS INTEGER),
+                    CAST(:customer_id AS INTEGER),
+                    NULL
+                )
+                """
+            ),
+            {
+                'order_id': order_id,
+                'customer_id': customer_id,
+            }
+        )
+        row = result.fetchone()
+        db.session.commit()
+
+        if not row:
+            return jsonify({'error': 'Confirmation failed'}), 400
+
+        success = bool(row[0])
+        message = row[1]
+        if not success:
+            return jsonify({'error': message}), 400
+
+        order = OrderService.get_order(order_id, customer_id)
+        return jsonify({
+            'message': message,
+            'order': order.to_dict(include_items=True) if order else None
+        }), 200
+
+    except Exception:
+        db.session.rollback()
+        logger.error(
+            "Confirm COD failed",
+            extra={
+                "context": safe_auth_context(
+                    user_type='customer',
+                    ip=request.remote_addr,
+                    user_agent=request.headers.get('User-Agent'),
+                    extra={"order_id": order_id, "customer_id": int(get_jwt_identity()) if get_jwt_identity() else None},
+                )
+            },
+            exc_info=True,
+        )
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -217,7 +401,7 @@ def get_customer_orders():
 
         return jsonify(result), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get customer orders failed",
             extra={"context": safe_auth_context(user_type='customer',
@@ -257,7 +441,7 @@ def get_order_details(order_id):
             'order': order.to_dict(include_items=True)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get order details failed",
             extra={"context": safe_auth_context(user_type='customer',
@@ -296,7 +480,7 @@ def get_order_by_number(order_number):
             'order': order.to_dict(include_items=True)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Get order by number failed",
             extra={"context": safe_auth_context(
@@ -364,7 +548,7 @@ def preview_shipping():
 
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
-    except Exception as e:
+    except Exception:
         logger.error(
             "Shipping preview failed",
             extra={"context": safe_auth_context(user_type='customer',

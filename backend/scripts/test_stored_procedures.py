@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from extensions import db
 from app import create_app
 from models.database_models import Customer, Order, Payment, Inventory
-from models.extended_models import ProductVariant
 from services.encryption import encrypt_address
 
 
@@ -158,7 +157,7 @@ def test_inventory_reservation():
             row = result.fetchone()
             db.session.commit()
 
-            print(f"\n✅ Reserved 2 units")
+            print("\n✅ Reserved 2 units")
             print(f"   Success: {row[0]}")
             print(f"   Remaining: {row[1]}")
             print(f"   Message: {row[2]}")
@@ -171,7 +170,7 @@ def test_inventory_reservation():
             row2 = result2.fetchone()
             db.session.rollback()
 
-            print(f"\n✅ Overselling prevention works")
+            print("\n✅ Overselling prevention works")
             print(f"   Success: {row2[0]} (should be False)")
             print(f"   Message: {row2[2]}")
 
@@ -214,7 +213,7 @@ def test_payment_processing():
             row = result.fetchone()
             db.session.commit()
 
-            print(f"\n✅ Payment processed successfully!")
+            print("\n✅ Payment processed successfully!")
             print(f"   Success: {row[0]}")
             print(f"   Order ID: {row[1]}")
             print(f"   Message: {row[2]}")
@@ -297,7 +296,7 @@ def test_return_processing():
             row = result.fetchone()
             db.session.commit()
 
-            print(f"\n✅ Return processed successfully!")
+            print("\n✅ Return processed successfully!")
             print(f"   Return ID: {row[0]}")
             print(f"   Return Number: {row[1]}")
             print(f"   Refund Amount: KSh {row[2]}")
@@ -363,7 +362,7 @@ def test_promotion_validation():
             row = result.fetchone()
             db.session.rollback()  # Don't actually increment usage
 
-            print(f"\n✅ Promotion validated!")
+            print("\n✅ Promotion validated!")
             print(f"   Valid: {row[0]}")
             print(f"   Promotion ID: {row[1]}")
             print(f"   Discount Amount: KSh {row[2]}")

@@ -7,7 +7,7 @@ Business Rules:
 - Upcountry: KSh 300 base + KSh 50 per kg
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 from extensions import db
 
 

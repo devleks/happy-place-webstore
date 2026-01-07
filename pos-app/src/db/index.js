@@ -23,10 +23,12 @@ export {
   getCurrentShift,
   getShift,
   getShifts,
+  updateShift,
   closeShift,
   calculateShiftTotals,
   getUnsyncedShifts,
-  markShiftAsSynced
+  markShiftAsSynced,
+  setShiftBackendId
 } from './shifts';
 
 // Export transaction operations

@@ -156,7 +156,7 @@ class ReturnService:
             }
 
         # Check return window (30 days)
-        from datetime import datetime, timedelta
+        from datetime import datetime
         order_date = order.created_at
         today = datetime.utcnow()
         days_since_order = (today - order_date).days

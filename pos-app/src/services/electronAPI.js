@@ -21,6 +21,86 @@ export const authAPI = {
       const employee = await db.validateEmployeeCredentials(email, password);
 
       if (!employee) {
+        if (navigator.onLine) {
+          let response;
+          let data;
+
+          try {
+            response = await fetch(`${API_BASE_URL}/api/auth/employee/login`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email,
+                password
+              })
+            });
+
+            if (!response.ok) {
+              return {
+                success: false,
+                error: 'Invalid email or password'
+              };
+            }
+
+            data = await response.json();
+          } catch (fetchErr) {
+            return {
+              success: false,
+              error: 'Cannot reach the POS server right now. If you have logged in before on this device, you can log in offline; otherwise connect to the server and try again.'
+            };
+          }
+
+          if (data && data.access_token) {
+            await db.setMetadata('sync_token', data.access_token);
+          }
+
+          // Cache employee locally to enable offline login later on this device
+          try {
+            const existing = await db.getEmployeeByEmail(email);
+            if (existing) {
+              await db.updateEmployee(existing.id, {
+                full_name: data?.employee?.full_name || existing.full_name,
+                role: data?.employee?.role || existing.role,
+                password: password,
+                active: true
+              });
+            } else {
+              await db.addEmployee({
+                email,
+                password,
+                full_name: data?.employee?.full_name || email,
+                role: data?.employee?.role || 'cashier',
+                active: true
+              });
+            }
+          } catch (e) {
+            // ignore; caching is best-effort
+          }
+
+          const sessionToken = btoa(JSON.stringify({
+            id: data?.employee?.id,
+            email: data?.employee?.email,
+            role: data?.employee?.role,
+            timestamp: Date.now()
+          }));
+
+          return {
+            success: true,
+            employee: {
+              id: data?.employee?.id,
+              email: data?.employee?.email,
+              full_name: data?.employee?.full_name,
+              role: data?.employee?.role
+            },
+            session: {
+              token: sessionToken,
+              employee_id: data?.employee?.id
+            }
+          };
+        }
+
         return {
           success: false,
           error: 'Invalid email or password'
@@ -52,7 +132,7 @@ export const authAPI = {
       console.error('❌ Login error:', error);
       return {
         success: false,
-        error: error.message
+        error: error?.message || 'Login failed'
       };
     }
   },
@@ -229,9 +309,38 @@ export const transactionAPI = {
   async create(transaction) {
     try {
       const created = await db.createTransaction(transaction);
-      return { success: true, transaction: created };
+
+      // Update shift totals immediately (offline-first)
+      try {
+        if (created?.shift_id) {
+          const totals = await db.calculateShiftTotals(created.shift_id);
+          await db.updateShift(created.shift_id, {
+            total_sales: totals.total_sales,
+            cash_sales: totals.cash_sales,
+            card_sales: totals.card_sales,
+            mpesa_sales: totals.mpesa_sales,
+            transaction_count: totals.transaction_count
+          });
+        }
+      } catch (e) {
+        // ignore; totals will be recalculated on next shift fetch
+      }
+
+      // Best-effort immediate sync when online
+      try {
+        const syncToken = await db.getMetadata('sync_token');
+        if (navigator.onLine && syncToken) {
+          await db.syncWithBackend(API_BASE_URL, syncToken);
+        }
+      } catch (e) {
+        // Ignore sync errors here; they will be retried later.
+      }
+
+      // Return latest transaction row (may now include backend_transaction_id)
+      const updated = await db.getTransaction(created.id);
+      return updated || created;
     } catch (error) {
-      return { success: false, error: error.message };
+      return null;
     }
   },
 
@@ -263,9 +372,42 @@ export const shiftAPI = {
   async start(shiftData) {
     try {
       const shift = await db.createShift(shiftData);
-      return { success: true, shift };
+
+      // Best-effort backend shift start when online
+      try {
+        const syncToken = await db.getMetadata('sync_token');
+        if (navigator.onLine && syncToken) {
+          const res = await fetch(`${API_BASE_URL}/api/pos/shifts/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${syncToken}`
+            },
+            body: JSON.stringify({
+              store_location_id: 1,
+              opening_float: shift.starting_cash || 0
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const backendShiftId = data?.shift?.shift_id;
+            const backendShiftNumber = data?.shift?.shift_number;
+            if (backendShiftId) {
+              await db.setShiftBackendId(shift.id, backendShiftId);
+            }
+            if (backendShiftNumber) {
+              await db.updateShift(shift.id, { shift_number: backendShiftNumber });
+            }
+          }
+        }
+      } catch (e) {
+        // ignore; shift remains local-only
+      }
+
+      return shift;
     } catch (error) {
-      return { success: false, error: error.message };
+      return null;
     }
   },
 
@@ -275,18 +417,57 @@ export const shiftAPI = {
   async close(shiftId, closeData) {
     try {
       const shift = await db.closeShift(shiftId, closeData);
-      return { success: true, shift };
+
+      // Best-effort backend shift close when online
+      try {
+        const syncToken = await db.getMetadata('sync_token');
+        const localShift = await db.getShift(shiftId);
+        const backendShiftId = localShift?.backend_shift_id;
+        if (navigator.onLine && syncToken && backendShiftId) {
+          await fetch(`${API_BASE_URL}/api/pos/shifts/close`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${syncToken}`
+            },
+            body: JSON.stringify({
+              shift_id: backendShiftId,
+              closing_cash: closeData.closing_cash,
+              notes: closeData.notes
+            })
+          });
+        }
+      } catch (e) {
+        // ignore; shift close remains local-only
+      }
+
+      return shift;
     } catch (error) {
-      return { success: false, error: error.message };
+      return null;
     }
   },
 
   /**
    * Get current open shift
    */
-  async getCurrent() {
-    const shift = await db.getCurrentShift();
-    return shift;
+  async getCurrent(employeeId) {
+    const shift = await db.getCurrentShift(employeeId);
+    if (!shift) return null;
+
+    // Recalculate totals from local transactions so dashboard is always correct
+    try {
+      const totals = await db.calculateShiftTotals(shift.id);
+      const updated = await db.updateShift(shift.id, {
+        total_sales: totals.total_sales,
+        cash_sales: totals.cash_sales,
+        card_sales: totals.card_sales,
+        mpesa_sales: totals.mpesa_sales,
+        transaction_count: totals.transaction_count
+      });
+      return updated || shift;
+    } catch (e) {
+      return shift;
+    }
   },
 
   /**

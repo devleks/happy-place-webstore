@@ -1,13 +1,22 @@
 {
   "agent": "LintGuard",
-  "generated_at": "2025-11-26T07:08:29Z",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T16:51:42Z",
+  "execution_time_seconds": 3,
   "artifacts": {
     "ruff": "reports/lintguard_ruff.json",
     "bandit": "reports/lintguard_bandit.json",
     "eslint": "reports/lintguard_eslint.json"
   },
+  "summary": {
+    "ruff_issues": 50,
+    "bandit_issues": 0,
+    "eslint_issues": 0,
+    "total_issues": 50
+  },
   "notes": [
     "Review Ruff + Bandit JSON for rule-level detail",
-    "ESLint report stores all frontend findings with rule metadata"
+    "ESLint report stores all frontend findings with rule metadata",
+    "Cache enabled for faster subsequent runs"
   ]
 }

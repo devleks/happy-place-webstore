@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { storeLocationAPI } from '../services/api';
 import '../styles/StoreLocation.css';
 
@@ -7,7 +7,7 @@ const StoreLocation = () => {
   const [loading, setLoading] = useState(true);
 
   // Fallback store data if backend doesn't have it yet
-  const fallbackLocation = {
+  const fallbackLocation = useMemo(() => ({
     name: 'Happy Place Boutique',
     address: 
 	"Store No. 22, 1st Floor, Bethel Business Centre, Opposite Uhuru Gardens, Langata Rd.",
@@ -21,13 +21,9 @@ const StoreLocation = () => {
       'Saturday': '10:00 AM - 6:00 PM',
       'Sunday': 'Closed'
     })
-  };
+  }), []);
 
-  useEffect(() => {
-    fetchStoreLocation();
-  }, []);
-
-  const fetchStoreLocation = async () => {
+  const fetchStoreLocation = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -45,7 +41,11 @@ const StoreLocation = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fallbackLocation]);
+
+  useEffect(() => {
+    fetchStoreLocation();
+  }, [fetchStoreLocation]);
 
   if (loading) return <div className="loading">Loading store location...</div>;
 

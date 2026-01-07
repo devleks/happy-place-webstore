@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { helpers } from '../services/api';
 import toast from '../utils/toast';
@@ -8,22 +8,20 @@ import '../styles/OrderConfirmation.css';
 const OrderConfirmation = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmingCod, setConfirmingCod] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      toast.warning('Please log in to view order');
-      navigate('/login');
-      return;
-    }
+  // Get M-Pesa data from location state (if passed from checkout)
+  const mpesaData = location.state?.mpesa;
+  const paymentMethod = location.state?.paymentMethod || order?.payment_method;
 
-    fetchOrderDetails();
-  }, [user, orderId, navigate]);
-
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -49,6 +47,103 @@ const OrderConfirmation = () => {
       toast.error('Failed to load order details');
     } finally {
       setLoading(false);
+    }
+  }, [orderId]);
+
+  // Check payment status (for M-Pesa)
+  const checkPaymentStatus = useCallback(async () => {
+    if (!order || !order.payment_id) return;
+
+    try {
+      setCheckingPayment(true);
+      const response = await fetch(`http://localhost:5001/api/payments/${order.payment_id}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPaymentStatus(data.payment);
+
+        // If payment completed, refresh order details
+        if (data.payment?.status === 'completed') {
+          toast.success('Payment completed successfully!');
+          fetchOrderDetails();
+        }
+      }
+    } catch (err) {
+      console.error('Error checking payment status:', err);
+    } finally {
+      setCheckingPayment(false);
+    }
+  }, [order, fetchOrderDetails]);
+
+  useEffect(() => {
+    if (!user) {
+      toast.warning('Please log in to view order');
+      navigate('/login');
+      return;
+    }
+
+    fetchOrderDetails();
+  }, [user, navigate, fetchOrderDetails]);
+
+  // Poll payment status for M-Pesa orders
+  useEffect(() => {
+    if (!order || paymentMethod !== 'mpesa') return;
+    if (order.payment_status === 'completed') return;
+
+    // Initial check
+    checkPaymentStatus();
+
+    // Poll every 5 seconds for 2 minutes
+    const pollInterval = setInterval(checkPaymentStatus, 5000);
+    const pollTimeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      if (paymentStatus?.status !== 'completed') {
+        toast.info('Payment still pending. You can check status in your order history.');
+      }
+    }, 120000); // 2 minutes
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(pollTimeout);
+    };
+  }, [order, paymentMethod, paymentStatus, checkPaymentStatus]);
+
+  const handleConfirmCod = async () => {
+    if (!orderId) return;
+    if (!window.confirm('Confirm this Cash on Delivery order?')) return;
+
+    try {
+      setConfirmingCod(true);
+      const response = await fetch(`http://localhost:5001/api/orders/${orderId}/confirm-cod`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to confirm COD order');
+        return;
+      }
+
+      toast.success(data.message || 'COD confirmed');
+      if (data.order) {
+        setOrder(data.order);
+      } else {
+        fetchOrderDetails();
+      }
+    } catch (err) {
+      console.error('Error confirming COD:', err);
+      toast.error('Failed to confirm COD order');
+    } finally {
+      setConfirmingCod(false);
     }
   };
 
@@ -92,6 +187,62 @@ const OrderConfirmation = () => {
           </p>
         </div>
 
+        {/* M-Pesa Payment Status (if M-Pesa payment) */}
+        {paymentMethod === 'mpesa' && (
+          <div className={`mpesa-status-section ${paymentStatus?.status === 'completed' ? 'completed' : 'pending'}`}>
+            <div className="mpesa-status-header">
+              <svg className="mpesa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+              <h3>M-Pesa Payment Status</h3>
+            </div>
+
+            {paymentStatus?.status === 'completed' ? (
+              <div className="mpesa-success">
+                <div className="mpesa-success-icon">✓</div>
+                <p className="mpesa-success-text">
+                  <strong>Payment Completed</strong><br />
+                  Your M-Pesa payment has been processed successfully.
+                </p>
+              </div>
+            ) : (
+              <div className="mpesa-pending">
+                {mpesaData?.success ? (
+                  <>
+                    <div className="mpesa-loading-icon">
+                      <div className="spinner"></div>
+                    </div>
+                    <div className="mpesa-pending-text">
+                      <strong>Awaiting Payment</strong>
+                      <p>A payment request has been sent to your phone. Please:</p>
+                      <ol>
+                        <li>Check your phone for the M-Pesa STK Push prompt</li>
+                        <li>Enter your M-Pesa PIN to complete payment</li>
+                        <li>Wait for confirmation (this page will update automatically)</li>
+                      </ol>
+                      {mpesaData.CheckoutRequestID && (
+                        <p className="checkout-request-id">
+                          <small>Reference: {mpesaData.CheckoutRequestID}</small>
+                        </p>
+                      )}
+                      {checkingPayment && (
+                        <p className="checking-status">
+                          <small>⟳ Checking payment status...</small>
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="mpesa-warning">
+                    <p><strong>Payment Pending</strong></p>
+                    <p>M-Pesa payment initiation may have failed. Please contact support or try placing a new order.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Order Number */}
         <div className="order-number-section">
           <div className="order-number-label">Order Number</div>
@@ -105,6 +256,39 @@ const OrderConfirmation = () => {
             })}
           </div>
         </div>
+
+        {order.payment_method === 'cod' && (
+          <div className="email-notice">
+            <svg className="email-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M9 12l2 2 4-4"></path>
+            </svg>
+            <div className="email-notice-text">
+              <strong>Cash on Delivery confirmation required</strong>
+              <p>
+                Please confirm your COD order to reserve your items.
+                {order.cod_confirmation_expires_at && (
+                  <> Confirmation expires on {new Date(order.cod_confirmation_expires_at).toLocaleString()}.</>
+                )}
+              </p>
+              {!order.cod_confirmed_at ? (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleConfirmCod}
+                  disabled={confirmingCod}
+                  style={{ marginTop: '8px' }}
+                >
+                  {confirmingCod ? 'Confirming...' : 'Confirm COD Order'}
+                </button>
+              ) : (
+                <p style={{ marginTop: '8px' }}>
+                  COD confirmed on {new Date(order.cod_confirmed_at).toLocaleString()}.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Email Confirmation Notice */}
         <div className="email-notice">

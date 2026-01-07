@@ -12,7 +12,7 @@ Handles all authentication operations:
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, List
 import secrets
 import pyotp
 import qrcode
@@ -22,9 +22,7 @@ import base64
 from flask import request
 from flask_jwt_extended import (
     create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    get_jwt
+    create_refresh_token
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from google.oauth2 import id_token
@@ -32,7 +30,11 @@ from google.auth.transport import requests as google_requests
 
 from extensions import db
 from models import Customer, Employee
+from logging_utils import get_logger
 
+logger = get_logger(__name__)
+
+ACCESS_TYPE = "access"
 
 class AuthService:
     """Authentication service for customers and employees"""
@@ -232,11 +234,20 @@ class AuthService:
             )
 
             # Update login tracking
-            customer.login_count += 1
-            customer.last_login = datetime.utcnow()
-            customer.last_login_ip = self._get_client_ip()
-            customer.last_login_user_agent = request.headers.get('User-Agent', '')
-            db.session.commit()
+            try:
+                if hasattr(customer, 'login_count'):
+                    current_count = getattr(customer, 'login_count', 0) or 0
+                    setattr(customer, 'login_count', current_count + 1)
+                if hasattr(customer, 'last_login'):
+                    customer.last_login = datetime.utcnow()
+                if hasattr(customer, 'last_login_ip'):
+                    customer.last_login_ip = self._get_client_ip()
+                if hasattr(customer, 'last_login_user_agent'):
+                    customer.last_login_user_agent = request.headers.get('User-Agent', '')
+                db.session.commit()
+            except Exception:
+                # Login should still succeed even if optional tracking fields are not present
+                db.session.rollback()
 
             # Log successful login
             self._log_auth_event(
@@ -311,7 +322,7 @@ class AuthService:
                     # Link OAuth to existing account
                     customer.oauth_provider = 'google'
                     customer.oauth_id = google_id
-                    customer.email_verified = True  # Trust Google verification
+                    customer.email_verified = bool(customer.email_verified) or bool(email_verified)
                 else:
                     # Create new customer
                     customer = Customer()
@@ -320,7 +331,7 @@ class AuthService:
                     customer.last_name = family_name
                     customer.oauth_provider = 'google'
                     customer.oauth_id = google_id
-                    customer.email_verified = True
+                    customer.email_verified = bool(email_verified)
                     customer.gdpr_consent = True  # Implicit via Google login
                     customer.is_active = True
                     customer.password_hash = generate_password_hash(secrets.token_urlsafe(32))  # Random password
@@ -694,7 +705,7 @@ class AuthService:
                 'success': True,
                 'secret': secret,
                 'qr_code': qr_code_base64,
-                'backup_codes': backup_codes,  # Return plain text to user (only time they'll see them)
+                'backup_codes': backup_codes,  # Return plain text to user (only time they'll see them),
                 'provisioning_uri': provisioning_uri
             }
 
@@ -846,7 +857,7 @@ class AuthService:
             # Blacklist access token
             blacklist_entry = TokenBlacklist(
                 jti=access_token_jti,
-                token_type='access',
+                token_type=ACCESS_TYPE,
                 expires_at=datetime.utcnow() + self.ACCESS_TOKEN_EXPIRES,
                 reason='logout'
             )
@@ -952,7 +963,7 @@ class AuthService:
                 RolePermission, Permission.id == RolePermission.permission_id
             ).filter(
                 RolePermission.role == employee.role,
-                Permission.is_active == True
+                Permission.is_active.is_(True)
             ).all()
 
             return [perm[0] for perm in permissions]
@@ -1086,5 +1097,5 @@ class AuthService:
         db.session.add(log_entry)
         try:
             db.session.commit()
-        except:
+        except Exception:
             db.session.rollback()

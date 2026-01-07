@@ -628,6 +628,9 @@ class Order(db.Model):
     estimated_delivery_date = db.Column(db.Date)
     shipping_notes = db.Column(db.Text)
 
+    cod_confirmed_at = db.Column(db.DateTime)
+    cod_confirmation_expires_at = db.Column(db.DateTime)
+
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
     payment = db.relationship('Payment', backref='order', lazy=True, uselist=False)
@@ -654,7 +657,7 @@ class Order(db.Model):
         if self.shipping_address_encrypted:
             try:
                 shipping_address = json.loads(self.shipping_address_encrypted)
-            except:
+            except Exception:
                 shipping_address = None
 
         data = {
@@ -677,7 +680,16 @@ class Order(db.Model):
             'carrier': self.carrier,
             'tracking_url': self.tracking_url,
             'estimated_delivery_date': self.estimated_delivery_date.isoformat() if self.estimated_delivery_date else None,
-            'shipping_notes': self.shipping_notes
+            'shipping_notes': self.shipping_notes,
+            'cod_confirmed_at': self.cod_confirmed_at.isoformat() if self.cod_confirmed_at else None,
+            'cod_confirmation_expires_at': self.cod_confirmation_expires_at.isoformat() if self.cod_confirmation_expires_at else None,
+            'payment_id': self.payment.id if self.payment else None,
+            'payment_method': self.payment.payment_method if self.payment else None,
+            'payment_status': (
+                'paid'
+                if (self.payment and self.payment.status == 'completed')
+                else (self.payment.status if self.payment else None)
+            )
         }
 
         if include_items and self.items:

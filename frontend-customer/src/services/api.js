@@ -12,8 +12,10 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  if (token && token !== 'undefined' && token !== 'null') {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers.Authorization) {
+    delete config.headers.Authorization;
   }
   return config;
 });
@@ -57,7 +59,7 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem('refresh_token');
 
-      if (!refreshToken) {
+      if (!refreshToken || refreshToken === 'undefined' || refreshToken === 'null') {
         // No refresh token, redirect to appropriate login
         const userType = localStorage.getItem('user_type');
         localStorage.removeItem('token');
@@ -108,14 +110,17 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         isRefreshing = false;
 
+        const userType = localStorage.getItem('user_type');
+
         localStorage.removeItem('token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_type');
 
         // Redirect to appropriate login page
-        const userType = localStorage.getItem('user_type');
-        if (userType === 'employee') {
-          window.location.href = '/employee/login';
+        if (userType === 'employee' || window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        } else if (window.location.pathname.startsWith('/pos')) {
+          window.location.href = '/pos/login';
         } else {
           window.location.href = '/customer/login';
         }

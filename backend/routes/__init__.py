@@ -4,23 +4,30 @@ Modular route organization for all endpoints.
 """
 
 from flask import Blueprint
+import importlib
 
 # Create main API blueprint
 api = Blueprint('api', __name__)
 
-# Import all route modules to register them
-from . import auth
-from . import products
-from . import variants
-from . import promotions
-from . import returns_api
-from . import shipping
-from . import categories
-from . import admin
-from . import cart
-from . import wishlist
-from . import orders
-from . import pos
-from . import kiosk
+def _register_routes() -> None:
+    modules = (
+        'products',
+        'variants',
+        'promotions',
+        'returns_api',
+        'shipping',
+        'categories',
+        'admin',
+        'cart',
+        'wishlist',
+        'orders',
+        'pos',
+        'kiosk',
+    )
+    for module in modules:
+        importlib.import_module(f"{__name__}.{module}")
+
+
+_register_routes()
 
 __all__ = ['api']

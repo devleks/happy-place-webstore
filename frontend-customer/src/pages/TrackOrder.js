@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -13,15 +13,7 @@ const TrackOrder = () => {
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [order, setOrder] = useState(null);
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    fetchTrackingInfo();
-  }, [user, orderId, navigate]);
-
-  const fetchTrackingInfo = async () => {
+  const fetchTrackingInfo = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -57,7 +49,15 @@ const TrackOrder = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    fetchTrackingInfo();
+  }, [user, navigate, fetchTrackingInfo]);
 
   const getStatusIcon = (status) => {
     const icons = {

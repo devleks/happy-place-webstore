@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { shiftAPI, productAPI, transactionAPI } from '../../services/electronAPI';
+import { shiftAPI, productAPI, transactionAPI } from '../../services/pwaAPI';
 import { formatSizeWithConversions } from '../../utils/sizeConversion';
 import '../../styles/POSNewSale.css';
 
@@ -30,8 +30,9 @@ const POSNewSale = () => {
       return;
     }
 
-    setEmployee(JSON.parse(employeeInfo));
-    checkShiftAndLoadProducts();
+    const emp = JSON.parse(employeeInfo);
+    setEmployee(emp);
+    checkShiftAndLoadProducts(emp.id);
   }, [navigate]);
 
   // Barcode scanner listener
@@ -190,10 +191,10 @@ const POSNewSale = () => {
     }
   };
 
-  const checkShiftAndLoadProducts = async () => {
+  const checkShiftAndLoadProducts = async (employeeId) => {
     try {
       // Use PWA API - works offline with IndexedDB
-      const shift = await shiftAPI.getCurrent();
+      const shift = await shiftAPI.getCurrent(employeeId);
 
       if (!shift) {
         alert('No active shift. Please start a shift first.');
@@ -323,6 +324,7 @@ const POSNewSale = () => {
         change_given: paymentMethod === 'cash' ? change : 0,
         items: cart.map(item => ({
           product_id: item.product_id,
+          variant_id: item.variant_id,
           sku: item.sku,
           product_name: item.product_name,
           quantity: item.quantity,
@@ -335,11 +337,40 @@ const POSNewSale = () => {
       const transaction = await transactionAPI.create(transactionData);
 
       if (transaction && transaction.id) {
+        // Optimistically update in-memory stock so UI reflects the sale immediately
+        try {
+          const updatedProducts = products.map((p) => {
+            const purchased = cart.filter((ci) => ci.product_id === p.id);
+            if (purchased.length === 0) return p;
+
+            const next = { ...p };
+            next.quantity = Math.max(0, (parseInt(next.quantity ?? 0, 10) || 0) - purchased.reduce((s, ci) => s + ci.quantity, 0));
+
+            if (Array.isArray(next.variants)) {
+              next.variants = next.variants.map((v) => {
+                const line = purchased.find((ci) => Number(ci.variant_id) === Number(v.id));
+                if (!line) return v;
+                const current = parseInt(v.pos_stock ?? 0, 10) || 0;
+                return { ...v, pos_stock: Math.max(0, current - line.quantity) };
+              });
+            }
+
+            return next;
+          });
+
+          setProducts(updatedProducts);
+          setFilteredProducts(updatedProducts);
+        } catch (e) {
+          // ignore UI-only update failures
+        }
+
         // Show success and navigate to receipt
-        navigate(`/receipt/${transaction.id}`);
-      } else {
-        setError('Transaction failed');
+        const receiptId = transaction.backend_transaction_id || transaction.id;
+        navigate(`/receipt/${receiptId}`);
+        return;
       }
+
+      setError('Transaction failed');
     } catch (err) {
       setError('Error processing transaction. Please try again.');
       console.error('Transaction error:', err);

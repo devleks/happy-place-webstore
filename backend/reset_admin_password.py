@@ -13,7 +13,7 @@ with app.app_context():
         new_password = 'Admin@123'
         admin.password_hash = generate_password_hash(new_password)
         db.session.commit()
-        print(f"✅ Password reset successful!")
+        print("✅ Password reset successful!")
         print(f"Email: {admin.email}")
         print(f"Password: {new_password}")
     else:

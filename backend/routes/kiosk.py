@@ -4,7 +4,7 @@ Cashier kiosk features: barcode scanning, hold/recall, quick access, metrics
 """
 
 from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity
 
 from routes import api
 from routes.pos import employee_required
@@ -52,7 +52,7 @@ def scan_barcode():
                 'error': 'Product not found for this barcode'
             }), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -91,7 +91,7 @@ def quick_product_lookup(sku):
                 'error': 'Product not found'
             }), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -156,7 +156,7 @@ def hold_transaction():
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -196,7 +196,7 @@ def get_held_transactions():
             'count': len(held)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -231,7 +231,7 @@ def recall_transaction(hold_id):
         else:
             return jsonify(result), 404
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -264,7 +264,7 @@ def cancel_held_transaction(hold_id):
         else:
             return jsonify(result), 400
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -311,7 +311,7 @@ def get_quick_access():
             'count': len(products)
         }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(
@@ -366,7 +366,7 @@ def get_current_metrics():
                 }
             }), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Kiosk operation failed",
             extra={"context": safe_auth_context(

@@ -11,7 +11,7 @@ Endpoints:
 
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Cart, CartItem, Customer, ProductVariant, Inventory
+from models import db, Cart, CartItem, ProductVariant, Inventory
 from . import api
 from logging_utils import get_logger, safe_auth_context
 
@@ -101,7 +101,7 @@ def get_cart():
 
         return jsonify(cart_data), 200
 
-    except Exception as e:
+    except Exception:
         logger.error(
             "Cart operation failed",
             extra={"context": safe_auth_context(

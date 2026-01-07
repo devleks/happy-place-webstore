@@ -10,10 +10,9 @@ from decimal import Decimal
 
 from extensions import db
 from models.database_models import (
-    Order, OrderItem, Customer,
-    Product, CartItem, Cart, Payment
+    Order, Customer,
+    CartItem, Cart
 )
-from models.extended_models import ProductVariant
 from services.shipping_service import ShippingService
 from services.encryption import encrypt_address
 
@@ -80,7 +79,7 @@ class OrderService:
         for item in cart_items:
             variant = item.variant
             if not variant or not variant.product:
-                raise ValueError(f'Invalid cart item: variant not found')
+                raise ValueError('Invalid cart item: variant not found')
 
             product = variant.product
             if not product.is_active or not variant.is_active:
@@ -101,7 +100,7 @@ class OrderService:
         tax = Decimal('0.00')
 
         # Calculate total
-        total = subtotal + shipping_cost + tax
+        _total = subtotal + shipping_cost + tax
 
         # Encrypt addresses
         shipping_address_encrypted = encrypt_address(json.dumps(shipping_address))
@@ -162,7 +161,7 @@ class OrderService:
 
             order_id = row[0]
             order_number = row[1]
-            payment_id = row[2]
+            _payment_id = row[2]
             total_amount = row[3]
 
             # Commit transaction

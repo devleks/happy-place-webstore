@@ -26,25 +26,34 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+
             {/* Admin Login */}
-            <Route path="/login" element={<AdminLogin />} />
-            
+            <Route path="/admin/login" element={<AdminLogin />} />
+
             {/* Admin Portal Routes */}
-            <Route element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/inventory" element={<AdminInventory />} />
-              <Route path="/inventory/add" element={<AddProduct />} />
-              <Route path="/orders" element={<AdminOrders />} />
-              <Route path="/customers" element={<AdminCustomers />} />
-              <Route path="/employees" element={<AdminEmployees />} />
-              <Route path="/promotions" element={<AdminPromotions />} />
-              <Route path="/reports" element={<AdminReports />} />
-              <Route path="/settings" element={<AdminSettings />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout />
+                </ProtectedAdminRoute>
+              }
+            >
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="inventory" element={<AdminInventory />} />
+              <Route path="inventory/add" element={<AddProduct />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="employees" element={<AdminEmployees />} />
+              <Route path="promotions" element={<AdminPromotions />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
-            {/* Redirect all other routes to login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Redirect all other routes to admin login */}
+            <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </Routes>
           <ToastContainer position="top-right" autoClose={3000} />
         </div>

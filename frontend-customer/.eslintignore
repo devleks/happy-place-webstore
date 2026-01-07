@@ -1,0 +1,6 @@
+src/pages/POS/
+src/pages/admin/
+src/components/admin/
+src/components/ProtectedAdminRoute.js
+src/pages/EmployeeLogin.js
+src/services/adminAPI.js

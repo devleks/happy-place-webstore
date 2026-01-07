@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../../services/electronAPI';
+import { authAPI } from '../../services/pwaAPI';
 import '../../styles/POSLogin.css';
 
 const POSLogin = ({ onLogin }) => {
@@ -132,21 +132,21 @@ const POSLogin = ({ onLogin }) => {
           <div className="pos-quick-login-buttons">
             <button
               className="pos-quick-btn admin"
-              onClick={() => quickLogin('admin@happyplace.com', 'admin123')}
+              onClick={() => quickLogin('admin@happyplace.com', 'Admin123!')}
               disabled={loading}
             >
               Admin
             </button>
             <button
               className="pos-quick-btn manager"
-              onClick={() => quickLogin('manager1@happyplace.co.ke', 'manager123')}
+              onClick={() => quickLogin('manager@happyplace.com', 'Manager123!')}
               disabled={loading}
             >
               Manager
             </button>
             <button
               className="pos-quick-btn cashier"
-              onClick={() => quickLogin('cashier1@happyplace.co.ke', 'cashier123')}
+              onClick={() => quickLogin('cashier@happyplace.com', 'Cashier123!')}
               disabled={loading}
             >
               Cashier

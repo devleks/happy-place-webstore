@@ -8,49 +8,49 @@ const AdminSidebar = () => {
 
   const menuItems = [
     {
-      path: '/dashboard',
+      path: '/admin/dashboard',
       icon: '📊',
       label: 'Dashboard',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/inventory',
+      path: '/admin/inventory',
       icon: '📦',
       label: 'Inventory',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/orders',
+      path: '/admin/orders',
       icon: '🛒',
       label: 'Orders',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/customers',
+      path: '/admin/customers',
       icon: '👥',
       label: 'Customers',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/employees',
+      path: '/admin/employees',
       icon: '👤',
       label: 'Employees',
       roles: ['admin'],
     },
     {
-      path: '/promotions',
+      path: '/admin/promotions',
       icon: '🎁',
       label: 'Promotions',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/reports',
+      path: '/admin/reports',
       icon: '📈',
       label: 'Reports',
       roles: ['admin', 'manager'],
     },
     {
-      path: '/settings',
+      path: '/admin/settings',
       icon: '⚙️',
       label: 'Settings',
       roles: ['admin'],

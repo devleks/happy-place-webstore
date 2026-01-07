@@ -26,9 +26,9 @@ class EmployeeManagementService:
             query = query.filter(Employee.role == filters['role'])
 
         if filters.get('status') == 'active':
-            query = query.filter(Employee.is_active == True)
+            query = query.filter(Employee.is_active.is_(True))
         elif filters.get('status') == 'inactive':
-            query = query.filter(Employee.is_active == False)
+            query = query.filter(Employee.is_active.is_(False))
 
         query = query.order_by(Employee.full_name)
         employees = query.all()
@@ -144,7 +144,7 @@ class EmployeeManagementService:
             employee.is_active = False
             db.session.commit()
             return True
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             return False
 
@@ -160,7 +160,7 @@ class EmployeeManagementService:
 
             db.session.commit()
             return temp_password
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             return None
 
@@ -169,7 +169,7 @@ class EmployeeManagementService:
         try:
             result = self.auth_service.disable_2fa(employee_id)
             return result.get('success', False)
-        except Exception as e:
+        except Exception:
             return False
 
     def get_employee_activity(self, employee_id: int, days: int = 7) -> List[Dict]:

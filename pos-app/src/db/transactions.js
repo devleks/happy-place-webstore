@@ -3,7 +3,7 @@
  * Ported from electron/database.js transaction functions
  */
 
-import { transactions, transaction_items, products } from './schema';
+import { db, transactions, transaction_items, products } from './schema';
 
 /**
  * Create a new transaction
@@ -24,7 +24,7 @@ export async function createTransaction(transactionData) {
       total: transactionData.total || 0,
       payment_method: transactionData.payment_method, // 'cash', 'card', 'mpesa'
       payment_reference: transactionData.payment_reference || null,
-      amount_paid: transactionData.amount_paid || 0,
+      amount_paid: transactionData.amount_paid ?? transactionData.cash_tendered ?? 0,
       change_given: transactionData.change_given || 0,
       notes: transactionData.notes || null,
       synced: false,
@@ -40,12 +40,13 @@ export async function createTransaction(transactionData) {
       const itemsToInsert = transactionData.items.map(item => ({
         transaction_id: transactionId,
         product_id: item.product_id,
+        variant_id: item.variant_id,
         sku: item.sku,
         product_name: item.product_name,
         quantity: item.quantity,
         unit_price: item.unit_price,
         discount: item.discount || 0,
-        total_price: item.total_price,
+        total_price: item.total_price ?? item.total ?? (item.unit_price * item.quantity),
         created_at: new Date().toISOString()
       }));
 
@@ -55,8 +56,23 @@ export async function createTransaction(transactionData) {
       for (const item of transactionData.items) {
         const product = await products.get(item.product_id);
         if (product) {
+          const newQuantity = (product.quantity ?? 0) - item.quantity;
+
+          let variants = product.variants;
+          if (Array.isArray(variants) && item.variant_id) {
+            variants = variants.map((v) => {
+              if (Number(v.id) !== Number(item.variant_id)) return v;
+              const current = parseInt(v.pos_stock ?? 0, 10) || 0;
+              return {
+                ...v,
+                pos_stock: Math.max(0, current - item.quantity)
+              };
+            });
+          }
+
           await products.update(item.product_id, {
-            quantity: product.quantity - item.quantity,
+            quantity: Math.max(0, newQuantity),
+            variants,
             updated_at: new Date().toISOString()
           });
         }
@@ -225,9 +241,12 @@ export async function getDailySalesSummary(date) {
  */
 export async function getUnsyncedTransactions() {
   try {
+    if (!db.isOpen()) {
+      await db.open();
+    }
     const unsynced = await transactions
-      .where('synced')
-      .equals(false)
+      .toCollection()
+      .filter((t) => t.synced === false || t.synced === 0 || !t.synced)
       .toArray();
 
     // Fetch items for each transaction

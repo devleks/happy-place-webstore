@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { shiftAPI, transactionAPI } from '../../services/electronAPI';
+import { shiftAPI, transactionAPI } from '../../services/pwaAPI';
 import '../../styles/POSDashboard.css';
 
 const POSDashboard = () => {
@@ -30,7 +30,7 @@ const POSDashboard = () => {
   const checkCurrentShift = async (employeeId) => {
     try {
       // Use PWA API - works offline with IndexedDB
-      const shift = await shiftAPI.getCurrent();
+      const shift = await shiftAPI.getCurrent(employeeId);
 
       if (shift) {
         setCurrentShift(shift);

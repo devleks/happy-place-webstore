@@ -27,7 +27,7 @@ const AdminEmployees = () => {
   useEffect(() => {
     // Only admins can manage employees
     if (!user || user.role !== 'admin') {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 

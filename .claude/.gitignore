@@ -1,0 +1,7 @@
+
+# Claude Code Session Continuity System
+.claude/session.log
+.claude/temp/
+.claude/*.tmp
+.claude/backups/*.md
+.claude/.DS_Store

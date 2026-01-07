@@ -1,0 +1,173 @@
+                                                                   QUERY PLAN                                                                    
+-------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1.03..1.04 rows=1 width=204) (actual time=0.139..0.141 rows=1.00 loops=1)
+   Output: id, order_number, total, created_at, status
+   Buffers: shared hit=4
+   ->  Sort  (cost=1.03..1.04 rows=1 width=204) (actual time=0.137..0.138 rows=1.00 loops=1)
+         Output: id, order_number, total, created_at, status
+         Sort Key: o.created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=4
+         ->  Seq Scan on public.orders o  (cost=0.00..1.02 rows=1 width=204) (actual time=0.060..0.061 rows=1.00 loops=1)
+               Output: id, order_number, total, created_at, status
+               Filter: (((o.status)::text = ANY ('{pending,processing,completed}'::text[])) AND (o.created_at >= (now() - '30 days'::interval)))
+               Rows Removed by Filter: 1
+               Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=181
+ Planning Time: 3.100 ms
+ Execution Time: 0.295 ms
+(17 rows)
+
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:41: ERROR:  column ci.price does not exist
+LINE 5:        AVG(ci.price) AS avg_price
+                   ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:56: ERROR:  column p.inventory_count does not exist
+LINE 6:        p.inventory_count,
+               ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:68: ERROR:  relation "users" does not exist
+LINE 7: FROM users u
+             ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:83: ERROR:  relation "users" does not exist
+LINE 8: JOIN users u ON o.user_id = u.id
+             ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:102: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:116: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:128: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+ schemaname | tablename | live_rows | dead_rows | dead_pct | last_vacuum | last_autovacuum | table_size 
+------------+-----------+-----------+-----------+----------+-------------+-----------------+------------
+(0 rows)
+
+ schemaname | tablename | n_live_tup | modifications_since_analyze | last_analyze | last_autoanalyze | mod_pct 
+------------+-----------+------------+-----------------------------+--------------+------------------+---------
+(0 rows)
+
+ schemaname |       tablename        | total_size | table_size | indexes_size | toast_size 
+------------+------------------------+------------+------------+--------------+------------
+ public     | inventory_movements    | 160 kB     | 16 kB      | 144 kB       | 0 bytes
+ public     | pos_shifts             | 112 kB     | 16 kB      | 96 kB        | 0 bytes
+ public     | pos_transactions       | 88 kB      | 16 kB      | 72 kB        | 0 bytes
+ public     | order_audit_log        | 80 kB      | 16 kB      | 64 kB        | 0 bytes
+ public     | refresh_tokens         | 80 kB      | 48 kB      | 32 kB        | 0 bytes
+ public     | products               | 64 kB      | 16 kB      | 48 kB        | 0 bytes
+ public     | categories             | 64 kB      | 16 kB      | 48 kB        | 0 bytes
+ public     | orders                 | 64 kB      | 16 kB      | 48 kB        | 0 bytes
+ public     | auth_audit_log         | 64 kB      | 48 kB      | 16 kB        | 0 bytes
+ public     | product_variants       | 56 kB      | 8192 bytes | 48 kB        | 0 bytes
+ public     | inventory_reservations | 56 kB      | 8192 bytes | 48 kB        | 0 bytes
+ public     | customers              | 48 kB      | 16 kB      | 32 kB        | 0 bytes
+ public     | payments               | 48 kB      | 16 kB      | 32 kB        | 0 bytes
+ public     | employees              | 48 kB      | 16 kB      | 32 kB        | 0 bytes
+ public     | promotions             | 48 kB      | 16 kB      | 32 kB        | 0 bytes
+ public     | carts                  | 40 kB      | 8192 bytes | 32 kB        | 0 bytes
+ public     | inventory              | 40 kB      | 8192 bytes | 32 kB        | 0 bytes
+ public     | wishlists              | 40 kB      | 8192 bytes | 32 kB        | 0 bytes
+ public     | payment_callback_log   | 32 kB      | 8192 bytes | 24 kB        | 0 bytes
+ public     | order_assignments      | 32 kB      | 16 kB      | 16 kB        | 0 bytes
+(20 rows)
+
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:210: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+ table_schema |       table_name       |    column_name     | foreign_table_name | foreign_column_name 
+--------------+------------------------+--------------------+--------------------+---------------------
+ public       | activity_logs          | customer_id        | customers          | id
+ public       | activity_logs          | employee_id        | employees          | id
+ public       | cart_items             | cart_id            | carts              | id
+ public       | cart_items             | variant_id         | product_variants   | id
+ public       | carts                  | customer_id        | customers          | id
+ public       | categories             | parent_id          | categories         | id
+ public       | category_closure       | ancestor_id        | categories         | id
+ public       | category_closure       | descendant_id      | categories         | id
+ public       | customer_addresses     | customer_id        | customers          | id
+ public       | data_access_log        | customer_id        | customers          | id
+ public       | data_access_log        | employee_id        | employees          | id
+ public       | employee_sessions      | employee_id        | employees          | id
+ public       | gdpr_consent_log       | customer_id        | customers          | id
+ public       | gdpr_data_requests     | customer_id        | customers          | id
+ public       | inventory              | variant_id         | product_variants   | id
+ public       | inventory_movements    | customer_id        | customers          | id
+ public       | inventory_movements    | performed_by       | employees          | id
+ public       | inventory_movements    | variant_id         | product_variants   | id
+ public       | inventory_reservations | customer_id        | customers          | id
+ public       | inventory_reservations | employee_id        | employees          | id
+ public       | inventory_reservations | order_id           | orders             | id
+ public       | inventory_reservations | variant_id         | product_variants   | id
+ public       | order_assignments      | assigned_by        | employees          | id
+ public       | order_assignments      | assigned_to        | employees          | id
+ public       | order_assignments      | order_id           | orders             | id
+ public       | order_audit_log        | order_id           | orders             | id
+ public       | order_items            | order_id           | orders             | id
+ public       | order_items            | product_id         | products           | id
+ public       | order_items            | variant_id         | product_variants   | id
+ public       | order_promotions       | order_id           | orders             | id
+ public       | order_promotions       | promotion_id       | promotions         | id
+ public       | orders                 | customer_id        | customers          | id
+ public       | orders                 | shipping_method_id | shipping_methods   | id
+ public       | payment_callback_log   | order_id           | orders             | id
+ public       | payments               | order_id           | orders             | id
+ public       | pos_cash_movements     | performed_by       | employees          | id
+ public       | pos_cash_movements     | shift_id           | pos_shifts         | id
+ public       | pos_shifts             | employee_id        | employees          | id
+ public       | pos_shifts             | store_location_id  | store_locations    | id
+ public       | pos_transaction_items  | inventory_id       | inventory          | id
+ public       | pos_transaction_items  | product_id         | products           | id
+ public       | pos_transaction_items  | transaction_id     | pos_transactions   | id
+ public       | pos_transactions       | customer_id        | customers          | id
+ public       | pos_transactions       | employee_id        | employees          | id
+ public       | pos_transactions       | shift_id           | pos_shifts         | id
+ public       | pos_transactions       | store_location_id  | store_locations    | id
+ public       | pos_transactions       | voided_by          | employees          | id
+ public       | product_images         | product_id         | products           | id
+ public       | product_variants       | product_id         | products           | id
+ public       | products               | category_id        | categories         | id
+ public       | promotions             | category_id        | categories         | id
+ public       | promotions             | product_id         | products           | id
+ public       | return_items           | order_item_id      | order_items        | id
+ public       | return_items           | restocked_by       | employees          | id
+ public       | return_items           | return_id          | returns            | id
+ public       | return_items           | variant_id         | product_variants   | id
+ public       | returns                | approved_by        | employees          | id
+ public       | returns                | customer_id        | customers          | id
+ public       | returns                | order_id           | orders             | id
+ public       | returns                | processed_by       | employees          | id
+ public       | reviews                | customer_id        | customers          | id
+ public       | reviews                | product_id         | products           | id
+ public       | role_permissions       | granted_by         | employees          | id
+ public       | role_permissions       | permission_id      | permissions        | id
+ public       | shipment_updates       | created_by         | employees          | id
+ public       | shipment_updates       | order_id           | orders             | id
+ public       | system_settings        | updated_by         | employees          | id
+ public       | wishlist_items         | product_id         | products           | id
+ public       | wishlist_items         | wishlist_id        | wishlists          | id
+ public       | wishlists              | customer_id        | customers          | id
+(70 rows)
+
+ pid | usename | application_name | client_addr | state | query_start | duration | current_query 
+-----+---------+------------------+-------------+-------+-------------+----------+---------------
+(0 rows)
+
+ blocked_pid | blocked_user | blocking_pid | blocking_user | blocked_statement | blocking_statement 
+-------------+--------------+--------------+---------------+-------------------+--------------------
+(0 rows)
+
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:289: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+psql:/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/ci_workflows/helpers/schemasage_explain.sql:300: ERROR:  column "tablename" does not exist
+LINE 2:        tablename,
+               ^
+   action   | count |           reason           
+------------+-------+----------------------------
+ VACUUM     |     0 | High dead tuple count
+ ANALYZE    |     0 | Stale statistics
+ DROP INDEX |    40 | Unused indexes
+ ADD INDEX  |     0 | High sequential scan ratio
+(4 rows)
+

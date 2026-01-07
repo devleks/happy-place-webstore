@@ -12,10 +12,9 @@ Business Rules:
 from flask import request, jsonify
 from datetime import datetime, timedelta
 from routes import api
-from models import db, Order, OrderItem, Return, ReturnItem, Product, ProductVariant
+from models import db, Order, OrderItem, Return, ReturnItem
 from middleware import customer_required, manager_required
 from logging_utils import get_logger, safe_auth_context
-from flask_jwt_extended import get_jwt_identity
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -234,7 +233,7 @@ def create_return_request(current_customer):
             'instructions': 'Please ship items to: Happy Place Boutique, Store No. 22, 1st Floor, Bethel Business Centre, Langata Rd, Nairobi'
         }), 201
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Create return request failed",
@@ -377,7 +376,7 @@ def update_return_status(current_employee, return_id):
             'message': 'Return status updated successfully'
         }), 200
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         logger.error(
             "Update return status failed",

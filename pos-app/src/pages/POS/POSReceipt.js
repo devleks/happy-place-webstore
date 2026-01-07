@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import * as db from '../../db';
 import '../../styles/POSReceipt.css';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5001';
 
 const POSReceipt = () => {
   const [transaction, setTransaction] = useState(null);
@@ -10,18 +13,45 @@ const POSReceipt = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('employee_token');
-    if (!token) {
-      navigate('/pos/login');
-      return;
-    }
+    (async () => {
+      setLoading(true);
+      setError('');
 
-    loadTransactionReceipt(token);
-  }, [transactionId, navigate]);
+      const numericId = Number(transactionId);
+      const canUseLocal = Number.isFinite(numericId) && numericId > 0;
+
+      if (canUseLocal) {
+        const localTxn = await db.getTransaction(numericId);
+        if (localTxn) {
+          const shift = await db.getShift(localTxn.shift_id);
+          setTransaction({
+            ...localTxn,
+            transaction_number:
+              localTxn.transaction_number ||
+              (localTxn.backend_transaction_id ? String(localTxn.backend_transaction_id) : null) ||
+              `LOCAL-${localTxn.id}`,
+            shift_number: localTxn.shift_number || shift?.shift_number || null,
+            cash_tendered: localTxn.cash_tendered ?? localTxn.amount_paid ?? null
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      const syncToken = await db.getMetadata('sync_token');
+      if (!syncToken) {
+        setError('Receipt not found');
+        setLoading(false);
+        return;
+      }
+
+      await loadTransactionReceipt(syncToken);
+    })();
+  }, [navigate, transactionId]);
 
   const loadTransactionReceipt = async (token) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5001/api/pos/transactions/${transactionId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/pos/transactions/${transactionId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -30,7 +60,7 @@ const POSReceipt = () => {
       if (response.ok && data.success) {
         setTransaction(data.transaction);
       } else {
-        setError('Failed to load receipt');
+        setError(data?.error || 'Failed to load receipt');
       }
     } catch (err) {
       console.error('Error loading receipt:', err);
@@ -49,7 +79,7 @@ const POSReceipt = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate('/pos/dashboard');
+    navigate('/dashboard');
   };
 
   const formatCurrency = (amount) => {
@@ -91,7 +121,7 @@ const POSReceipt = () => {
     );
   }
 
-  const { date, time } = formatDateTime(transaction.transaction_time);
+  const { date, time } = formatDateTime(transaction.created_at);
 
   return (
     <div className="pos-receipt-page">
@@ -159,7 +189,7 @@ const POSReceipt = () => {
               </div>
               <div className="info-item">
                 <span className="info-label">Shift #:</span>
-                <span className="info-value">{transaction.shift_number}</span>
+                <span className="info-value">{transaction.shift_number || '-'}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Cashier:</span>
@@ -196,7 +226,7 @@ const POSReceipt = () => {
                     </td>
                     <td className="text-center item-quantity">{item.quantity}</td>
                     <td className="text-right item-price">{formatCurrency(item.unit_price)}</td>
-                    <td className="text-right item-total">{formatCurrency(item.subtotal)}</td>
+                    <td className="text-right item-total">{formatCurrency(item.total_price)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -214,18 +244,18 @@ const POSReceipt = () => {
               </div>
               <div className="total-row">
                 <span>VAT (16%):</span>
-                <span>{formatCurrency(transaction.tax_amount)}</span>
+                <span>{formatCurrency(transaction.tax)}</span>
               </div>
               <div className="total-row grand-total">
                 <span>TOTAL:</span>
-                <span>{formatCurrency(transaction.total_amount)}</span>
+                <span>{formatCurrency(transaction.total)}</span>
               </div>
 
               {transaction.payment_method === 'cash' && (
                 <>
                   <div className="total-row payment-detail">
                     <span>Cash Tendered:</span>
-                    <span>{formatCurrency(transaction.cash_tendered)}</span>
+                    <span>{formatCurrency(transaction.cash_tendered ?? transaction.amount_paid ?? 0)}</span>
                   </div>
                   <div className="total-row payment-detail change">
                     <span>Change:</span>

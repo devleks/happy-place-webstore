@@ -7,7 +7,7 @@ from flask import request, jsonify
 from sqlalchemy import and_
 from routes import api
 from models import db, Category, CategoryClosure, Product
-from logging_utils import get_logger, safe_auth_context
+from logging_utils import get_logger
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -32,7 +32,7 @@ def get_category_tree():
                 CategoryClosure.ancestor_id == category.id,
                 CategoryClosure.depth == 1
             )
-        ).filter(Category.is_active == True).all()
+        ).filter(Category.is_active.is_(True)).all()
 
         return {
             'id': category.id,
@@ -72,7 +72,7 @@ def get_category_descendants(category_id):
             CategoryClosure.ancestor_id == category_id,
             CategoryClosure.depth > 0  # Exclude self
         )
-    ).filter(Category.is_active == True).all()
+    ).filter(Category.is_active.is_(True)).all()
 
     return jsonify({
         'category_id': category.id,
@@ -134,7 +134,7 @@ def get_category_products(category_id):
         # Query products from all categories
         products_query = Product.query.filter(
             Product.category_id.in_(category_ids),
-            Product.is_active == True
+            Product.is_active.is_(True)
         )
     else:
         # Query products from this category only

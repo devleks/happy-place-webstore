@@ -4,11 +4,11 @@ Provides metrics, analytics, and alerts for the admin dashboard
 """
 
 from datetime import datetime, timedelta, date
-from typing import Dict, List, Optional
-from sqlalchemy import func, and_, or_, case
+from typing import Dict, List
+from sqlalchemy import func, and_, case
 from models.database_models import (
-    db, Order, POSTransaction, Customer, Employee, Product, Inventory,
-    ActivityLog, AuthAuditLog
+    db, Order, POSTransaction, Customer, Product, Inventory,
+    ActivityLog
 )
 from models.extended_models import ProductVariant
 from decimal import Decimal
@@ -153,8 +153,8 @@ class AdminDashboardService:
                     'employee_id': log.employee_id,
                     'employee_name': log.employee.full_name if log.employee else 'System'
                 })
-        except:
-            pass  # ActivityLog table might not exist yet
+        except Exception:
+            activities.extend([])
 
         # Sort all activities by timestamp
         activities.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
@@ -188,7 +188,7 @@ class AdminDashboardService:
          .filter(
              and_(
                  (Inventory.quantity - Inventory.reserved_quantity) <= 0,
-                 Product.is_active == True
+                 Product.is_active.is_(True)
              )
          ).all()
 
@@ -216,7 +216,7 @@ class AdminDashboardService:
              and_(
                  (Inventory.quantity - Inventory.reserved_quantity) > 0,
                  (Inventory.quantity - Inventory.reserved_quantity) < 10,
-                 Product.is_active == True
+                 Product.is_active.is_(True)
              )
          ).all()
 
@@ -493,7 +493,7 @@ class AdminDashboardService:
             .filter(
                 and_(
                     (Inventory.quantity - Inventory.reserved_quantity) <= 0,
-                    Product.is_active == True
+                    Product.is_active.is_(True)
                 )
             ).count()
 
@@ -505,13 +505,13 @@ class AdminDashboardService:
                 and_(
                     (Inventory.quantity - Inventory.reserved_quantity) > 0,
                     (Inventory.quantity - Inventory.reserved_quantity) < 10,
-                    Product.is_active == True
+                    Product.is_active.is_(True)
                 )
             ).count()
 
         # Total active products
         total_products = Product.query\
-            .filter(Product.is_active == True)\
+            .filter(Product.is_active.is_(True))\
             .count()
 
         return {

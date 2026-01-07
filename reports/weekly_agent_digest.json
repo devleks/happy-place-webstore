@@ -1,0 +1,78 @@
+{
+  "generated_at": "2025-12-20 16:01:44 UTC",
+  "platform": "Darwin",
+  "agents": {
+    "lintguard": {
+  "agent": "LintGuard",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T15:59:07Z",
+  "execution_time_seconds": 227,
+  "artifacts": {
+    "ruff": "reports/lintguard_ruff.json",
+    "bandit": "reports/lintguard_bandit.json",
+    "eslint": "reports/lintguard_eslint.json"
+  },
+  "summary": {
+    "ruff_issues": 331,
+    "bandit_issues": 7200,
+    "eslint_issues": 0,
+    "total_issues": 7531
+  },
+  "notes": [
+    "Review Ruff + Bandit JSON for rule-level detail",
+    "ESLint report stores all frontend findings with rule metadata",
+    "Cache enabled for faster subsequent runs"
+  ]
+},
+    "schemasage": {
+      "status": "✓ available"
+    },
+    "perfsmith": {
+  "agent": "PerfSmith",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T15:59:38Z",
+  "execution_time_seconds": 31,
+  "artifacts": {
+    "hotspots": "reports/perfsmith_hotspots.md",
+    "bundle": "reports/perfsmith_bundle.json"
+  },
+  "recommendations": [
+    "Consider refactoring 20 large files"
+  ]
+},
+    "shieldprobe": {
+  "agent": "ShieldProbe",
+  "version": "2.0-macos",
+  "generated_at": "2025-12-20T16:00:28Z",
+  "execution_time_seconds": 50,
+  "risk_level": "low",
+  "artifacts": {
+    "pip_audit": "reports/shieldprobe_backend.json",
+    "npm_audit": "reports/shieldprobe_frontend.json",
+    "secrets_scan": "reports/shieldprobe_secrets.txt",
+    "encryption": "reports/shieldprobe_encryption.log",
+    "shipping_smoke": "reports/shieldprobe_shipping.log"
+  },
+  "vulnerabilities": {
+    "total": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "next_steps": [
+    "Patch vulnerable packages listed in pip/npm audits",
+    "Review potential secrets in secrets scan report",
+    "Verify encryption logs for assertion failures",
+    "Confirm shipping/auth endpoints reject unauthorized requests"
+  ]
+}
+  },
+  "summary": {
+    "total_lint_issues": 7531,
+    "total_vulnerabilities": 0,
+    "critical_vulnerabilities": 0,
+    "high_vulnerabilities": 0,
+    "risk_level": "low"
+  }
+}

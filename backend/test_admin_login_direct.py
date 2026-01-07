@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
-from models import db, Employee
+from models import Employee
 from werkzeug.security import check_password_hash
 
 def test_admin_credentials():
@@ -19,7 +19,7 @@ def test_admin_credentials():
             print("❌ Admin user not found")
             return False
             
-        print(f"✅ Admin user found:")
+        print("✅ Admin user found:")
         print(f"   ID: {admin.id}")
         print(f"   Email: {admin.email}")
         print(f"   Full Name: {admin.full_name}")

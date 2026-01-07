@@ -16,7 +16,7 @@ export async function syncEmployeesFromBackend(authToken) {
   try {
     console.log('🔄 Syncing employees from backend...');
 
-    const response = await fetch(`${API_BASE_URL}/api/admin/employees`, {
+    const response = await fetch(`${API_BASE_URL}/api/employees/sync`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${authToken}`,
@@ -47,7 +47,7 @@ export async function syncEmployeesFromBackend(authToken) {
           await db.updateEmployee(existing.id, {
             full_name: emp.full_name,
             role: emp.role,
-            active: emp.active,
+            active: emp.is_active,
             pin: emp.pin || existing.pin
           });
           updatedCount++;
@@ -59,7 +59,7 @@ export async function syncEmployeesFromBackend(authToken) {
             full_name: emp.full_name,
             role: emp.role,
             pin: emp.pin || null,
-            active: emp.active
+            active: emp.is_active
           });
           syncedCount++;
         }
@@ -118,7 +118,7 @@ export async function syncProductsFromBackend(authToken) {
     }
 
     const data = await response.json();
-    const products = data.products || [];
+    const products = data.items || data.products || [];
 
     console.log(`📥 Received ${products.length} products from backend`);
 
@@ -132,17 +132,29 @@ export async function syncProductsFromBackend(authToken) {
         const existing = await db.getProductBySku(product.sku);
 
         const productData = {
+          // Backend inventory endpoint returns item-like records.
+          // Normalize to POS product format expected by POSNewSale.
           sku: product.sku,
           barcode: product.barcode || null,
-          name: product.name,
-          description: product.description,
-          category: product.category,
-          price: parseFloat(product.price),
+          name: product.product_name || product.name,
+          description: product.description || null,
+          category: product.category || null,
+          price: parseFloat(product.price || 0),
           cost: parseFloat(product.cost || 0),
-          quantity: parseInt(product.quantity || 0),
-          reorder_level: parseInt(product.reorder_level || 10),
-          active: product.active !== false,
-          image_url: product.image_url || null
+          quantity: parseInt(product.stock ?? product.quantity ?? 0, 10),
+          reorder_level: parseInt(product.reorder_level || 10, 10),
+          active: (product.status ? product.status === 'active' : (product.active !== false)),
+          image_url: product.image_url || null,
+          variants: [
+            {
+              id: product.variant_id,
+              sku: product.sku,
+              size: product.size || 'One Size',
+              color: product.color || 'Default',
+              price: parseFloat(product.price || 0),
+              pos_stock: parseInt(product.available ?? product.available_stock ?? product.stock ?? 0, 10)
+            }
+          ]
         };
 
         if (existing) {

@@ -106,7 +106,7 @@ def init_monitoring(app):
         Expose application metrics for DataDog agent
         """
         try:
-            from models import db, Customer, Product, Order, Employee
+            from models import Customer, Product, Order, Employee
             from sqlalchemy import func
             
             with app.app_context():
@@ -200,8 +200,8 @@ def monitor_performance(operation_name):
                             f'Custom/{operation_name}/Duration',
                             duration
                         )
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"New Relic metric recording failed: {e}")
                 
                 # Send to DataDog
                 if DATADOG_ENABLED:
@@ -212,8 +212,8 @@ def monitor_performance(operation_name):
                             duration,
                             tags=[f'operation:{operation_name}']
                         )
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"DataDog metric recording failed: {e}")
                 
                 return result
                 
@@ -236,8 +236,8 @@ def monitor_performance(operation_name):
                     try:
                         import newrelic.agent
                         newrelic.agent.record_exception()
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"New Relic exception recording failed: {e}")
                 
                 raise
         
@@ -277,8 +277,8 @@ def log_slow_queries(app):
                     import newrelic.agent
                     newrelic.agent.record_custom_metric('Database/SlowQueryCount', 1)
                     newrelic.agent.record_custom_metric('Database/SlowQueryDuration', total)
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"New Relic slow query metric recording failed: {e}")
 
 
 # Error tracking
@@ -298,8 +298,8 @@ def track_error(error, extra_context=None):
             if extra_context:
                 for key, value in extra_context.items():
                     newrelic.agent.add_custom_parameter(key, value)
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"New Relic error tracking failed: {e}")
     
     if DATADOG_ENABLED:
         try:
@@ -308,8 +308,8 @@ def track_error(error, extra_context=None):
             if span and extra_context:
                 for key, value in extra_context.items():
                     span.set_tag(key, value)
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"DataDog error tracking failed: {e}")
 
 
 # Custom event tracking
@@ -326,8 +326,8 @@ def track_event(event_name, properties=None):
         try:
             import newrelic.agent
             newrelic.agent.record_custom_event(event_name, properties or {})
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"New Relic event tracking failed: {e}")
     
     if DATADOG_ENABLED:
         try:
@@ -336,5 +336,5 @@ def track_event(event_name, properties=None):
                 f'happy_place.event.{event_name}',
                 tags=[f'{k}:{v}' for k, v in (properties or {}).items()]
             )
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"DataDog event tracking failed: {e}")

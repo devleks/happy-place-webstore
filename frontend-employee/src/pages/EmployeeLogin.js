@@ -12,9 +12,8 @@ const EmployeeLogin = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [tempAuthData, setTempAuthData] = useState(null);
 
-  const { loginEmployee } = useAuth();
+  const { loginEmployee, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -37,7 +36,6 @@ const EmployeeLogin = () => {
 
       // Check if 2FA is required
       if (response.requires_2fa) {
-        setTempAuthData(response);
         setStep(2);
       } else {
         // No 2FA required, redirect based on role
@@ -75,16 +73,15 @@ const EmployeeLogin = () => {
     // Redirect based on employee role
     const role = employee.role.toLowerCase();
     
-    if (role === 'admin' || role === 'manager') {
-      // Admins and managers should use the Admin Portal
-      alert('Please use the Admin Portal at http://localhost:3001 to login.');
-      setError('Admins and managers should use the Admin Portal.');
+    if (role === 'admin') {
+      logout();
+      setError('Admin accounts should use the Admin Portal.');
       return;
     } else if (role === 'packer') {
       navigate('/packing');
     } else if (role === 'shipper') {
       navigate('/shipping');
-    } else if (role === 'cashier' || role === 'staff') {
+    } else if (role === 'cashier' || role === 'staff' || role === 'manager') {
       // Cashiers use POS system, staff use general dashboard
       navigate('/dashboard');
     } else {
@@ -99,7 +96,7 @@ const EmployeeLogin = () => {
       <div className="auth-page">
         <div className="auth-container">
           <h1 className="auth-title">Employee Login</h1>
-          <p className="auth-subtitle">Sign in to access the admin dashboard</p>
+          <p className="auth-subtitle">Sign in to access the employee dashboard</p>
 
           {error && <div className="error-message">{error}</div>}
 

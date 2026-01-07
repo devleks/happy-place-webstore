@@ -1,33 +1,51 @@
-# PerfSmith Hotspots
-Generated: 2025-11-26 07:09:06 UTC
+# PerfSmith Code Hotspot Analysis
+**Generated:** 2025-12-20T15:59:07Z
 
-## Python Functions ≥ 60 lines
-| File | Function | Lines |
-| --- | --- | --- |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/seed_products_with_variants.py` | `seed_products_with_variants` | 412 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/seed.py` | `seed_database` | 217 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/scripts/seed_extended_data.py` | `seed_categories_with_closure` | 169 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/services/order_service.py` | `create_order` | 168 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/returns_api.py` | `create_return_request` | 146 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/auth.py` | `customer_register` | 109 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/orders.py` | `create_order` | 108 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/routes/promotions.py` | `validate_promotion` | 105 |
+## Backend Analysis
+### Large Python Files
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/idna/uts46data.py (8841 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/idna/uts46data.py (8841 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pip/_vendor/idna/uts46data.py (8681 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/pip/_vendor/idna/uts46data.py (8681 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/compiler.py (7655 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pip_api/_vendor/pyparsing.py (7107 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py (6934 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pyparsing/core.py (6730 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/pyparsing/core.py (6730 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/schema.py (6118 lines)
 
-## Largest Frontend Modules (by lines)
-| File | Lines |
-| --- | --- |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/Checkout.js` | 616 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/ProductDetail.js` | 424 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/OrderHistory.js` | 302 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/ReturnPolicy.js` | 292 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/OrderConfirmation.js` | 273 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/TermsOfService.js` | 272 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/pages/PrivacyPolicy.js` | 228 |
-| `/Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/frontend/src/services/api.js` | 219 |
+## Frontend Analysis
 
 ## Recommendations
-- Break down functions above 60 lines into smaller helpers.
-- Consider lazy loading or code splitting for the largest React modules.
-- Pair this report with runtime data via `RUN_PERF_BUILD=1 ci_workflows/agent_perfsmith.sh`.
+1. Break down files >500 lines into smaller modules
+2. Consider code-splitting for large React components
+3. Use React.lazy() for conditional components
+4. Profile runtime performance with browser DevTools
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/idna/uts46data.py (8841 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/idna/uts46data.py (8841 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pip/_vendor/idna/uts46data.py (8681 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/pip/_vendor/idna/uts46data.py (8681 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/compiler.py (7655 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pip_api/_vendor/pyparsing.py (7107 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/selectable.py (6934 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/pyparsing/core.py (6730 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv_broken_20251219_042353/lib/python3.11/site-packages/pyparsing/core.py (6730 lines)
+- /Users/xreatives/Documents/Code/cli_projects/happy_place_webstore/backend/venv/lib/python3.11/site-packages/sqlalchemy/sql/schema.py (6118 lines)
 
-> Bundle stats were skipped. Run with RUN_PERF_BUILD=1 for bundle size JSON.
+## Frontend Analysis
+
+## Recommendations
+1. Break down files >500 lines into smaller modules
+2. Consider code-splitting for large React components
+3. Use React.lazy() for conditional components
+4. Profile runtime performance with browser DevTools
+
+---
+
+## Bundle Analysis
+> Bundle analysis was skipped. Run with `RUN_PERF_BUILD=1` to generate bundle size report.
+
+To enable:
+```bash
+RUN_PERF_BUILD=1 ./ci_workflows/agent_perfsmith.sh
+```

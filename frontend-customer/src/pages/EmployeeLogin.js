@@ -12,7 +12,6 @@ const EmployeeLogin = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [tempAuthData, setTempAuthData] = useState(null);
 
   const { loginEmployee } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +36,6 @@ const EmployeeLogin = () => {
 
       // Check if 2FA is required
       if (response.requires_2fa) {
-        setTempAuthData(response);
         setStep(2);
       } else {
         // No 2FA required, redirect based on role

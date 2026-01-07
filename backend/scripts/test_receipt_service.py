@@ -104,7 +104,7 @@ def test_html_receipt():
         f.write(html)
 
     print(f"✅ HTML receipt saved to: {output_file}")
-    print(f"   Open in browser to view")
+    print("   Open in browser to view")
     print(f"   Length: {len(html)} characters")
 
 

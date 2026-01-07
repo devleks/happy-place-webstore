@@ -4,13 +4,12 @@ Handles product inventory, stock adjustments, and transfers
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
-from sqlalchemy import func, and_, or_, desc
+from typing import Dict, List
+from sqlalchemy import and_, or_, desc
 from models.database_models import (
     db, Product, Category, Inventory, ActivityLog
 )
 from models.extended_models import ProductVariant
-from decimal import Decimal
 
 
 class InventoryManagementService:
@@ -53,9 +52,9 @@ class InventoryManagementService:
 
         if filters.get('status'):
             if filters['status'] == 'active':
-                query = query.filter(Product.is_active == True)
+                query = query.filter(Product.is_active.is_(True))
             elif filters['status'] == 'inactive':
-                query = query.filter(Product.is_active == False)
+                query = query.filter(Product.is_active.is_(False))
 
         if filters.get('stock_level'):
             if filters['stock_level'] == 'out_of_stock':

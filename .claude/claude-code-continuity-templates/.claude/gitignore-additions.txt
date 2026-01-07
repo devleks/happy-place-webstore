@@ -1,0 +1,85 @@
+# ============================================================================
+# .gitignore additions for Claude Code Session Continuity System
+# ============================================================================
+# Add these lines to your project's .gitignore file
+# ============================================================================
+
+# ============================================================================
+# OPTION 1: Maximum Portability (RECOMMENDED)
+# ============================================================================
+# Commit state files to share context across machines/team members
+# This is ideal for solo developers or teams using Claude Code
+
+# Ignore temporary and log files only
+.claude/session.log
+.claude/temp/
+.claude/*.tmp
+.claude/backups/*.md
+
+# Keep these IN version control (don't ignore):
+# .claude/PROJECT_STATE.md         ← Your main state file
+# .claude/SESSION_PROMPT.md        ← Prompt templates
+# .claude/START_HERE.md            ← Quick reference
+# .claude/*.sh                     ← Session scripts
+
+# ============================================================================
+# OPTION 2: Keep State Local (Team with Different Workflows)
+# ============================================================================
+# Use this if team members use different tools or workflows
+# Uncomment these lines to keep state local:
+
+# .claude/PROJECT_STATE.md
+# .claude/session.log
+# .claude/temp/
+# .claude/backups/
+
+# Keep shared templates IN version control:
+# .claude/SESSION_PROMPT.md
+# .claude/START_HERE.md
+# .claude/*.sh
+
+# ============================================================================
+# OPTION 3: Full Privacy (Sensitive Projects)
+# ============================================================================
+# Use this if state might contain sensitive info
+# Uncomment to ignore entire .claude directory:
+
+# .claude/
+
+# Then manually track templates:
+# !.claude/SESSION_PROMPT.md
+# !.claude/START_HERE.md
+# !.claude/*.sh
+# !.claude/README.md
+
+# ============================================================================
+# Additional Recommendations
+# ============================================================================
+
+# If you use environment-specific configs in state
+.claude/.env
+.claude/secrets/
+
+# If you generate large diagnostic outputs
+.claude/debug/
+.claude/*.log
+
+# macOS
+.claude/.DS_Store
+
+# Editor files
+.claude/.vscode/
+.claude/.idea/
+
+# ============================================================================
+# CURRENT RECOMMENDATION
+# ============================================================================
+# Based on your use case (solo dev, resuming sessions across rate limits),
+# use OPTION 1 - commit PROJECT_STATE.md so it's available everywhere
+
+# Add these to your .gitignore:
+.claude/session.log
+.claude/temp/
+.claude/*.tmp
+.claude/backups/*.md
+.claude/.DS_Store

@@ -6,7 +6,7 @@ Handles promotion management, validation, and analytics
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from sqlalchemy import func, and_, or_, desc
-from models.database_models import db, Order, POSTransaction, Customer
+from models.database_models import db, Order, Customer
 from models.extended_models import Promotion, OrderPromotion
 from decimal import Decimal
 
@@ -36,7 +36,7 @@ class PromotionService:
             if filters['status'] == 'active':
                 query = query.filter(
                     and_(
-                        Promotion.is_active == True,
+                        Promotion.is_active.is_(True),
                         Promotion.start_date <= now,
                         Promotion.end_date >= now
                     )
@@ -46,7 +46,7 @@ class PromotionService:
             elif filters['status'] == 'upcoming':
                 query = query.filter(Promotion.start_date > now)
             elif filters['status'] == 'inactive':
-                query = query.filter(Promotion.is_active == False)
+                query = query.filter(Promotion.is_active.is_(False))
 
         if filters.get('search'):
             search_term = f"%{filters['search']}%"

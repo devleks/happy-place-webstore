@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
@@ -17,30 +17,12 @@ import OrderHistory from './pages/OrderHistory';
 import TrackOrder from './pages/TrackOrder';
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerDashboard from './pages/CustomerDashboard';
-import EmployeeLogin from './pages/EmployeeLogin';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import StoreLocation from './pages/StoreLocation';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ReturnPolicy from './pages/ReturnPolicy';
-import POSLogin from './pages/POS/POSLogin';
-import POSDashboard from './pages/POS/POSDashboard';
-import POSNewSale from './pages/POS/POSNewSale';
-import POSReceipt from './pages/POS/POSReceipt';
-import POSCloseShift from './pages/POS/POSCloseShift';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminLayout from './components/admin/AdminLayout';
-import ProtectedAdminRoute from './components/ProtectedAdminRoute';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminInventory from './pages/admin/AdminInventory';
-import AddProduct from './pages/admin/AddProduct';
-import AdminOrders from './pages/admin/AdminOrders';
-import AdminCustomers from './pages/admin/AdminCustomers';
-import AdminEmployees from './pages/admin/AdminEmployees';
-import AdminPromotions from './pages/admin/AdminPromotions';
-import AdminReports from './pages/admin/AdminReports';
-import AdminSettings from './pages/admin/AdminSettings';
 import './styles/App.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -76,35 +58,6 @@ function App() {
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
                       <Route path="/return-policy" element={<ReturnPolicy />} />
-                    </Route>
-
-                    {/* Employee Login - No Header/Footer */}
-                    <Route path="/employee/login" element={<EmployeeLogin />} />
-
-                    {/* POS Routes - No Header/Footer */}
-                    <Route path="/pos/login" element={<POSLogin />} />
-                    <Route path="/pos/dashboard" element={<POSDashboard />} />
-                    <Route path="/pos/sale" element={<POSNewSale />} />
-                    <Route path="/pos/receipt/:transactionId" element={<POSReceipt />} />
-                    <Route path="/pos/close-shift" element={<POSCloseShift />} />
-
-                    {/* Admin Routes - Separate AdminLayout with own header/sidebar */}
-                    <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route path="/admin" element={
-                      <ProtectedAdminRoute>
-                        <AdminLayout />
-                      </ProtectedAdminRoute>
-                    }>
-                      <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                      <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="inventory" element={<AdminInventory />} />
-                      <Route path="inventory/add" element={<AddProduct />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="customers" element={<AdminCustomers />} />
-                      <Route path="employees" element={<AdminEmployees />} />
-                      <Route path="promotions" element={<AdminPromotions />} />
-                      <Route path="reports" element={<AdminReports />} />
-                      <Route path="settings" element={<AdminSettings />} />
                     </Route>
                   </Routes>
               </div>
